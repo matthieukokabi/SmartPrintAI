@@ -9,9 +9,20 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1001.0",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^7.4.2",
+    "@stripe/stripe-js": "^8.9.0",
+    "@tanstack/react-query": "^5.90.21",
+    "bullmq": "^5.70.1",
+    "ioredis": "^5.10.0",
     "next": "16.1.6",
+    "prisma": "^7.4.2",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "resend": "^6.9.3",
+    "stripe": "^20.4.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
