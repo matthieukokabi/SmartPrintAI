@@ -5,9 +5,8 @@ class PrintfulClient {
 
     constructor() {
         this.headers = {
-            Authorization: `Bearer ${process.env.PRINTFUL_API_KEY}`,
+            'Authorization': `Bearer ${process.env.PRINTFUL_API_KEY}`,
             'Content-Type': 'application/json',
-            'X-PF-Store-Id': process.env.PRINTFUL_STORE_ID || '',
         }
     }
 
@@ -15,7 +14,7 @@ class PrintfulClient {
         const res = await fetch(`${PRINTFUL_BASE}${path}`, { headers: this.headers })
         if (!res.ok) throw new Error(`Printful API error: ${res.status} ${await res.text()}`)
         const data = await res.json()
-        return data.result ?? data.data ?? data
+        return data.result
     }
 
     async post<T>(path: string, body: unknown): Promise<T> {
@@ -26,68 +25,37 @@ class PrintfulClient {
         })
         if (!res.ok) throw new Error(`Printful API error: ${res.status} ${await res.text()}`)
         const data = await res.json()
-        return data.result ?? data.data ?? data
+        return data.result
     }
 
-    // V2: Create mockup generation task
-    async createMockupTask(params: {
-        productId: number
-        variantIds: number[]
+    async generateMockup(params: {
+        productVariantId: number
         imageUrl: string
         placement?: string
     }) {
-        return this.post<{ task_key: string; status: string }>(
-            '/v2/mockup-generator/tasks',
+        return this.post<{ mockups: Array<{ mockup_url: string }> }>(
+            `/mockup-generator/create-task/${params.productVariantId}`,
             {
-                product_id: params.productId,
-                variant_ids: params.variantIds,
+                variant_ids: [params.productVariantId],
                 format: 'jpg',
-                designs: [
+                files: [
                     {
                         placement: params.placement || 'front',
                         image_url: params.imageUrl,
-                        type: 'image/png',
+                        position: {
+                            area_width: 1800,
+                            area_height: 2100,
+                            width: 1800,
+                            height: 1800,
+                            top: 150,
+                            left: 0,
+                        },
                     },
                 ],
             }
         )
     }
 
-    // V2: Poll mockup task for result
-    async getMockupTask(taskKey: string) {
-        return this.get<{
-            status: string
-            mockups?: Array<{ placement: string; variant_ids: number[]; mockup_url: string }>
-        }>(`/v2/mockup-generator/tasks?task_key=${taskKey}`)
-    }
-
-    // V2: Wait for mockup to complete (poll with timeout)
-    async waitForMockup(taskKey: string, timeoutMs = 30000): Promise<string> {
-        const startTime = Date.now()
-        while (Date.now() - startTime < timeoutMs) {
-            const result = await this.getMockupTask(taskKey)
-            if (result.status === 'completed' && result.mockups?.length) {
-                return result.mockups[0].mockup_url
-            }
-            if (result.status === 'failed') {
-                throw new Error('Mockup generation failed')
-            }
-            await new Promise((r) => setTimeout(r, 2000))
-        }
-        throw new Error('Mockup generation timed out')
-    }
-
-    // V2: Get catalog products
-    async getProducts() {
-        return this.get<any[]>('/v2/catalog/products')
-    }
-
-    // V2: Get product variants
-    async getProductVariants(productId: number) {
-        return this.get<any[]>(`/v2/catalog/products/${productId}/variants`)
-    }
-
-    // V2: Create order (draft)
     async createOrder(params: {
         email: string
         shippingAddress: {
@@ -99,13 +67,12 @@ class PrintfulClient {
             zip: string
         }
         items: Array<{
-            catalogVariantId: number
+            variantId: number
             quantity: number
             imageUrl: string
-            placement?: string
         }>
     }) {
-        return this.post('/v2/orders', {
+        return this.post('/orders', {
             recipient: {
                 name: params.shippingAddress.name,
                 address1: params.shippingAddress.address1,
@@ -115,29 +82,11 @@ class PrintfulClient {
                 zip: params.shippingAddress.zip,
                 email: params.email,
             },
-            order_items: params.items.map((item) => ({
-                source: 'catalog',
-                catalog_variant_id: item.catalogVariantId,
+            items: params.items.map(item => ({
+                variant_id: item.variantId,
                 quantity: item.quantity,
-                designs: [
-                    {
-                        placement: item.placement || 'front',
-                        layers: [{ type: 'file', url: item.imageUrl }],
-                    },
-                ],
+                files: [{ type: 'front', url: item.imageUrl }],
             })),
-        })
-    }
-
-    // V2: Confirm an order
-    async confirmOrder(orderId: string) {
-        return this.post(`/v2/orders/${orderId}/confirm`, {})
-    }
-
-    // V2: Upload file
-    async uploadFile(imageUrl: string) {
-        return this.post<{ id: number; url: string }>('/v2/files', {
-            url: imageUrl,
         })
     }
 }

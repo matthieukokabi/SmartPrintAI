@@ -7,6 +7,15 @@ export interface GenerateImageOptions {
     style?: 'artistic' | 'watercolor' | 'cartoon' | 'minimalist' | 'pop-art' | 'photorealistic'
 }
 
+type ImageInlineData = {
+    mimeType: string
+    data: string
+}
+
+type CandidatePart = {
+    inlineData?: ImageInlineData
+}
+
 const STYLE_PROMPTS: Record<string, string> = {
     artistic: 'vibrant artistic illustration, bold colors, detailed artwork, suitable for print',
     watercolor: 'soft watercolor painting style, flowing colors, artistic brush strokes',
@@ -26,19 +35,20 @@ export async function generateImage(options: GenerateImageOptions): Promise<stri
         model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-preview-image-generation',
     })
 
-    const response = await model.generateContent({
+    const request = {
         contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
         generationConfig: {
-            // @ts-expect-error — image generation config not in official types yet
             responseModalities: ['image'],
         },
-    })
+    } as unknown as Parameters<typeof model.generateContent>[0]
+
+    const response = await model.generateContent(request)
 
     const candidate = response.response.candidates?.[0]
-    const imagePart = candidate?.content?.parts?.find((p) => p.inlineData)
+    const imagePart = candidate?.content?.parts?.find((p: CandidatePart) => Boolean(p.inlineData))
 
     if (!imagePart?.inlineData) {
-        throw new Error('No image generated — try a different prompt or style.')
+        throw new Error('No image generated')
     }
 
     return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`

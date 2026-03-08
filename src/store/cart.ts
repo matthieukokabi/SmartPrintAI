@@ -41,7 +41,9 @@ export const useCart = create<CartStore>()(
                     if (existing) {
                         return {
                             items: state.items.map((i) =>
-                                i.id === existing.id ? { ...i, quantity: i.quantity + item.quantity } : i
+                                i.id === existing.id
+                                    ? { ...i, quantity: i.quantity + item.quantity }
+                                    : i
                             ),
                         }
                     }
@@ -50,9 +52,7 @@ export const useCart = create<CartStore>()(
             },
 
             removeItem: (id) =>
-                set((state) => ({
-                    items: state.items.filter((i) => i.id !== id),
-                })),
+                set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
 
             updateQuantity: (id, quantity) =>
                 set((state) => ({

@@ -1,67 +1,44 @@
 import Link from 'next/link'
+import { Sparkles } from 'lucide-react'
 
 export default function Footer() {
     return (
-        <footer
-            style={{
-                borderTop: '1px solid var(--border)',
-                padding: '48px 24px',
-                background: 'var(--surface)',
-            }}
-        >
-            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                        gap: 40,
-                        marginBottom: 40,
-                    }}
-                >
-                    <div>
-                        <h3 className="gradient-text" style={{ fontSize: 20, fontWeight: 800, marginBottom: 12 }}>
-                            🎨 SmartPrintAI
-                        </h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
-                            Describe it. AI creates it. We print and ship it.
+        <footer className="border-t border-white/5 mt-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="col-span-1 md:col-span-2">
+                        <Link href="/" className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-lg font-bold text-gradient">SmartPrintAI</span>
+                        </Link>
+                        <p className="text-sm text-muted-foreground max-w-sm">
+                            Describe your vision, watch AI create it, and get it printed on premium products. No design skills needed.
                         </p>
                     </div>
+
                     <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Products</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
-                                T-Shirts
-                            </Link>
-                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
-                                Hoodies
-                            </Link>
-                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
-                                Mugs
-                            </Link>
-                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
-                                Wall Art
-                            </Link>
-                        </div>
+                        <h4 className="text-sm font-semibold mb-4">Product</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li><Link href="/create" className="hover:text-foreground transition-colors">Create Design</Link></li>
+                            <li><Link href="/products" className="hover:text-foreground transition-colors">Products</Link></li>
+                            <li><Link href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</Link></li>
+                        </ul>
                     </div>
+
                     <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Support</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>help@smartprintai.com</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Shipping Info</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Returns Policy</span>
-                        </div>
+                        <h4 className="text-sm font-semibold mb-4">Support</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li><a href="mailto:support@smartprintai.com" className="hover:text-foreground transition-colors">Contact</a></li>
+                            <li><Link href="#" className="hover:text-foreground transition-colors">FAQ</Link></li>
+                            <li><Link href="#" className="hover:text-foreground transition-colors">Shipping</Link></li>
+                        </ul>
                     </div>
                 </div>
-                <div
-                    style={{
-                        borderTop: '1px solid var(--border)',
-                        paddingTop: 24,
-                        textAlign: 'center',
-                        color: 'var(--text-muted)',
-                        fontSize: 13,
-                    }}
-                >
-                    © 2026 SmartPrintAI. All rights reserved.
+
+                <div className="border-t border-white/5 mt-8 pt-8 text-center text-xs text-muted-foreground">
+                    © {new Date().getFullYear()} SmartPrintAI. All rights reserved.
                 </div>
             </div>
         </footer>

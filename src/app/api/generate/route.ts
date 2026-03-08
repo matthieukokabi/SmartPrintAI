@@ -1,44 +1,127 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { generateImage } from '@/lib/gemini'
 import { uploadBase64Image } from '@/lib/storage'
 import { prisma } from '@/lib/prisma'
+import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
+import { rateLimitRequest } from '@/lib/rate-limit'
+
+type DesignStyle = 'artistic' | 'watercolor' | 'cartoon' | 'minimalist' | 'pop-art' | 'photorealistic'
+
+type GeneratePayload = {
+    prompt: string
+    style: DesignStyle
+    sessionId?: string
+}
+
+const ALLOWED_STYLES = new Set<DesignStyle>([
+    'artistic',
+    'watercolor',
+    'cartoon',
+    'minimalist',
+    'pop-art',
+    'photorealistic',
+])
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null
+}
+
+function validateGeneratePayload(input: unknown):
+    | { ok: true; data: GeneratePayload }
+    | { ok: false; error: string } {
+    if (!isObject(input)) {
+        return { ok: false, error: 'Invalid payload' }
+    }
+
+    const promptRaw = input.prompt
+    if (typeof promptRaw !== 'string') {
+        return { ok: false, error: 'Prompt is required' }
+    }
+
+    const prompt = promptRaw.trim()
+    if (prompt.length < 3) {
+        return { ok: false, error: 'Prompt too short' }
+    }
+    if (prompt.length > 500) {
+        return { ok: false, error: 'Prompt too long' }
+    }
+
+    const styleRaw = input.style
+    let style: DesignStyle = 'artistic'
+    if (styleRaw !== undefined && styleRaw !== null) {
+        if (typeof styleRaw !== 'string' || !ALLOWED_STYLES.has(styleRaw as DesignStyle)) {
+            return { ok: false, error: 'Invalid style' }
+        }
+        style = styleRaw as DesignStyle
+    }
+
+    let sessionId: string | undefined
+    if (input.sessionId !== undefined && input.sessionId !== null) {
+        if (typeof input.sessionId !== 'string') {
+            return { ok: false, error: 'Invalid sessionId' }
+        }
+        const trimmed = input.sessionId.trim()
+        if (trimmed.length === 0 || trimmed.length > 191) {
+            return { ok: false, error: 'Invalid sessionId' }
+        }
+        sessionId = trimmed
+    }
+
+    return { ok: true, data: { prompt, style, sessionId } }
+}
 
 export async function POST(req: NextRequest) {
+    const route = '/api/generate'
+    const requestId = getRequestId(req)
+    const respond = <T>(body: T, init?: ResponseInit) => jsonWithRequestId(requestId, body, init)
+
+    logApiInfo(route, requestId, 'request_received')
+
+    const limiter = await rateLimitRequest(req, 'generate', 20, 600)
+    if (!limiter.allowed) {
+        logApiWarn(route, requestId, 'rate_limited', { resetInSec: limiter.resetInSec })
+        const response = respond({ error: 'Rate limit exceeded. Please try again shortly.' }, { status: 429 })
+        response.headers.set('retry-after', String(limiter.resetInSec))
+        response.headers.set('x-ratelimit-limit', String(limiter.limit))
+        response.headers.set('x-ratelimit-remaining', String(limiter.remaining))
+        return response
+    }
+
     try {
-        const { prompt, style, sessionId } = await req.json()
-
-        if (!prompt || prompt.trim().length < 3) {
-            return NextResponse.json({ error: 'Prompt too short' }, { status: 400 })
+        let rawPayload: unknown
+        try {
+            rawPayload = await req.json()
+        } catch {
+            logApiWarn(route, requestId, 'invalid_json')
+            return respond({ error: 'Invalid JSON body' }, { status: 400 })
         }
 
-        if (prompt.length > 500) {
-            return NextResponse.json({ error: 'Prompt too long (max 500 characters)' }, { status: 400 })
+        const validation = validateGeneratePayload(rawPayload)
+        if (!validation.ok) {
+            logApiWarn(route, requestId, 'validation_failed', { reason: validation.error })
+            return respond({ error: validation.error }, { status: 400 })
         }
 
-        // Generate image via Gemini
+        const { prompt, style, sessionId } = validation.data
+
         const base64Image = await generateImage({ prompt, style })
-
-        // Upload to storage (Backblaze B2 in prod, returns data URL if not configured)
         const imageUrl = await uploadBase64Image(base64Image)
 
-        // Save design to DB
         const design = await prisma.design.create({
             data: {
                 prompt,
-                style: style || 'artistic',
+                style,
                 imageUrl,
                 sessionId,
                 status: 'ready',
             },
         })
 
-        return NextResponse.json({
-            designId: design.id,
-            imageUrl,
-        })
+        logApiInfo(route, requestId, 'request_succeeded', { designId: design.id })
+        return respond({ designId: design.id, imageUrl })
     } catch (error) {
-        console.error('Generate error:', error)
-        return NextResponse.json(
+        logApiError(route, requestId, 'request_failed', error)
+        return respond(
             { error: 'Image generation failed. Please try again.' },
             { status: 500 }
         )
