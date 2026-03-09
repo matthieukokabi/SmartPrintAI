@@ -1,9 +1,18 @@
+import type { Metadata } from 'next'
 import Hero from '@/components/home/Hero'
 import HowItWorks from '@/components/home/HowItWorks'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import SampleDesigns from '@/components/home/SampleDesigns'
 import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+    title: 'Create Custom AI Print-on-Demand Products',
+    description: 'Turn your idea into custom merch in seconds. Generate AI art, preview on t-shirts, hoodies, mugs and more, then order with fast fulfillment.',
+    alternates: {
+        canonical: '/',
+    },
+}
 
 export default function Home() {
     return (

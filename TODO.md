@@ -1,6 +1,6 @@
 # SmartPrintAI Unified TODO
 
-Last sync: 2026-03-08
+Last sync: 2026-03-09
 Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ## Done (Completed)
@@ -49,8 +49,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)
 - [ ] GA4 installed with purchase conversion tracking
 - [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
-- [ ] Google Search Console setup + sitemap submission
-- [ ] SEO optimization pass for product pages (titles, metadata, schema, copy)
+- [ ] Google Search Console setup + sitemap submission (`/sitemap.xml` + `/robots.txt` routes now live; pending Search Console property + submission)
+- [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [ ] Publish first 2 SEO blog posts (intent-focused)
 
 ### P2 - Marketing Execution (Month 1)
