@@ -48,6 +48,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)
 - [ ] GA4 installed with purchase conversion tracking
+- [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
 - [ ] Google Search Console setup + sitemap submission
 - [ ] SEO optimization pass for product pages (titles, metadata, schema, copy)
 - [ ] Publish first 2 SEO blog posts (intent-focused)

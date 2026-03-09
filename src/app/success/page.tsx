@@ -7,6 +7,7 @@ import { CheckCircle, Package, ArrowRight } from 'lucide-react'
 import { useCart } from '@/store/cart'
 import type { Order } from '@/types'
 import OrderStatusTimeline from '@/components/order/OrderStatusTimeline'
+import { trackPurchase } from '@/lib/analytics'
 
 function SuccessContent() {
     const searchParams = useSearchParams()
@@ -53,6 +54,20 @@ function SuccessContent() {
             cancelled = true
         }
     }, [sessionId, clearCart])
+
+    useEffect(() => {
+        if (!order) return
+
+        const key = `ga4_purchase_tracked:${order.id}`
+        if (typeof window !== 'undefined' && window.sessionStorage.getItem(key) === '1') {
+            return
+        }
+
+        const tracked = trackPurchase(order)
+        if (tracked && typeof window !== 'undefined') {
+            window.sessionStorage.setItem(key, '1')
+        }
+    }, [order])
 
     return (
         <div className="max-w-2xl mx-auto px-4 py-24 text-center">

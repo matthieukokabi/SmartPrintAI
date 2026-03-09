@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 
 export const metadata: Metadata = {
     title: 'SmartPrintAI — AI-Powered Custom Print On Demand',
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return (
         <html lang="en" className="dark">
             <body>
+                <GoogleAnalytics />
                 <Navbar />
                 <main className="min-h-screen pt-16">{children}</main>
                 <Footer />
