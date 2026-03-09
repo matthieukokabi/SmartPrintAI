@@ -47,7 +47,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
 
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)
-- [ ] GA4 installed with purchase conversion tracking
+- [x] GA4 installed with purchase conversion tracking (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set on production VPS on 2026-03-09)
 - [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
 - [ ] Google Search Console setup + sitemap submission (`/sitemap.xml` + `/robots.txt` routes now live; pending Search Console property + submission)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
