@@ -44,7 +44,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Blocker: Gemini image generation quota currently `0` on active key/project (API returns 429 quota exceeded); enable paid quota/billing and rerun QA
 - [x] Confirm production order confirmation + post-order customer communication sequence (order confirmation + shipment notification templates verified in inbox)
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
-- [ ] Add baseline customer support flow (support@/contact@ handling and response SLA)
+- [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
 
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)
 - [ ] GA4 installed with purchase conversion tracking

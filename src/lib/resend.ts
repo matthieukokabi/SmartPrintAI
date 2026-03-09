@@ -2,6 +2,12 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function supportRecipients(): string[] {
+    const primary = (process.env.SUPPORT_EMAIL || 'support@smartprintai.com').trim().toLowerCase()
+    const secondary = (process.env.CONTACT_EMAIL || 'contact@smartprintai.com').trim().toLowerCase()
+    return Array.from(new Set([primary, secondary].filter(Boolean)))
+}
+
 export async function sendSignInLink(params: {
     email: string
     verifyUrl: string
@@ -98,4 +104,52 @@ export async function sendShipmentNotification(params: {
     } catch (error) {
         console.error('Failed to send shipment notification email:', error)
     }
+}
+
+export async function sendSupportRequest(params: {
+    name: string
+    email: string
+    subject: string
+    message: string
+    orderId?: string
+    requestId: string
+}) {
+    const recipients = supportRecipients()
+
+    await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        to: recipients,
+        subject: '[Support] ' + params.subject,
+        replyTo: params.email,
+        html:
+            '<div style="font-family: Inter, sans-serif; max-width: 680px; margin: 0 auto; padding: 32px 20px; background: #0a0a0a; color: #fafafa;">' +
+            '<h1 style="font-size: 22px; margin: 0 0 16px;">New Support Request</h1>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Request ID: <strong style="color: #fafafa;">' + params.requestId + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Name: <strong style="color: #fafafa;">' + params.name + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Email: <strong style="color: #fafafa;">' + params.email + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Order ID: <strong style="color: #fafafa;">' + (params.orderId || 'Not provided') + '</strong></p>' +
+            '<p style="margin: 0 0 16px; color: #a1a1aa;">Subject: <strong style="color: #fafafa;">' + params.subject + '</strong></p>' +
+            '<div style="background: #171717; border: 1px solid #262626; border-radius: 12px; padding: 16px; color: #e4e4e7; white-space: pre-wrap;">' + params.message + '</div>' +
+            '</div>',
+    })
+}
+
+export async function sendSupportAutoReply(params: {
+    name: string
+    email: string
+    orderId?: string
+}) {
+    await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        to: params.email,
+        subject: 'We received your support request - SmartPrintAI',
+        html:
+            '<div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0a0a0a; color: #fafafa;">' +
+            '<h1 style="font-size: 24px; margin: 0 0 12px;">Support request received</h1>' +
+            '<p style="color: #a1a1aa; margin: 0 0 10px;">Hi ' + params.name + ',</p>' +
+            '<p style="color: #a1a1aa; margin: 0 0 10px;">Thanks for contacting SmartPrintAI support. Our team responds within <strong style="color: #fafafa;">24 business hours</strong>.</p>' +
+            '<p style="color: #a1a1aa; margin: 0 0 10px;">For shipping-related requests, our target response is <strong style="color: #fafafa;">within 4 business hours</strong>.</p>' +
+            '<p style="color: #a1a1aa; margin: 0 0 0;">Order ID: <strong style="color: #fafafa;">' + (params.orderId || 'Not provided') + '</strong></p>' +
+            '</div>',
+    })
 }

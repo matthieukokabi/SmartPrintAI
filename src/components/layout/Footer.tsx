@@ -30,9 +30,9 @@ export default function Footer() {
                     <div>
                         <h4 className="text-sm font-semibold mb-4">Support</h4>
                         <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><a href="mailto:support@smartprintai.com" className="hover:text-foreground transition-colors">Contact</a></li>
-                            <li><Link href="#" className="hover:text-foreground transition-colors">FAQ</Link></li>
-                            <li><Link href="#" className="hover:text-foreground transition-colors">Shipping</Link></li>
+                            <li><Link href="/support" className="hover:text-foreground transition-colors">Contact</Link></li>
+                            <li><Link href="/support#faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
+                            <li><Link href="/support#shipping" className="hover:text-foreground transition-colors">Shipping</Link></li>
                         </ul>
                     </div>
                 </div>
