@@ -35,6 +35,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
 - [ ] Final production secret audit (.env.local)
+- [x] Masked secret audit run on 2026-03-09 (all key-presence checks pass except `PRINTFUL_WEBHOOK_SECRET`; Stripe currently in test mode)
 
 ### P1 - Product and Revenue Readiness
 - [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
