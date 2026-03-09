@@ -85,7 +85,7 @@ class PrintfulClient {
             items: params.items.map(item => ({
                 variant_id: item.variantId,
                 quantity: item.quantity,
-                files: [{ type: 'front', url: item.imageUrl }],
+                files: [{ type: 'default', url: item.imageUrl }],
             })),
         })
     }

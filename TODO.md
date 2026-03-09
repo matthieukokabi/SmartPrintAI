@@ -25,6 +25,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### P0 - Launch Blocking
 - [ ] Complete 5 real end-to-end test orders (PRD Week 3-4)
+- [x] Test order #1 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
+- [ ] Test orders #2-#5 pending
 - [ ] Validate full order lifecycle in production (paid -> created -> fulfilled -> shipped)
 - [ ] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
