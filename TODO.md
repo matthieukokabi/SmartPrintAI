@@ -49,7 +49,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)
 - [x] GA4 installed with purchase conversion tracking (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set on production VPS on 2026-03-09)
 - [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
-- [ ] Google Search Console setup + sitemap submission (`/sitemap.xml` + `/robots.txt` routes now live; pending Search Console property + submission)
+- [x] Google Search Console setup + sitemap submission (domain property verified via DNS TXT and `https://smartprintai.com/sitemap.xml` accepted on 2026-03-09)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [ ] Publish first 2 SEO blog posts (intent-focused)
 
