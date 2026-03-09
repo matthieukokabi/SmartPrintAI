@@ -32,7 +32,7 @@ export async function generateImage(options: GenerateImageOptions): Promise<stri
     const fullPrompt = `${prompt}. ${stylePrompt}. Transparent or white background. High quality print-ready design. No text unless specifically requested. Square format.`
 
     const model = genAI.getGenerativeModel({
-        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-preview-image-generation',
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
     })
 
     const request = {

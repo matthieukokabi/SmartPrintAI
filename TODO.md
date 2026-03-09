@@ -41,6 +41,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### P1 - Product and Revenue Readiness
 - [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
+- [ ] Blocker: Gemini image generation quota currently `0` on active key/project (API returns 429 quota exceeded); enable paid quota/billing and rerun QA
 - [ ] Confirm production order confirmation + post-order customer communication sequence
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [ ] Add baseline customer support flow (support@/contact@ handling and response SLA)
