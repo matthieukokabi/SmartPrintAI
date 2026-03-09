@@ -28,7 +28,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Test order #1 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
 - [x] Test order #2 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
 - [x] Test order #3 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
-- [ ] Test orders #4-#5 pending
+- [x] Test order #4 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
+- [ ] Test order #5 pending
 - [ ] Validate full order lifecycle in production (paid -> created -> fulfilled -> shipped)
 - [ ] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
