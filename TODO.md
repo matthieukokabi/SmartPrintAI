@@ -31,11 +31,11 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Test order #4 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
 - [x] Test order #5 validated in test mode (checkout -> signed webhook -> order status `processing` with `printfulOrderId`)
 - [x] Validate full order lifecycle in production (paid -> created -> fulfilled -> shipped)
-- [ ] Configure `PRINTFUL_WEBHOOK_SECRET` in production and verify signed shipment webhooks
+- [x] Configure `PRINTFUL_WEBHOOK_SECRET` in production and verify signed shipment webhooks
 - [ ] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
 - [ ] Final production secret audit (.env.local)
-- [x] Masked secret audit run on 2026-03-09 (all key-presence checks pass except `PRINTFUL_WEBHOOK_SECRET`; Stripe currently in test mode)
+- [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 
 ### P1 - Product and Revenue Readiness
 - [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
