@@ -35,13 +35,14 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
 - [ ] Final production secret audit (.env.local)
+- [ ] Run one real live purchase on production and confirm payment settlement end-to-end (deferred by request until core implementation is complete)
 - [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
 
 ### P1 - Product and Revenue Readiness
 - [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
 - [ ] Confirm production order confirmation + post-order customer communication sequence
-- [ ] Add/verify tracking email trigger on shipped status
+- [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [ ] Add baseline customer support flow (support@/contact@ handling and response SLA)
 
 ### P1 - Analytics and SEO Baseline (from PRD + Marketing)

@@ -1,13 +1,19 @@
 import { NextRequest } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { sendShipmentNotification } from '@/lib/resend'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 
 type PrintfulWebhookPayload = {
     type?: unknown
     data?: {
         order?: { id?: unknown }
-        shipment?: { order_id?: unknown }
+        shipment?: {
+            order_id?: unknown
+            tracking_url?: unknown
+            tracking_number?: unknown
+            carrier?: unknown
+        }
     }
 }
 
@@ -34,6 +40,19 @@ function normalizeOrderId(value: unknown): string | null {
     }
 
     return null
+}
+
+function normalizeOptionalText(value: unknown, maxLen: number): string | null {
+    if (typeof value !== 'string') {
+        return null
+    }
+
+    const trimmed = value.trim()
+    if (trimmed.length === 0 || trimmed.length > maxLen) {
+        return null
+    }
+
+    return trimmed
 }
 
 function verifySignature(rawBody: string, signature: string, secretHex: string) {
@@ -100,9 +119,33 @@ export async function POST(req: NextRequest) {
         }
 
         const result = await prisma.order.updateMany({
-            where: { printfulOrderId },
+            where: {
+                printfulOrderId,
+                status: { not: 'shipped' },
+            },
             data: { status: 'shipped' },
         })
+
+        if (result.count > 0) {
+            const order = await prisma.order.findFirst({
+                where: { printfulOrderId },
+                select: { id: true, email: true },
+            })
+
+            if (order?.email) {
+                const trackingUrl = normalizeOptionalText(body.data?.shipment?.tracking_url, 1000)
+                const trackingNumber = normalizeOptionalText(body.data?.shipment?.tracking_number, 200)
+                const carrier = normalizeOptionalText(body.data?.shipment?.carrier, 120)
+
+                await sendShipmentNotification({
+                    email: order.email,
+                    orderId: order.id,
+                    trackingUrl,
+                    trackingNumber,
+                    carrier,
+                })
+            }
+        }
 
         logApiInfo(route, requestId, 'request_succeeded', { type, updated: result.count })
         return respond({ ok: true })
