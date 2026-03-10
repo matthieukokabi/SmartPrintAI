@@ -1,6 +1,6 @@
 # SmartPrintAI Unified TODO
 
-Last sync: 2026-03-09
+Last sync: 2026-03-10
 Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ## Done (Completed)
@@ -51,7 +51,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
 - [x] Google Search Console setup + sitemap submission (domain property verified via DNS TXT and `https://smartprintai.com/sitemap.xml` accepted on 2026-03-09)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
-- [ ] Publish first 2 SEO blog posts (intent-focused)
+- [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
 
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week
