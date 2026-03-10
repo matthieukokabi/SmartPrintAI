@@ -45,6 +45,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Manual cross-device browser QA: verify generated design image URLs open publicly (desktop + mobile) after storage proxy/policy fix
 - [ ] Manual production QA: verify `/products`, product detail, and `/create` product picker display real product thumbnails (not placeholder icons)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
+- [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
 - [x] Confirm production order confirmation + post-order customer communication sequence (order confirmation + shipment notification templates verified in inbox)
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
