@@ -2,8 +2,35 @@ import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Shirt } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { toAbsoluteUrl } from '@/lib/site'
+import ProductDetailClient from '@/components/products/ProductDetailClient'
+
+type ProductColor = {
+    name: string
+    hex: string
+    printfulVariantId: number
+    previewImageUrl?: string | null
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null
+}
+
+function isProductColor(value: unknown): value is ProductColor {
+    if (!isObject(value)) {
+        return false
+    }
+
+    return (
+        typeof value.name === 'string' &&
+        value.name.trim().length > 0 &&
+        typeof value.hex === 'string' &&
+        value.hex.trim().length > 0 &&
+        typeof value.printfulVariantId === 'number' &&
+        Number.isFinite(value.printfulVariantId)
+    )
+}
 
 type ProductPageProps = {
     params: {
@@ -57,7 +84,31 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const product = await getProduct(params.id)
     if (!product) notFound()
 
-    const colors = product.colors as Array<{ name: string; hex: string }>
+    const colors = Array.isArray(product.colors)
+        ? product.colors
+            .filter(isProductColor)
+            .map((color) => ({
+                name: color.name.trim(),
+                hex: color.hex.trim(),
+                printfulVariantId: color.printfulVariantId,
+                previewImageUrl:
+                    typeof color.previewImageUrl === 'string' && color.previewImageUrl.trim().length > 0
+                        ? color.previewImageUrl.trim()
+                        : null,
+            }))
+        : []
+
+    const productForClient = {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        sellPrice: product.sellPrice,
+        sizes: product.sizes,
+        imageUrl: product.imageUrl,
+        colors,
+    }
+
     const productSchema = {
         '@context': 'https://schema.org',
         '@type': 'Product',
@@ -88,47 +139,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <ArrowLeft className="w-4 h-4" /> Back
             </Link>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="aspect-square rounded-2xl glass flex items-center justify-center">
-                    <Shirt className="w-32 h-32 text-muted-foreground/30" />
-                </div>
-
-                <div>
-                    <p className="text-xs text-purple-400 font-medium uppercase mb-2">{product.category}</p>
-                    <h1 className="text-3xl font-bold mb-3">{product.name}</h1>
-                    <p className="text-2xl text-gradient font-bold mb-4">${product.sellPrice.toFixed(2)}</p>
-                    <p className="text-muted-foreground text-sm mb-6">{product.description}</p>
-
-                    <div className="space-y-4 mb-8">
-                        <div>
-                            <label className="text-sm font-medium mb-2 block">Available Sizes</label>
-                            <div className="flex flex-wrap gap-2">
-                                {product.sizes.map((size) => (
-                                    <span key={size} className="px-3 py-1.5 rounded-lg glass text-sm">{size}</span>
-                                ))}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium mb-2 block">Colors</label>
-                            <div className="flex flex-wrap gap-2">
-                                {colors.map((color) => (
-                                    <div key={color.name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass text-sm">
-                                        <div className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: color.hex }} />
-                                        {color.name}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <Link
-                        href={`/create`}
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
-                    >
-                        Design This Product with AI
-                    </Link>
-                </div>
-            </div>
+            <ProductDetailClient product={productForClient} />
         </div>
     )
 }

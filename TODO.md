@@ -42,6 +42,9 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P1 - Product and Revenue Readiness
 - [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
 - [ ] Blocker: Gemini image generation quota currently `0` on active key/project (API returns 429 quota exceeded); enable paid quota/billing and rerun QA
+- [ ] Manual cross-device browser QA: verify generated design image URLs open publicly (desktop + mobile) after storage proxy/policy fix
+- [ ] Manual production QA: verify `/products`, product detail, and `/create` product picker display real product thumbnails (not placeholder icons)
+- [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] Confirm production order confirmation + post-order customer communication sequence (order confirmation + shipment notification templates verified in inbox)
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
@@ -63,6 +66,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Set up email list capture offer (first-order discount popup)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
+- [ ] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth)
+- [ ] Prepare Etsy-ready listing pack (titles, tags, thumbnails, mockups) for top 20 designs
 
 ### P3 - Scale Triggers (After first consistent revenue)
 - [ ] Upgrade image generation quality tier (fal.ai phase) when threshold is reached
