@@ -22,6 +22,7 @@ type PrintfulVariant = {
   size?: string | null
   color?: string | null
   color_code?: string | null
+  image?: string | null
   price?: string | number | null
 }
 
@@ -96,24 +97,45 @@ function uniqueStrings(values: Array<string | null | undefined>): string[] {
   return out
 }
 
+function toPreviewImageUrl(value: string | null | undefined): string | undefined {
+  if (!value) return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  if (!/^https?:\/\//i.test(trimmed)) return undefined
+  return trimmed
+}
+
 function normalizeColors(variants: PrintfulVariant[]) {
-  const seen = new Set<string>()
-  const colors: Array<{ name: string; hex: string; printfulVariantId: number }> = []
+  const colorsByName = new Map<
+    string,
+    { name: string; hex: string; printfulVariantId: number; previewImageUrl?: string }
+  >()
 
   for (const variant of variants) {
     const name = (variant.color || 'Default').trim() || 'Default'
     const key = name.toLowerCase()
-    if (seen.has(key)) continue
-    seen.add(key)
+    const previewImageUrl = toPreviewImageUrl(variant.image)
+    const existing = colorsByName.get(key)
 
-    colors.push({
-      name,
-      hex: toHexOrDefault(variant.color_code),
-      printfulVariantId: variant.id,
-    })
+    if (!existing) {
+      colorsByName.set(key, {
+        name,
+        hex: toHexOrDefault(variant.color_code),
+        printfulVariantId: variant.id,
+        ...(previewImageUrl ? { previewImageUrl } : {}),
+      })
+      continue
+    }
+
+    if (!existing.previewImageUrl && previewImageUrl) {
+      colorsByName.set(key, {
+        ...existing,
+        previewImageUrl,
+      })
+    }
   }
 
-  return colors
+  return Array.from(colorsByName.values())
 }
 
 async function printfulGet<T>(path: string): Promise<T> {

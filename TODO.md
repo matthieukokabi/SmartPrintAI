@@ -46,6 +46,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Manual production QA: verify `/products`, product detail, and `/create` product picker display real product thumbnails (not placeholder icons)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
+- [x] Printful sync mapper now stores per-color preview image URLs when provided by Printful variants (2026-03-10)
+- [ ] Run production product sync to backfill new color preview image metadata, then verify color switching changes product preview image on live site
 - [x] Confirm production order confirmation + post-order customer communication sequence (order confirmation + shipment notification templates verified in inbox)
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
@@ -56,6 +58,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Google Search Console setup + sitemap submission (domain property verified via DNS TXT and `https://smartprintai.com/sitemap.xml` accepted on 2026-03-09)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
+- [ ] Add final favicon/app icon pack and verify social preview image consistency (OG/Twitter/favicon/browser tab icons)
 
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week

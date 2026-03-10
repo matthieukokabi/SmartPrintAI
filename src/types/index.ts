@@ -17,6 +17,7 @@ export interface ProductColor {
     name: string
     hex: string
     printfulVariantId: number
+    previewImageUrl?: string | null
 }
 
 export interface Design {
