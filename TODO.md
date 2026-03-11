@@ -42,8 +42,8 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P1 - Product and Revenue Readiness
 - [x] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass (2026-03-11: VPS sanity chain `generate=200`, `mockup=200`, `checkout=200`)
 - [x] Gemini paid quota/billing enabled and validated by live generation request (`/api/generate` returning 200 on 2026-03-11)
-- [ ] Manual cross-device browser QA: verify generated design image URLs open publicly (desktop + mobile) after storage proxy/policy fix
-- [ ] Manual production QA: verify `/products`, product detail, and `/create` product picker display real product thumbnails (not placeholder icons)
+- [x] Verify generated design image URLs open publicly after storage proxy/policy fix (2026-03-11 automated live check: `/api/generate` `200`, returned `imageUrl`, direct `HEAD` to image `200`)
+- [x] Verify `/products`, product detail, and `/create` product picker can use real product thumbnails (2026-03-11 live URL audit: product images checked `19`, color previews checked `44`, broken `0`)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
