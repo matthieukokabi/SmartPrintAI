@@ -34,7 +34,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Configure `PRINTFUL_WEBHOOK_SECRET` in production and verify signed shipment webhooks
 - [x] Enable Stripe live mode and verify live webhook flow
 - [ ] Rotate all exposed/leaked keys before launch (Resend, Printful, others if exposed)
-- [ ] Final production secret audit (.env.local)
+- [x] Final production secret audit (.env.local) (2026-03-11 masked check on VPS: required keys present, suspicious bare-token lines none)
 - [ ] Run one real live purchase on production and confirm payment settlement end-to-end (deferred by request until core implementation is complete)
 - [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
