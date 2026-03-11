@@ -16,17 +16,37 @@ export const metadata: Metadata = {
     alternates: {
         canonical: '/',
     },
+    manifest: '/manifest.webmanifest',
+    icons: {
+        icon: [
+            { url: '/favicon.ico' },
+            { url: '/icon?size=32', sizes: '32x32', type: 'image/png' },
+            { url: '/icon?size=192', sizes: '192x192', type: 'image/png' },
+            { url: '/icon?size=512', sizes: '512x512', type: 'image/png' },
+        ],
+        apple: [{ url: '/apple-icon', sizes: '180x180', type: 'image/png' }],
+        shortcut: ['/favicon.ico'],
+    },
     openGraph: {
         title: 'SmartPrintAI — AI-Powered Custom Print On Demand',
         description: 'Describe your vision, watch AI create it, and get it printed on premium products.',
         url: '/',
         siteName: 'SmartPrintAI',
         type: 'website',
+        images: [
+            {
+                url: '/opengraph-image.png',
+                width: 1200,
+                height: 630,
+                alt: 'SmartPrintAI — AI-powered custom print-on-demand designs',
+            },
+        ],
     },
     twitter: {
         card: 'summary_large_image',
         title: 'SmartPrintAI — AI-Powered Custom Print On Demand',
         description: 'Describe your vision, watch AI create it, and get it printed on premium products.',
+        images: ['/twitter-image.png'],
     },
 }
 

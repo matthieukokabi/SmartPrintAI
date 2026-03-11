@@ -62,7 +62,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Google Search Console setup + sitemap submission (domain property verified via DNS TXT and `https://smartprintai.com/sitemap.xml` accepted on 2026-03-09)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
-- [ ] Add final favicon/app icon pack and verify social preview image consistency (OG/Twitter/favicon/browser tab icons)
+- [x] Add final favicon/app icon pack and verify social preview image consistency (OG/Twitter/favicon/browser tab icons) (2026-03-11: Next file-based metadata routes added for `/icon`, `/apple-icon`, `/opengraph-image`, `/twitter-image`, and `/manifest.webmanifest`; validated via lint/typecheck/tests/build)
 
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week
