@@ -148,6 +148,34 @@ type CartPageCopy = {
     secureCheckoutLabel: string
 }
 
+type OrderTimelineCopy = {
+    statusLabel: string
+    paidLabel: string
+    paidDescription: string
+    processingLabel: string
+    processingDescription: string
+    shippedLabel: string
+    shippedDescription: string
+    manualReviewNote: string
+    fulfillmentFailedNote: string
+}
+
+type SuccessPageCopy = {
+    metadataTitle: string
+    heading: string
+    subtitle: string
+    progressLabel: string
+    loadingOrderLabel: string
+    orderLabel: string
+    totalLabel: string
+    viewTrackingLabel: string
+    fallbackStepOne: string
+    fallbackStepTwo: string
+    fallbackStepThree: string
+    createAnotherLabel: string
+    timeline: OrderTimelineCopy
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -156,6 +184,7 @@ export type LocaleCopy = {
     productDetail: ProductDetailPageCopy
     create: CreatePageCopy
     cart: CartPageCopy
+    success: SuccessPageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
@@ -327,6 +356,31 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutFailedLabel: 'Checkout failed. Please try again.',
             secureCheckoutLabel: 'Secure checkout powered by Stripe',
         },
+        success: {
+            metadataTitle: 'Order Success',
+            heading: 'Order Confirmed!',
+            subtitle: 'Thank you for your order! Your custom product is being produced and will ship within 3-7 business days.',
+            progressLabel: 'Order progress',
+            loadingOrderLabel: 'Loading order details...',
+            orderLabel: 'Order',
+            totalLabel: 'Total',
+            viewTrackingLabel: 'View full order tracking',
+            fallbackStepOne: 'Your design is sent to our production facility',
+            fallbackStepTwo: 'Your product is printed with premium quality',
+            fallbackStepThree: "You'll receive a tracking email when it ships",
+            createAnotherLabel: 'Create Another Design',
+            timeline: {
+                statusLabel: 'Order status',
+                paidLabel: 'Payment confirmed',
+                paidDescription: 'Your payment was received successfully.',
+                processingLabel: 'In production',
+                processingDescription: 'Your item is being prepared and printed.',
+                shippedLabel: 'Shipped',
+                shippedDescription: 'Your package left production and is on the way.',
+                manualReviewNote: 'Order requires manual review before fulfillment starts.',
+                fulfillmentFailedNote: 'Fulfillment failed. Support intervention is required.',
+            },
+        },
     },
     fr: {
         localeLabel: 'Francais',
@@ -492,6 +546,31 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Payer avec Stripe',
             checkoutFailedLabel: "Echec du paiement. Veuillez reessayer.",
             secureCheckoutLabel: 'Paiement securise propulse par Stripe',
+        },
+        success: {
+            metadataTitle: 'Commande confirmee',
+            heading: 'Commande confirmee !',
+            subtitle: 'Merci pour votre commande ! Votre produit est en production et sera expedie sous 3 a 7 jours ouvres.',
+            progressLabel: 'Progression de la commande',
+            loadingOrderLabel: 'Chargement des details de commande...',
+            orderLabel: 'Commande',
+            totalLabel: 'Total',
+            viewTrackingLabel: 'Voir le suivi complet',
+            fallbackStepOne: 'Votre design est envoye a notre centre de production',
+            fallbackStepTwo: 'Votre produit est imprime avec une qualite premium',
+            fallbackStepThree: "Vous recevrez un email de suivi lors de l'expedition",
+            createAnotherLabel: 'Creer un autre design',
+            timeline: {
+                statusLabel: 'Statut de la commande',
+                paidLabel: 'Paiement confirme',
+                paidDescription: 'Votre paiement a bien ete recu.',
+                processingLabel: 'En production',
+                processingDescription: 'Votre article est en preparation et impression.',
+                shippedLabel: 'Expedie',
+                shippedDescription: 'Votre colis est en route.',
+                manualReviewNote: "La commande necessite une verification manuelle avant la production.",
+                fulfillmentFailedNote: "La production a echoue. L'intervention du support est requise.",
+            },
         },
     },
     de: {
@@ -659,6 +738,31 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutFailedLabel: 'Checkout fehlgeschlagen. Bitte versuche es erneut.',
             secureCheckoutLabel: 'Sicherer Checkout mit Stripe',
         },
+        success: {
+            metadataTitle: 'Bestellung bestaetigt',
+            heading: 'Bestellung bestaetigt!',
+            subtitle: 'Danke fuer deine Bestellung! Dein Produkt ist in Produktion und wird in 3-7 Werktagen versendet.',
+            progressLabel: 'Bestellfortschritt',
+            loadingOrderLabel: 'Bestelldetails werden geladen...',
+            orderLabel: 'Bestellung',
+            totalLabel: 'Gesamt',
+            viewTrackingLabel: 'Vollstaendige Sendungsverfolgung anzeigen',
+            fallbackStepOne: 'Dein Design wurde an unsere Produktion uebermittelt',
+            fallbackStepTwo: 'Dein Produkt wird in Premium-Qualitaet gedruckt',
+            fallbackStepThree: 'Du erhaeltst eine Tracking-E-Mail, sobald der Versand startet',
+            createAnotherLabel: 'Weiteres Design erstellen',
+            timeline: {
+                statusLabel: 'Bestellstatus',
+                paidLabel: 'Zahlung bestaetigt',
+                paidDescription: 'Deine Zahlung wurde erfolgreich empfangen.',
+                processingLabel: 'In Produktion',
+                processingDescription: 'Dein Artikel wird vorbereitet und gedruckt.',
+                shippedLabel: 'Versendet',
+                shippedDescription: 'Dein Paket ist unterwegs.',
+                manualReviewNote: 'Die Bestellung erfordert eine manuelle Pruefung vor der Produktion.',
+                fulfillmentFailedNote: 'Die Produktion ist fehlgeschlagen. Support-Eingriff ist erforderlich.',
+            },
+        },
     },
     es: {
         localeLabel: 'Espanol',
@@ -824,6 +928,31 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Pagar con Stripe',
             checkoutFailedLabel: 'El pago fallo. Intentalo de nuevo.',
             secureCheckoutLabel: 'Pago seguro impulsado por Stripe',
+        },
+        success: {
+            metadataTitle: 'Pedido confirmado',
+            heading: 'Pedido confirmado!',
+            subtitle: 'Gracias por tu pedido! Tu producto se esta fabricando y se enviara en 3-7 dias habiles.',
+            progressLabel: 'Progreso del pedido',
+            loadingOrderLabel: 'Cargando detalles del pedido...',
+            orderLabel: 'Pedido',
+            totalLabel: 'Total',
+            viewTrackingLabel: 'Ver seguimiento completo',
+            fallbackStepOne: 'Tu diseno se envia a nuestro centro de produccion',
+            fallbackStepTwo: 'Tu producto se imprime con calidad premium',
+            fallbackStepThree: 'Recibiras un correo de seguimiento cuando sea enviado',
+            createAnotherLabel: 'Crear otro diseno',
+            timeline: {
+                statusLabel: 'Estado del pedido',
+                paidLabel: 'Pago confirmado',
+                paidDescription: 'Tu pago fue recibido correctamente.',
+                processingLabel: 'En produccion',
+                processingDescription: 'Tu articulo se esta preparando e imprimiendo.',
+                shippedLabel: 'Enviado',
+                shippedDescription: 'Tu paquete ya esta en camino.',
+                manualReviewNote: 'El pedido requiere revision manual antes de iniciar la produccion.',
+                fulfillmentFailedNote: 'La produccion fallo. Se requiere intervencion de soporte.',
+            },
         },
     },
 }

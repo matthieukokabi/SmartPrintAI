@@ -8,23 +8,29 @@ type Step = {
     description: string
 }
 
-const STEPS: Step[] = [
-    {
-        key: 'paid',
-        label: 'Payment confirmed',
-        description: 'Your payment was received successfully.',
-    },
-    {
-        key: 'processing',
-        label: 'In production',
-        description: 'Your item is being prepared and printed.',
-    },
-    {
-        key: 'shipped',
-        label: 'Shipped',
-        description: 'Your package left production and is on the way.',
-    },
-]
+type TimelineCopy = {
+    statusLabel: string
+    paidLabel: string
+    paidDescription: string
+    processingLabel: string
+    processingDescription: string
+    shippedLabel: string
+    shippedDescription: string
+    manualReviewNote: string
+    fulfillmentFailedNote: string
+}
+
+const defaultCopy: TimelineCopy = {
+    statusLabel: 'Order status',
+    paidLabel: 'Payment confirmed',
+    paidDescription: 'Your payment was received successfully.',
+    processingLabel: 'In production',
+    processingDescription: 'Your item is being prepared and printed.',
+    shippedLabel: 'Shipped',
+    shippedDescription: 'Your package left production and is on the way.',
+    manualReviewNote: 'Order requires manual review before fulfillment starts.',
+    fulfillmentFailedNote: 'Fulfillment failed. Support intervention is required.',
+}
 
 function normalizeStatus(status: string): string {
     return status.trim().toLowerCase()
@@ -87,14 +93,14 @@ function stateClasses(state: StepState): string {
     return 'text-muted-foreground border-white/10 bg-white/5'
 }
 
-function helperMessage(status: string): string | null {
+function helperMessage(status: string, copy: TimelineCopy): string | null {
     const normalized = normalizeStatus(status)
 
     if (normalized === 'manual_review') {
-        return 'Order requires manual review before fulfillment starts.'
+        return copy.manualReviewNote
     }
     if (normalized === 'fulfillment_failed') {
-        return 'Fulfillment failed. Support intervention is required.'
+        return copy.fulfillmentFailedNote
     }
     return null
 }
@@ -105,20 +111,38 @@ export function getReadableOrderStatus(status: string): string {
 
 type Props = {
     status: string
+    copy?: TimelineCopy
 }
 
-export default function OrderStatusTimeline({ status }: Props) {
-    const note = helperMessage(status)
+export default function OrderStatusTimeline({ status, copy = defaultCopy }: Props) {
+    const note = helperMessage(status, copy)
+    const steps: Step[] = [
+        {
+            key: 'paid',
+            label: copy.paidLabel,
+            description: copy.paidDescription,
+        },
+        {
+            key: 'processing',
+            label: copy.processingLabel,
+            description: copy.processingDescription,
+        },
+        {
+            key: 'shipped',
+            label: copy.shippedLabel,
+            description: copy.shippedDescription,
+        },
+    ]
 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Order status</p>
+                <p className="text-sm text-muted-foreground">{copy.statusLabel}</p>
                 <span className="text-sm font-medium text-foreground">{getReadableOrderStatus(status)}</span>
             </div>
 
             <ol className="space-y-3">
-                {STEPS.map((step, index) => {
+                {steps.map((step, index) => {
                     const state = getStepState(status, index)
                     return (
                         <li key={step.key} className={`rounded-lg border p-3 ${stateClasses(state)}`}>
