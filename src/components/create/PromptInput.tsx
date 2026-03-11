@@ -7,9 +7,15 @@ interface Props {
     onGenerate: (prompt: string) => void
     isLoading: boolean
     initialPrompt?: string
+    copy: {
+        placeholder: string
+        generatingLabel: string
+        generateLabel: string
+        tip: string
+    }
 }
 
-export default function PromptInput({ onGenerate, isLoading, initialPrompt = '' }: Props) {
+export default function PromptInput({ onGenerate, isLoading, initialPrompt = '', copy }: Props) {
     const [prompt, setPrompt] = useState(initialPrompt)
 
     return (
@@ -20,7 +26,7 @@ export default function PromptInput({ onGenerate, isLoading, initialPrompt = '' 
                     <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="Describe your design... e.g., 'A majestic lion made of galaxies and stars'"
+                        placeholder={copy.placeholder}
                         rows={3}
                         maxLength={500}
                         className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-base outline-none focus:border-purple-500/50 resize-none placeholder:text-muted-foreground/40 transition-colors"
@@ -35,12 +41,12 @@ export default function PromptInput({ onGenerate, isLoading, initialPrompt = '' 
                             {isLoading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Generating...
+                                    {copy.generatingLabel}
                                 </>
                             ) : (
                                 <>
                                     <Sparkles className="w-4 h-4" />
-                                    Generate Design
+                                    {copy.generateLabel}
                                 </>
                             )}
                         </button>
@@ -48,7 +54,7 @@ export default function PromptInput({ onGenerate, isLoading, initialPrompt = '' 
                 </div>
             </div>
             <p className="text-xs text-muted-foreground/60">
-                💡 Tip: Artistic and abstract designs work best. For text-based designs, try &quot;minimalist text on solid background&quot; style.
+                💡 {copy.tip}
             </p>
         </div>
     )

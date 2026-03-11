@@ -105,12 +105,38 @@ type ProductDetailPageCopy = {
     designButtonLabel: string
 }
 
+type CreatePageCopy = {
+    metadataTitle: string
+    metadataDescription: string
+    titleLead: string
+    titleAccent: string
+    subtitle: string
+    promptPlaceholder: string
+    promptGeneratingLabel: string
+    promptGenerateLabel: string
+    promptTip: string
+    styleLabel: string
+    chooseProductLabel: string
+    loadingProductsLabel: string
+    sizeLabel: string
+    colorLabel: string
+    addToCartLabel: string
+    addedToCartLabel: string
+    creatingDesignLabel: string
+    creatingDesignSubLabel: string
+    generatedPlaceholderLabel: string
+    regenerateLabel: string
+    generatingMockupLabel: string
+    mockupPlaceholderLabel: string
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
     careers: CareersPageCopy
     products: ProductsPageCopy
     productDetail: ProductDetailPageCopy
+    create: CreatePageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
@@ -240,6 +266,31 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             colorsLabel: 'Colors',
             designButtonLabel: 'Design This Product with AI',
         },
+        create: {
+            metadataTitle: 'Create Your Design',
+            metadataDescription: 'Describe your idea and generate custom AI artwork ready for print-on-demand products.',
+            titleLead: 'Create Your',
+            titleAccent: 'Design',
+            subtitle: 'Describe it, pick a product, add to cart',
+            promptPlaceholder: "Describe your design... e.g., 'A majestic lion made of galaxies and stars'",
+            promptGeneratingLabel: 'Generating...',
+            promptGenerateLabel: 'Generate Design',
+            promptTip:
+                'Tip: Artistic and abstract designs work best. For text-based designs, try "minimalist text on solid background" style.',
+            styleLabel: 'Style',
+            chooseProductLabel: 'Choose a Product',
+            loadingProductsLabel: 'Loading products...',
+            sizeLabel: 'Size',
+            colorLabel: 'Color',
+            addToCartLabel: 'Add to Cart',
+            addedToCartLabel: 'Added to Cart!',
+            creatingDesignLabel: 'Creating your design...',
+            creatingDesignSubLabel: 'This usually takes 5-15 seconds',
+            generatedPlaceholderLabel: 'Your AI-generated design will appear here',
+            regenerateLabel: 'Not happy? Regenerate',
+            generatingMockupLabel: 'Generating mockup...',
+            mockupPlaceholderLabel: 'Select a product to see your design on it',
+        },
     },
     fr: {
         localeLabel: 'Francais',
@@ -362,6 +413,32 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Tailles disponibles',
             colorsLabel: 'Couleurs',
             designButtonLabel: 'Designer ce produit avec IA',
+        },
+        create: {
+            metadataTitle: 'Creer votre design',
+            metadataDescription:
+                'Decrivez votre idee et generez un visuel IA pret pour des produits print-on-demand.',
+            titleLead: 'Creez votre',
+            titleAccent: 'design',
+            subtitle: 'Decrivez, choisissez un produit, ajoutez au panier',
+            promptPlaceholder: "Decrivez votre design... ex: 'Un lion majestueux compose de galaxies et d'etoiles'",
+            promptGeneratingLabel: 'Generation...',
+            promptGenerateLabel: 'Generer le design',
+            promptTip:
+                "Astuce: les styles artistiques et abstraits fonctionnent tres bien. Pour du texte, essayez 'texte minimaliste sur fond uni'.",
+            styleLabel: 'Style',
+            chooseProductLabel: 'Choisir un produit',
+            loadingProductsLabel: 'Chargement des produits...',
+            sizeLabel: 'Taille',
+            colorLabel: 'Couleur',
+            addToCartLabel: 'Ajouter au panier',
+            addedToCartLabel: 'Ajoute au panier !',
+            creatingDesignLabel: 'Creation de votre design...',
+            creatingDesignSubLabel: 'Cela prend generalement 5 a 15 secondes',
+            generatedPlaceholderLabel: 'Votre design genere par IA apparaitra ici',
+            regenerateLabel: 'Pas satisfait ? Regenerer',
+            generatingMockupLabel: 'Generation du mockup...',
+            mockupPlaceholderLabel: 'Selectionnez un produit pour voir votre design dessus',
         },
     },
     de: {
@@ -486,6 +563,32 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             colorsLabel: 'Farben',
             designButtonLabel: 'Dieses Produkt mit KI designen',
         },
+        create: {
+            metadataTitle: 'Erstelle dein Design',
+            metadataDescription:
+                'Beschreibe deine Idee und erzeuge KI-Grafiken fuer Print-on-Demand Produkte.',
+            titleLead: 'Erstelle dein',
+            titleAccent: 'Design',
+            subtitle: 'Beschreiben, Produkt waehlen, in den Warenkorb legen',
+            promptPlaceholder: "Beschreibe dein Design... z.B. 'Ein majestaetischer Loewe aus Galaxien und Sternen'",
+            promptGeneratingLabel: 'Wird erstellt...',
+            promptGenerateLabel: 'Design erstellen',
+            promptTip:
+                'Tipp: Artistische und abstrakte Designs funktionieren am besten. Fuer Text nutze "minimalistischer Text auf einfarbigem Hintergrund".',
+            styleLabel: 'Stil',
+            chooseProductLabel: 'Produkt waehlen',
+            loadingProductsLabel: 'Produkte werden geladen...',
+            sizeLabel: 'Groesse',
+            colorLabel: 'Farbe',
+            addToCartLabel: 'In den Warenkorb',
+            addedToCartLabel: 'Zum Warenkorb hinzugefuegt!',
+            creatingDesignLabel: 'Dein Design wird erstellt...',
+            creatingDesignSubLabel: 'Das dauert normalerweise 5-15 Sekunden',
+            generatedPlaceholderLabel: 'Dein KI-generiertes Design erscheint hier',
+            regenerateLabel: 'Nicht zufrieden? Neu generieren',
+            generatingMockupLabel: 'Mockup wird erstellt...',
+            mockupPlaceholderLabel: 'Waehle ein Produkt, um dein Design darauf zu sehen',
+        },
     },
     es: {
         localeLabel: 'Espanol',
@@ -608,6 +711,32 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Tallas disponibles',
             colorsLabel: 'Colores',
             designButtonLabel: 'Disenar este producto con IA',
+        },
+        create: {
+            metadataTitle: 'Crea tu diseno',
+            metadataDescription:
+                'Describe tu idea y genera arte con IA listo para productos print-on-demand.',
+            titleLead: 'Crea tu',
+            titleAccent: 'diseno',
+            subtitle: 'Describe, elige un producto y anade al carrito',
+            promptPlaceholder: "Describe tu diseno... ej: 'Un leon majestuoso hecho de galaxias y estrellas'",
+            promptGeneratingLabel: 'Generando...',
+            promptGenerateLabel: 'Generar diseno',
+            promptTip:
+                'Tip: Los estilos artisticos y abstractos funcionan mejor. Para texto, prueba "texto minimalista sobre fondo solido".',
+            styleLabel: 'Estilo',
+            chooseProductLabel: 'Elegir producto',
+            loadingProductsLabel: 'Cargando productos...',
+            sizeLabel: 'Talla',
+            colorLabel: 'Color',
+            addToCartLabel: 'Anadir al carrito',
+            addedToCartLabel: 'Anadido al carrito!',
+            creatingDesignLabel: 'Creando tu diseno...',
+            creatingDesignSubLabel: 'Esto normalmente tarda entre 5 y 15 segundos',
+            generatedPlaceholderLabel: 'Tu diseno generado por IA aparecera aqui',
+            regenerateLabel: 'No te convence? Regenerar',
+            generatingMockupLabel: 'Generando mockup...',
+            mockupPlaceholderLabel: 'Selecciona un producto para ver tu diseno en el',
         },
     },
 }

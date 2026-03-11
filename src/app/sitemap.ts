@@ -93,6 +93,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: locale === 'en' ? 0.8 : 0.7,
         },
         {
+            url: `${siteUrl}/${locale}/create`,
+            lastModified: now,
+            changeFrequency: 'daily',
+            priority: locale === 'en' ? 0.82 : 0.72,
+        },
+        {
             url: `${siteUrl}/${locale}/careers`,
             lastModified: now,
             changeFrequency: 'monthly',

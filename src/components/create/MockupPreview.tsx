@@ -6,15 +6,19 @@ import Image from 'next/image'
 interface Props {
     mockupUrl: string | null
     isLoading: boolean
+    copy: {
+        generatingLabel: string
+        placeholderLabel: string
+    }
 }
 
-export default function MockupPreview({ mockupUrl, isLoading }: Props) {
+export default function MockupPreview({ mockupUrl, isLoading, copy }: Props) {
     if (isLoading) {
         return (
             <div className="aspect-square rounded-2xl glass flex items-center justify-center">
                 <div className="text-center space-y-3">
                     <Loader2 className="w-8 h-8 animate-spin text-purple-400 mx-auto" />
-                    <p className="text-sm text-muted-foreground">Generating mockup...</p>
+                    <p className="text-sm text-muted-foreground">{copy.generatingLabel}</p>
                 </div>
             </div>
         )
@@ -25,7 +29,7 @@ export default function MockupPreview({ mockupUrl, isLoading }: Props) {
             <div className="aspect-square rounded-2xl glass flex items-center justify-center">
                 <div className="text-center px-8">
                     <div className="text-4xl mb-3">👕</div>
-                    <p className="text-sm text-muted-foreground">Select a product to see your design on it</p>
+                    <p className="text-sm text-muted-foreground">{copy.placeholderLabel}</p>
                 </div>
             </div>
         )

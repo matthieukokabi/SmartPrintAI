@@ -7,17 +7,23 @@ interface Props {
     imageUrl: string | null
     isLoading: boolean
     onRegenerate: () => void
+    copy: {
+        creatingLabel: string
+        creatingSubLabel: string
+        placeholderLabel: string
+        regenerateLabel: string
+    }
 }
 
-export default function GeneratedImage({ imageUrl, isLoading, onRegenerate }: Props) {
+export default function GeneratedImage({ imageUrl, isLoading, onRegenerate, copy }: Props) {
     if (isLoading) {
         return (
             <div className="aspect-square rounded-2xl glass flex items-center justify-center overflow-hidden">
                 <div className="text-center space-y-4">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-spin mx-auto" style={{ clipPath: 'inset(0 0 50% 0)' }} />
                     <div>
-                        <p className="text-sm font-medium">Creating your design...</p>
-                        <p className="text-xs text-muted-foreground mt-1">This usually takes 5–15 seconds</p>
+                        <p className="text-sm font-medium">{copy.creatingLabel}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{copy.creatingSubLabel}</p>
                     </div>
                 </div>
             </div>
@@ -29,7 +35,7 @@ export default function GeneratedImage({ imageUrl, isLoading, onRegenerate }: Pr
             <div className="aspect-square rounded-2xl glass flex items-center justify-center">
                 <div className="text-center px-8">
                     <div className="text-5xl mb-4">🎨</div>
-                    <p className="text-sm text-muted-foreground">Your AI-generated design will appear here</p>
+                    <p className="text-sm text-muted-foreground">{copy.placeholderLabel}</p>
                 </div>
             </div>
         )
@@ -51,7 +57,7 @@ export default function GeneratedImage({ imageUrl, isLoading, onRegenerate }: Pr
                 className="flex items-center gap-2 px-4 py-2 rounded-xl glass text-sm text-muted-foreground hover:text-foreground transition-colors w-full justify-center"
             >
                 <RefreshCw className="w-3.5 h-3.5" />
-                Not happy? Regenerate
+                {copy.regenerateLabel}
             </button>
         </div>
     )

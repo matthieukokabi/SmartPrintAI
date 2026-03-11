@@ -5,12 +5,13 @@ import { DESIGN_STYLES, type DesignStyle } from '@/types'
 interface Props {
     selected: DesignStyle
     onSelect: (style: DesignStyle) => void
+    label: string
 }
 
-export default function StyleSelector({ selected, onSelect }: Props) {
+export default function StyleSelector({ selected, onSelect, label }: Props) {
     return (
         <div>
-            <label className="text-sm font-medium text-muted-foreground mb-3 block">Style</label>
+            <label className="text-sm font-medium text-muted-foreground mb-3 block">{label}</label>
             <div className="flex flex-wrap gap-2">
                 {DESIGN_STYLES.map((style) => (
                     <button

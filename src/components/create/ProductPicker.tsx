@@ -16,6 +16,8 @@ interface Props {
     products: ProductOption[]
     selectedId: string | null
     onSelect: (id: string) => void
+    chooseLabel: string
+    loadingLabel: string
 }
 
 const categoryIcons: Record<string, LucideIcon> = {
@@ -25,20 +27,20 @@ const categoryIcons: Record<string, LucideIcon> = {
     accessories: ShoppingBag,
 }
 
-export default function ProductPicker({ products, selectedId, onSelect }: Props) {
+export default function ProductPicker({ products, selectedId, onSelect, chooseLabel, loadingLabel }: Props) {
     const [brokenImageById, setBrokenImageById] = useState<Record<string, true>>({})
 
     if (!products.length) {
         return (
             <div className="glass rounded-xl p-6 text-center">
-                <p className="text-sm text-muted-foreground">Loading products...</p>
+                <p className="text-sm text-muted-foreground">{loadingLabel}</p>
             </div>
         )
     }
 
     return (
         <div>
-            <label className="text-sm font-medium text-muted-foreground mb-3 block">Choose a Product</label>
+            <label className="text-sm font-medium text-muted-foreground mb-3 block">{chooseLabel}</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {products.map((product) => {
                     const Icon = categoryIcons[product.category] || Frame

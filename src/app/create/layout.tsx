@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
+import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+
+const copy = getLocaleCopy(DEFAULT_LOCALE).create
 
 export const metadata: Metadata = {
-    title: 'Create Your Design',
-    description: 'Describe your idea and generate custom AI artwork ready for print-on-demand products.',
+    title: copy.metadataTitle,
+    description: copy.metadataDescription,
     alternates: {
         canonical: '/create',
+        languages: buildLocaleAlternates('/create'),
     },
 }
 
