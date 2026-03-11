@@ -40,12 +40,13 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
 
 ### P1 - Product and Revenue Readiness
-- [ ] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass
-- [ ] Blocker: Gemini image generation quota currently `0` on active key/project (API returns 429 quota exceeded); enable paid quota/billing and rerun QA
+- [x] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass (2026-03-11: VPS sanity chain `generate=200`, `mockup=200`, `checkout=200`)
+- [x] Gemini paid quota/billing enabled and validated by live generation request (`/api/generate` returning 200 on 2026-03-11)
 - [ ] Manual cross-device browser QA: verify generated design image URLs open publicly (desktop + mobile) after storage proxy/policy fix
 - [ ] Manual production QA: verify `/products`, product detail, and `/create` product picker display real product thumbnails (not placeholder icons)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
+- [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
 - [x] Printful sync mapper now stores per-color preview image URLs when provided by Printful variants (2026-03-10)
 - [x] Production product sync run to backfill color preview image metadata (2026-03-10)
 - [x] Color parity audit completed against live Printful variants (`products_checked=19`, `mismatch_count=0`) on 2026-03-10

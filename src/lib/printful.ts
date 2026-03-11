@@ -3,12 +3,21 @@ const DEFAULT_MOCKUP_POLL_ATTEMPTS = 12
 const DEFAULT_MOCKUP_POLL_INTERVAL_MS = 1500
 
 type MockupRecord = { mockup_url: string }
+type ProductFileRecord = { type?: string | null }
 
 type MockupTaskResult = {
     status?: string
     mockups?: MockupRecord[]
     task_key?: string
 }
+
+type ProductResponse = {
+    product?: {
+        files?: ProductFileRecord[]
+    }
+}
+
+const IGNORED_MOCKUP_PLACEMENTS = new Set(['mockup'])
 
 class PrintfulClient {
     private headers: Record<string, string>
@@ -44,53 +53,108 @@ class PrintfulClient {
         imageUrl: string
         placement?: string
     }) {
-        const create = await this.post<MockupTaskResult>(
-            `/mockup-generator/create-task/${params.productId}`,
-            {
-                variant_ids: [params.productVariantId],
-                format: 'jpg',
-                files: [
-                    {
-                        placement: params.placement || 'front',
-                        image_url: params.imageUrl,
-                        position: {
-                            area_width: 1800,
-                            area_height: 2100,
-                            width: 1800,
-                            height: 1800,
-                            top: 150,
-                            left: 0,
-                        },
-                    },
-                ],
-            }
+        const placementCandidates = await this.getPlacementCandidates(
+            params.productId,
+            params.placement
         )
+        let lastError: unknown
 
-        if (Array.isArray(create.mockups) && create.mockups.length > 0) {
-            return { mockups: create.mockups }
-        }
+        for (const placement of placementCandidates) {
+            try {
+                const create = await this.post<MockupTaskResult>(
+                    `/mockup-generator/create-task/${params.productId}`,
+                    {
+                        variant_ids: [params.productVariantId],
+                        format: 'jpg',
+                        files: [
+                            {
+                                placement,
+                                image_url: params.imageUrl,
+                                position: {
+                                    area_width: 1800,
+                                    area_height: 2100,
+                                    width: 1800,
+                                    height: 1800,
+                                    top: 150,
+                                    left: 0,
+                                },
+                            },
+                        ],
+                    }
+                )
 
-        const taskKey = create.task_key
-        if (!taskKey) {
-            throw new Error('Printful mockup task key missing')
-        }
+                if (Array.isArray(create.mockups) && create.mockups.length > 0) {
+                    return { mockups: create.mockups }
+                }
 
-        for (let attempt = 0; attempt < DEFAULT_MOCKUP_POLL_ATTEMPTS; attempt += 1) {
-            await new Promise((resolve) => setTimeout(resolve, DEFAULT_MOCKUP_POLL_INTERVAL_MS))
-            const task = await this.get<MockupTaskResult>(
-                `/mockup-generator/task?task_key=${encodeURIComponent(taskKey)}`
-            )
+                const taskKey = create.task_key
+                if (!taskKey) {
+                    throw new Error('Printful mockup task key missing')
+                }
 
-            if (task.status === 'completed' && Array.isArray(task.mockups) && task.mockups.length > 0) {
-                return { mockups: task.mockups }
+                for (let attempt = 0; attempt < DEFAULT_MOCKUP_POLL_ATTEMPTS; attempt += 1) {
+                    await new Promise((resolve) => setTimeout(resolve, DEFAULT_MOCKUP_POLL_INTERVAL_MS))
+                    const task = await this.get<MockupTaskResult>(
+                        `/mockup-generator/task?task_key=${encodeURIComponent(taskKey)}`
+                    )
+
+                    if (
+                        task.status === 'completed' &&
+                        Array.isArray(task.mockups) &&
+                        task.mockups.length > 0
+                    ) {
+                        return { mockups: task.mockups }
+                    }
+
+                    if (task.status === 'failed') {
+                        throw new Error(`Printful mockup task failed for placement: ${placement}`)
+                    }
+                }
+
+                throw new Error(`Printful mockup task timed out for placement: ${placement}`)
+            } catch (error) {
+                lastError = error
+                if (!this.isInvalidPlacementError(error)) {
+                    throw error
+                }
             }
-
-            if (task.status === 'failed') {
-                throw new Error('Printful mockup task failed')
-            }
         }
 
-        throw new Error('Printful mockup task timed out')
+        if (lastError instanceof Error) {
+            throw lastError
+        }
+        throw new Error('Printful mockup failed for all placement candidates')
+    }
+
+    private async getPlacementCandidates(productId: number, preferredPlacement?: string): Promise<string[]> {
+        const candidates: string[] = []
+        const pushUnique = (value?: string | null) => {
+            if (!value) return
+            const placement = value.trim()
+            if (!placement || candidates.includes(placement)) return
+            if (IGNORED_MOCKUP_PLACEMENTS.has(placement)) return
+            candidates.push(placement)
+        }
+
+        pushUnique(preferredPlacement)
+        pushUnique('front')
+        pushUnique('default')
+
+        try {
+            const product = await this.get<ProductResponse>(`/products/${productId}`)
+            for (const file of product.product?.files ?? []) {
+                pushUnique(file.type)
+            }
+        } catch {
+            // fallback candidates above are sufficient if product metadata call fails
+        }
+
+        return candidates.length > 0 ? candidates : ['front']
+    }
+
+    private isInvalidPlacementError(error: unknown): boolean {
+        if (!(error instanceof Error)) return false
+        return error.message.includes('"api_error_code":"MG-4"')
     }
 
     async createOrder(params: {
