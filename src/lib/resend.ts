@@ -8,6 +8,13 @@ function supportRecipients(): string[] {
     return Array.from(new Set([primary, secondary].filter(Boolean)))
 }
 
+function marketingRecipients(): string[] {
+    const primary = (process.env.MARKETING_EMAIL || process.env.SUPPORT_EMAIL || 'support@smartprintai.com')
+        .trim()
+        .toLowerCase()
+    return Array.from(new Set([primary, ...supportRecipients()].filter(Boolean)))
+}
+
 export async function sendSignInLink(params: {
     email: string
     verifyUrl: string
@@ -150,6 +157,58 @@ export async function sendSupportAutoReply(params: {
             '<p style="color: #a1a1aa; margin: 0 0 10px;">Thanks for contacting SmartPrintAI support. Our team responds within <strong style="color: #fafafa;">24 business hours</strong>.</p>' +
             '<p style="color: #a1a1aa; margin: 0 0 10px;">For shipping-related requests, our target response is <strong style="color: #fafafa;">within 4 business hours</strong>.</p>' +
             '<p style="color: #a1a1aa; margin: 0 0 0;">Order ID: <strong style="color: #fafafa;">' + (params.orderId || 'Not provided') + '</strong></p>' +
+            '</div>',
+    })
+}
+
+export async function sendDiscountLeadNotification(params: {
+    email: string
+    locale: string
+    source: string
+    couponCode: string
+    requestId: string
+}) {
+    const recipients = marketingRecipients()
+
+    await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        to: recipients,
+        subject: '[Lead] First-order discount signup',
+        replyTo: params.email,
+        html:
+            '<div style="font-family: Inter, sans-serif; max-width: 680px; margin: 0 auto; padding: 32px 20px; background: #0a0a0a; color: #fafafa;">' +
+            '<h1 style="font-size: 22px; margin: 0 0 16px;">New Discount Lead</h1>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Request ID: <strong style="color: #fafafa;">' + params.requestId + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Email: <strong style="color: #fafafa;">' + params.email + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Locale: <strong style="color: #fafafa;">' + params.locale + '</strong></p>' +
+            '<p style="margin: 0 0 8px; color: #a1a1aa;">Source: <strong style="color: #fafafa;">' + params.source + '</strong></p>' +
+            '<p style="margin: 0 0 0; color: #a1a1aa;">Coupon sent: <strong style="color: #a78bfa;">' + params.couponCode + '</strong></p>' +
+            '</div>',
+    })
+}
+
+export async function sendFirstOrderCouponEmail(params: {
+    email: string
+    locale: string
+    couponCode: string
+}) {
+    const appBase = (process.env.NEXT_PUBLIC_APP_URL || 'https://smartprintai.com').replace(/\/+$/, '')
+    const createUrl = params.locale === 'en' ? `${appBase}/create` : `${appBase}/${params.locale}/create`
+
+    await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        to: params.email,
+        subject: 'Your SmartPrintAI first-order code',
+        html:
+            '<div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #0a0a0a; color: #fafafa;">' +
+            '<h1 style="font-size: 26px; margin: 0 0 12px;">Welcome to SmartPrintAI</h1>' +
+            '<p style="color: #a1a1aa; margin: 0 0 14px;">Here is your first-order discount code:</p>' +
+            '<div style="display: inline-block; padding: 12px 16px; border-radius: 10px; border: 1px solid #4ade80; background: #052e16; color: #bbf7d0; font-size: 20px; font-weight: 700; letter-spacing: 1px;">' +
+            params.couponCode +
+            '</div>' +
+            '<p style="color: #a1a1aa; margin: 16px 0 20px;">Use this code during checkout. Offer valid for your first order only.</p>' +
+            '<a href="' + createUrl + '" style="display: inline-block; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, #9333ea, #ec4899); color: #ffffff; text-decoration: none; font-weight: 600;">Start creating</a>' +
+            '<p style="color: #71717a; margin-top: 24px; font-size: 12px;">If you did not request this, you can ignore this email.</p>' +
             '</div>',
     })
 }

@@ -18,7 +18,9 @@ describe('auth-session token helpers', () => {
 
     it('rejects tampered sign-in token', () => {
         const token = createSignInLinkToken('user@example.com')
-        const tampered = token.slice(0, -1) + (token.endsWith('a') ? 'b' : 'a')
+        const [payload, signature] = token.split('.')
+        const tamperedSignature = (signature.startsWith('a') ? 'b' : 'a') + signature.slice(1)
+        const tampered = `${payload}.${tamperedSignature}`
         expect(readSignInLinkToken(tampered)).toBeNull()
     })
 

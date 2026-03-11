@@ -2,6 +2,7 @@ import Hero from '@/components/home/Hero'
 import HowItWorks from '@/components/home/HowItWorks'
 import FeaturedProducts from '@/components/home/FeaturedProducts'
 import SampleDesigns from '@/components/home/SampleDesigns'
+import FirstOrderDiscountPopup from '@/components/marketing/FirstOrderDiscountPopup'
 import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
@@ -24,6 +25,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
             <HowItWorks copy={copy.howItWorks} />
             <FeaturedProducts copy={copy.featuredProducts} />
             <SampleDesigns copy={copy.sampleDesigns} />
+            <FirstOrderDiscountPopup locale={locale} />
 
             <section className="py-24">
                 <div className="max-w-4xl mx-auto px-4 text-center">

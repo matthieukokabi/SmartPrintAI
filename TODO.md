@@ -74,7 +74,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### P2 - Marketing Execution (Month 2)
 - [ ] Launch first $100 Google Shopping test
-- [ ] Set up email list capture offer (first-order discount popup)
+- [x] Set up email list capture offer (first-order discount popup) (2026-03-11: homepage discount modal in `en/fr/de/es`, lead capture API `/api/marketing/lead`, rate-limited submission, internal lead notification + customer coupon email via Resend, env vars documented)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
 - [ ] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth)
