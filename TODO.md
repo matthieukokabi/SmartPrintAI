@@ -73,7 +73,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Build reusable weekly content batch workflow (90 min/week) (2026-03-11: added generator script `npm run marketing:weekly-batch` + docs `docs/marketing/WEEKLY_CONTENT_BATCH_WORKFLOW.md` with 90-minute operating cadence and quality gate)
 
 ### P2 - Marketing Execution (Month 2)
-- [ ] Launch first $100 Google Shopping test
+- [ ] Launch first $100 Google Shopping test (prereq done 2026-03-11: product feed endpoint `/google/merchant-feed.xml`, setup runbook `docs/marketing/GOOGLE_MERCHANT_FEED_SETUP.md`; campaign launch still manual in Google Ads)
 - [x] Set up email list capture offer (first-order discount popup) (2026-03-11: homepage discount modal in `en/fr/de/es`, lead capture API `/api/marketing/lead`, rate-limited submission, internal lead notification + customer coupon email via Resend, env vars documented)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
