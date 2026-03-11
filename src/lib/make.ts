@@ -49,6 +49,16 @@ type AbandonedCartCandidatePayload = {
     }>
 }
 
+type DesignAutoPostPayload = {
+    requestId: string
+    designId: string
+    prompt: string
+    style: string
+    imageUrl: string
+    sessionId: string | null
+    createdAtIso: string
+}
+
 type DailyDigestPayload = {
     requestId: string
     windowStartIso: string
@@ -179,4 +189,12 @@ export async function sendMakeAbandonedCartCandidate(
 
 export async function sendMakeDailyDigest(payload: DailyDigestPayload): Promise<MakeWebhookResult> {
     return dispatchMakeEvent(process.env.MAKE_DAILY_DIGEST_WEBHOOK_URL, 'daily_digest', payload)
+}
+
+export async function sendMakeDesignAutoPost(payload: DesignAutoPostPayload): Promise<MakeWebhookResult> {
+    return dispatchMakeEvent(
+        process.env.MAKE_DESIGN_AUTOPOST_WEBHOOK_URL,
+        'design_auto_post',
+        payload
+    )
 }

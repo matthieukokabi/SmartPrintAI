@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { generateImage } from '@/lib/gemini'
 import { uploadBase64Image } from '@/lib/storage'
 import { prisma } from '@/lib/prisma'
+import { sendMakeDesignAutoPost } from '@/lib/make'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
 
@@ -115,6 +116,16 @@ export async function POST(req: NextRequest) {
                 sessionId,
                 status: 'ready',
             },
+        })
+
+        await sendMakeDesignAutoPost({
+            requestId,
+            designId: design.id,
+            prompt,
+            style,
+            imageUrl,
+            sessionId: design.sessionId || null,
+            createdAtIso: design.createdAt.toISOString(),
         })
 
         logApiInfo(route, requestId, 'request_succeeded', { designId: design.id })

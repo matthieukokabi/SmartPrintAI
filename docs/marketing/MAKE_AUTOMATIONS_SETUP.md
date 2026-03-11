@@ -8,6 +8,7 @@ This document covers the automations currently wired in the app:
 - `shipped_review_request` (Printful shipment webhook path)
 - `abandoned_cart_candidate` (Stripe checkout creation path)
 - `daily_digest` (secured automation endpoint trigger)
+- `design_auto_post` (AI generation completion path)
 
 ## 1) Environment Variables
 
@@ -18,6 +19,7 @@ MAKE_ORDER_ALERT_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_SHIPPED_REVIEW_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_ABANDONED_CART_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_DAILY_DIGEST_WEBHOOK_URL="https://hook.eu2.make.com/..."
+MAKE_DESIGN_AUTOPOST_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_WEBHOOK_TIMEOUT_MS="8000"
 AUTOMATION_SHARED_SECRET="replace-with-a-long-random-secret"
 ```
@@ -129,7 +131,36 @@ Recommended actions:
 - Check if corresponding paid order exists (using your Make data store or downstream CRM state)
 - Send reminder only if still unpaid
 
-## 5) Daily Digest Trigger Endpoint
+## 5) Make Scenario: Design Auto-Post
+
+Trigger: Custom webhook URL copied into `MAKE_DESIGN_AUTOPOST_WEBHOOK_URL`.
+
+Expected payload envelope:
+
+```json
+{
+  "source": "smartprintai",
+  "eventType": "design_auto_post",
+  "occurredAt": "2026-03-11T10:00:00.000Z",
+  "payload": {
+    "requestId": "req_...",
+    "designId": "des_...",
+    "prompt": "funny french bulldog in sunglasses",
+    "style": "pop-art",
+    "imageUrl": "https://cdn.smartprintai.com/designs/...",
+    "sessionId": "sess_...",
+    "createdAtIso": "2026-03-11T10:00:00.000Z"
+  }
+}
+```
+
+Recommended actions:
+
+- Generate platform-specific captions/hashtags
+- Post to scheduled queue (Pinterest, Instagram, TikTok workflow)
+- Save posted URL + engagement metadata for later attribution
+
+## 6) Daily Digest Trigger Endpoint
 
 Endpoint:
 
@@ -163,7 +194,7 @@ The route computes:
 
 Then sends a `daily_digest` envelope to `MAKE_DAILY_DIGEST_WEBHOOK_URL`.
 
-## 6) Manual Trigger Check
+## 7) Manual Trigger Check
 
 Run from VPS:
 
@@ -176,6 +207,6 @@ curl -sS -X POST "https://smartprintai.com/api/automations/daily-digest" \
 
 Expected: HTTP `200` and JSON with `ok: true` + metrics.
 
-## 7) Pending Make.com Items (Phase 2)
+## 8) Pending Make.com Items (Phase 2)
 
-- Design auto-post automation (social distribution)
+- Scenario tuning/optimization (delay windows, filters, channel-specific posting templates)
