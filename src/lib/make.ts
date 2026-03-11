@@ -32,6 +32,23 @@ type ShippedReviewPayload = {
     carrier: string | null
 }
 
+type AbandonedCartCandidatePayload = {
+    requestId: string
+    stripeSessionId: string
+    checkoutUrl: string
+    email: string | null
+    sessionId: string | null
+    itemCount: number
+    cartTotal: number
+    items: Array<{
+        productId: string
+        designId: string
+        size: string
+        color: string
+        quantity: number
+    }>
+}
+
 type DailyDigestPayload = {
     requestId: string
     windowStartIso: string
@@ -146,6 +163,16 @@ export async function sendMakeShippedReviewRequest(payload: ShippedReviewPayload
     return dispatchMakeEvent(
         process.env.MAKE_SHIPPED_REVIEW_WEBHOOK_URL,
         'shipped_review_request',
+        payload
+    )
+}
+
+export async function sendMakeAbandonedCartCandidate(
+    payload: AbandonedCartCandidatePayload
+): Promise<MakeWebhookResult> {
+    return dispatchMakeEvent(
+        process.env.MAKE_ABANDONED_CART_WEBHOOK_URL,
+        'abandoned_cart_candidate',
         payload
     )
 }

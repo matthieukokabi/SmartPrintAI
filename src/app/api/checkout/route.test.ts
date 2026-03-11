@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
       },
     },
   },
+  sendMakeAbandonedCartCandidate: vi.fn(),
 }))
 
 vi.mock('@/lib/prisma', () => ({
@@ -22,6 +23,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/stripe', () => ({
   stripe: mocks.stripe,
+}))
+
+vi.mock('@/lib/make', () => ({
+  sendMakeAbandonedCartCandidate: mocks.sendMakeAbandonedCartCandidate,
 }))
 
 import { POST } from './route'
@@ -50,6 +55,7 @@ describe('/api/checkout POST', () => {
     expect(res.headers.get('x-request-id')).toBe('req-checkout-invalid-json')
     await expect(res.json()).resolves.toEqual({ error: 'Invalid JSON body' })
     expect(mocks.prisma.product.findMany).not.toHaveBeenCalled()
+    expect(mocks.sendMakeAbandonedCartCandidate).not.toHaveBeenCalled()
   })
 
   it('returns 400 when product IDs are missing in DB', async () => {
@@ -72,6 +78,7 @@ describe('/api/checkout POST', () => {
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({ error: 'One or more products were not found' })
     expect(mocks.stripe.checkout.sessions.create).not.toHaveBeenCalled()
+    expect(mocks.sendMakeAbandonedCartCandidate).not.toHaveBeenCalled()
   })
 
   it('creates Stripe session and returns checkout URL for valid payload', async () => {
@@ -84,6 +91,7 @@ describe('/api/checkout POST', () => {
     ])
 
     mocks.stripe.checkout.sessions.create.mockResolvedValue({
+      id: 'cs_test_123',
       url: 'https://checkout.stripe.test/session_123',
     })
 
@@ -117,5 +125,24 @@ describe('/api/checkout POST', () => {
         }),
       })
     )
+
+    expect(mocks.sendMakeAbandonedCartCandidate).toHaveBeenCalledWith({
+      requestId: 'req-checkout-ok',
+      stripeSessionId: 'cs_test_123',
+      checkoutUrl: 'https://checkout.stripe.test/session_123',
+      email: 'test@example.com',
+      sessionId: 'sess-abc',
+      itemCount: 1,
+      cartTotal: 59.98,
+      items: [
+        {
+          productId: 'prod-1',
+          designId: 'design-1',
+          size: 'L',
+          color: 'Black',
+          quantity: 2,
+        },
+      ],
+    })
   })
 })

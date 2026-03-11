@@ -6,6 +6,7 @@ This document covers the automations currently wired in the app:
 
 - `order_alert` (Stripe webhook success path)
 - `shipped_review_request` (Printful shipment webhook path)
+- `abandoned_cart_candidate` (Stripe checkout creation path)
 - `daily_digest` (secured automation endpoint trigger)
 
 ## 1) Environment Variables
@@ -15,6 +16,7 @@ Set these in production (`/root/smartprintai/.env.local`) and local `.env.local`
 ```bash
 MAKE_ORDER_ALERT_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_SHIPPED_REVIEW_WEBHOOK_URL="https://hook.eu2.make.com/..."
+MAKE_ABANDONED_CART_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_DAILY_DIGEST_WEBHOOK_URL="https://hook.eu2.make.com/..."
 MAKE_WEBHOOK_TIMEOUT_MS="8000"
 AUTOMATION_SHARED_SECRET="replace-with-a-long-random-secret"
@@ -83,7 +85,51 @@ Recommended actions:
 - Wait delay (for example: 5-10 days after shipment)
 - Send review request email or CRM workflow
 
-## 4) Daily Digest Trigger Endpoint
+## 4) Make Scenario: Abandoned Cart Candidate
+
+Trigger: Custom webhook URL copied into `MAKE_ABANDONED_CART_WEBHOOK_URL`.
+
+When this fires:
+
+- User started Stripe checkout
+- Session URL is generated
+- Purchase may still complete later (this is a candidate signal, not a confirmed abandonment)
+
+Expected payload envelope:
+
+```json
+{
+  "source": "smartprintai",
+  "eventType": "abandoned_cart_candidate",
+  "occurredAt": "2026-03-11T10:00:00.000Z",
+  "payload": {
+    "requestId": "req_...",
+    "stripeSessionId": "cs_...",
+    "checkoutUrl": "https://checkout.stripe.com/...",
+    "email": "buyer@example.com",
+    "sessionId": "sess_...",
+    "itemCount": 2,
+    "cartTotal": 59.98,
+    "items": [
+      {
+        "productId": "prod_...",
+        "designId": "des_...",
+        "size": "L",
+        "color": "Black",
+        "quantity": 1
+      }
+    ]
+  }
+}
+```
+
+Recommended actions:
+
+- Delay 2-6 hours
+- Check if corresponding paid order exists (using your Make data store or downstream CRM state)
+- Send reminder only if still unpaid
+
+## 5) Daily Digest Trigger Endpoint
 
 Endpoint:
 
@@ -117,7 +163,7 @@ The route computes:
 
 Then sends a `daily_digest` envelope to `MAKE_DAILY_DIGEST_WEBHOOK_URL`.
 
-## 5) Manual Trigger Check
+## 6) Manual Trigger Check
 
 Run from VPS:
 
@@ -130,7 +176,6 @@ curl -sS -X POST "https://smartprintai.com/api/automations/daily-digest" \
 
 Expected: HTTP `200` and JSON with `ok: true` + metrics.
 
-## 6) Pending Make.com Items (Phase 2)
+## 7) Pending Make.com Items (Phase 2)
 
-- Abandoned cart automation
 - Design auto-post automation (social distribution)

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+import { sendMakeAbandonedCartCandidate } from '@/lib/make'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 
 type CheckoutItem = {
@@ -202,6 +203,31 @@ export async function POST(req: NextRequest) {
         if (!session.url) {
             throw new Error('Stripe returned a checkout session without URL')
         }
+
+        const cartTotal = Number(items.reduce((sum, item) => {
+            const product = productById.get(item.productId)
+            if (!product) {
+                return sum
+            }
+            return sum + (product.sellPrice * item.quantity)
+        }, 0).toFixed(2))
+
+        await sendMakeAbandonedCartCandidate({
+            requestId,
+            stripeSessionId: session.id,
+            checkoutUrl: session.url,
+            email: email || null,
+            sessionId: sessionId || null,
+            itemCount: items.length,
+            cartTotal,
+            items: items.map((item) => ({
+                productId: item.productId,
+                designId: item.designId,
+                size: item.size,
+                color: item.color,
+                quantity: item.quantity,
+            })),
+        })
 
         logApiInfo(route, requestId, 'request_succeeded', { itemCount: items.length })
         return respond({ url: session.url })
