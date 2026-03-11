@@ -130,6 +130,24 @@ type CreatePageCopy = {
     mockupPlaceholderLabel: string
 }
 
+type CartPageCopy = {
+    metadataTitle: string
+    emptyTitle: string
+    emptySubtitle: string
+    startCreatingLabel: string
+    headingLabel: string
+    sizeLabel: string
+    colorLabel: string
+    orderSummaryLabel: string
+    subtotalLabel: string
+    itemsLabel: string
+    shippingLabel: string
+    totalLabel: string
+    checkoutLabel: string
+    checkoutFailedLabel: string
+    secureCheckoutLabel: string
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -137,6 +155,7 @@ export type LocaleCopy = {
     products: ProductsPageCopy
     productDetail: ProductDetailPageCopy
     create: CreatePageCopy
+    cart: CartPageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
@@ -291,6 +310,23 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             generatingMockupLabel: 'Generating mockup...',
             mockupPlaceholderLabel: 'Select a product to see your design on it',
         },
+        cart: {
+            metadataTitle: 'Cart',
+            emptyTitle: 'Your cart is empty',
+            emptySubtitle: 'Create a custom design and add it to your cart',
+            startCreatingLabel: 'Start Creating',
+            headingLabel: 'Shopping Cart',
+            sizeLabel: 'Size',
+            colorLabel: 'Color',
+            orderSummaryLabel: 'Order Summary',
+            subtotalLabel: 'Subtotal',
+            itemsLabel: 'items',
+            shippingLabel: 'Shipping',
+            totalLabel: 'Total',
+            checkoutLabel: 'Checkout with Stripe',
+            checkoutFailedLabel: 'Checkout failed. Please try again.',
+            secureCheckoutLabel: 'Secure checkout powered by Stripe',
+        },
     },
     fr: {
         localeLabel: 'Francais',
@@ -439,6 +475,23 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'Pas satisfait ? Regenerer',
             generatingMockupLabel: 'Generation du mockup...',
             mockupPlaceholderLabel: 'Selectionnez un produit pour voir votre design dessus',
+        },
+        cart: {
+            metadataTitle: 'Panier',
+            emptyTitle: 'Votre panier est vide',
+            emptySubtitle: 'Creez un design personnalise et ajoutez-le au panier',
+            startCreatingLabel: 'Commencer a creer',
+            headingLabel: 'Panier',
+            sizeLabel: 'Taille',
+            colorLabel: 'Couleur',
+            orderSummaryLabel: 'Resume de commande',
+            subtotalLabel: 'Sous-total',
+            itemsLabel: 'articles',
+            shippingLabel: 'Livraison',
+            totalLabel: 'Total',
+            checkoutLabel: 'Payer avec Stripe',
+            checkoutFailedLabel: "Echec du paiement. Veuillez reessayer.",
+            secureCheckoutLabel: 'Paiement securise propulse par Stripe',
         },
     },
     de: {
@@ -589,6 +642,23 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             generatingMockupLabel: 'Mockup wird erstellt...',
             mockupPlaceholderLabel: 'Waehle ein Produkt, um dein Design darauf zu sehen',
         },
+        cart: {
+            metadataTitle: 'Warenkorb',
+            emptyTitle: 'Dein Warenkorb ist leer',
+            emptySubtitle: 'Erstelle ein Design und fuege es deinem Warenkorb hinzu',
+            startCreatingLabel: 'Jetzt erstellen',
+            headingLabel: 'Warenkorb',
+            sizeLabel: 'Groesse',
+            colorLabel: 'Farbe',
+            orderSummaryLabel: 'Bestelluebersicht',
+            subtotalLabel: 'Zwischensumme',
+            itemsLabel: 'Artikel',
+            shippingLabel: 'Versand',
+            totalLabel: 'Gesamt',
+            checkoutLabel: 'Mit Stripe bezahlen',
+            checkoutFailedLabel: 'Checkout fehlgeschlagen. Bitte versuche es erneut.',
+            secureCheckoutLabel: 'Sicherer Checkout mit Stripe',
+        },
     },
     es: {
         localeLabel: 'Espanol',
@@ -737,6 +807,23 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'No te convence? Regenerar',
             generatingMockupLabel: 'Generando mockup...',
             mockupPlaceholderLabel: 'Selecciona un producto para ver tu diseno en el',
+        },
+        cart: {
+            metadataTitle: 'Carrito',
+            emptyTitle: 'Tu carrito esta vacio',
+            emptySubtitle: 'Crea un diseno personalizado y anadelo al carrito',
+            startCreatingLabel: 'Empezar a crear',
+            headingLabel: 'Carrito',
+            sizeLabel: 'Talla',
+            colorLabel: 'Color',
+            orderSummaryLabel: 'Resumen del pedido',
+            subtotalLabel: 'Subtotal',
+            itemsLabel: 'articulos',
+            shippingLabel: 'Envio',
+            totalLabel: 'Total',
+            checkoutLabel: 'Pagar con Stripe',
+            checkoutFailedLabel: 'El pago fallo. Intentalo de nuevo.',
+            secureCheckoutLabel: 'Pago seguro impulsado por Stripe',
         },
     },
 }

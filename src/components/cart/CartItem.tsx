@@ -4,7 +4,13 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import Image from 'next/image'
 import { useCart, type CartItem as CartItemType } from '@/store/cart'
 
-export default function CartItem({ item }: { item: CartItemType }) {
+type CartItemProps = {
+    item: CartItemType
+    sizeLabel: string
+    colorLabel: string
+}
+
+export default function CartItem({ item, sizeLabel, colorLabel }: CartItemProps) {
     const { removeItem, updateQuantity } = useCart()
 
     return (
@@ -22,7 +28,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
             <div className="flex-1 min-w-0">
                 <h3 className="font-medium truncate">{item.productName}</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                    Size: {item.size} · Color: {item.color}
+                    {sizeLabel}: {item.size} · {colorLabel}: {item.color}
                 </p>
                 <p className="text-sm text-purple-400 font-medium mt-1">
                     ${item.price.toFixed(2)}

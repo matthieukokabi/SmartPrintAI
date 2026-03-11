@@ -4,7 +4,20 @@ import { useState } from 'react'
 import { useCart } from '@/store/cart'
 import { Loader2, ShieldCheck } from 'lucide-react'
 
-export default function CartSummary() {
+type CartSummaryProps = {
+    copy: {
+        orderSummaryLabel: string
+        subtotalLabel: string
+        itemsLabel: string
+        shippingLabel: string
+        totalLabel: string
+        checkoutLabel: string
+        checkoutFailedLabel: string
+        secureCheckoutLabel: string
+    }
+}
+
+export default function CartSummary({ copy }: CartSummaryProps) {
     const { items, total } = useCart()
     const [isLoading, setIsLoading] = useState(false)
 
@@ -31,7 +44,7 @@ export default function CartSummary() {
             const data = await res.json()
             if (data.url) window.location.href = data.url
         } catch {
-            alert('Checkout failed. Please try again.')
+            alert(copy.checkoutFailedLabel)
         } finally {
             setIsLoading(false)
         }
@@ -39,19 +52,19 @@ export default function CartSummary() {
 
     return (
         <div className="glass rounded-2xl p-6 sticky top-24">
-            <h3 className="text-lg font-bold mb-4">Order Summary</h3>
+            <h3 className="text-lg font-bold mb-4">{copy.orderSummaryLabel}</h3>
 
             <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal ({items.length} items)</span>
+                    <span>{copy.subtotalLabel} ({items.length} {copy.itemsLabel})</span>
                     <span>${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                    <span>Shipping</span>
+                    <span>{copy.shippingLabel}</span>
                     <span>${shipping.toFixed(2)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-3 flex justify-between font-bold text-lg">
-                    <span>Total</span>
+                    <span>{copy.totalLabel}</span>
                     <span className="text-gradient">${grandTotal.toFixed(2)}</span>
                 </div>
             </div>
@@ -64,13 +77,13 @@ export default function CartSummary() {
                 {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                    'Checkout with Stripe'
+                    copy.checkoutLabel
                 )}
             </button>
 
             <div className="flex items-center justify-center gap-1.5 mt-3 text-xs text-muted-foreground">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Secure checkout powered by Stripe
+                {copy.secureCheckoutLabel}
             </div>
         </div>
     )
