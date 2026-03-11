@@ -49,6 +49,9 @@ export default function Navbar() {
                         <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             Blog
                         </Link>
+                        <Link href="/careers" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            Careers
+                        </Link>
                         <Link href="/account/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             Orders
                         </Link>

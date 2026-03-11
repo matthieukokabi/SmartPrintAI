@@ -65,6 +65,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
 - [x] Add final favicon/app icon pack and verify social preview image consistency (OG/Twitter/favicon/browser tab icons) (2026-03-11: Next file-based metadata routes added for `/icon`, `/apple-icon`, `/opengraph-image`, `/twitter-image`, and `/manifest.webmanifest`; validated via lint/typecheck/tests/build)
+- [x] Add Careers page (`/careers`) and wire global discovery links (navbar, footer, sitemap) (2026-03-11)
 
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week
@@ -78,6 +79,11 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
 - [ ] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth)
 - [ ] Prepare Etsy-ready listing pack (titles, tags, thumbnails, mockups) for top 20 designs
+
+### P2 - International Growth
+- [ ] Implement SEO-safe i18n architecture with locale routes and hreflang (`en` default + `fr`, `de`, `es` phase 1)
+- [ ] Localize core conversion pages (home, create, products, product detail, cart, checkout-success, support, careers)
+- [ ] Expand multilingual SEO content (blog posts per priority locale) with localized metadata and internal links
 
 ### P3 - Scale Triggers (After first consistent revenue)
 - [ ] Upgrade image generation quality tier (fal.ai phase) when threshold is reached
