@@ -78,7 +78,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
 - [x] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth) (2026-03-11: integration architecture and rollout documented in `docs/marketing/ETSY_INTEGRATION_PLAN.md` with source-of-truth model, data mappings, phased implementation, risk controls, and success metrics)
-- [ ] Prepare Etsy-ready listing pack (titles, tags, thumbnails, mockups) for top 20 designs
+- [x] Prepare Etsy-ready listing pack (titles, tags, thumbnails, mockups) for top 20 designs (2026-03-11: exported `docs/marketing/etsy/ETSY_TOP20_LISTING_PACK.csv` with 20 listing-ready entries including Etsy title, 13 tags, prompt, product mapping, thumbnail/mockup briefs, and starting price)
 
 ### P2 - International Growth
 - [x] Implement SEO-safe i18n architecture with locale routes and hreflang (`en` default + `fr`, `de`, `es` phase 1) (2026-03-11: localized routes live for `/[locale]` and `/[locale]/careers`, translated copy foundation in `src/lib/i18n.ts`, language switchers, localized sitemap entries)
