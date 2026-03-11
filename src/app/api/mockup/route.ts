@@ -137,7 +137,14 @@ export async function POST(req: NextRequest) {
             return respond({ error: 'Color not found' }, { status: 400 })
         }
 
+        const printfulProductId = Number(product.printfulId)
+        if (!Number.isFinite(printfulProductId) || printfulProductId <= 0) {
+            logApiWarn(route, requestId, 'invalid_printful_product_id')
+            return respond({ error: 'Product mapping unavailable' }, { status: 400 })
+        }
+
         const result = await printful.generateMockup({
+            productId: printfulProductId,
             productVariantId: colorData.printfulVariantId,
             imageUrl: design.imageUrl,
         })

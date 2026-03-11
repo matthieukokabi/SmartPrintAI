@@ -1,4 +1,14 @@
 const PRINTFUL_BASE = 'https://api.printful.com'
+const DEFAULT_MOCKUP_POLL_ATTEMPTS = 12
+const DEFAULT_MOCKUP_POLL_INTERVAL_MS = 1500
+
+type MockupRecord = { mockup_url: string }
+
+type MockupTaskResult = {
+    status?: string
+    mockups?: MockupRecord[]
+    task_key?: string
+}
 
 class PrintfulClient {
     private headers: Record<string, string>
@@ -29,12 +39,13 @@ class PrintfulClient {
     }
 
     async generateMockup(params: {
+        productId: number
         productVariantId: number
         imageUrl: string
         placement?: string
     }) {
-        return this.post<{ mockups: Array<{ mockup_url: string }> }>(
-            `/mockup-generator/create-task/${params.productVariantId}`,
+        const create = await this.post<MockupTaskResult>(
+            `/mockup-generator/create-task/${params.productId}`,
             {
                 variant_ids: [params.productVariantId],
                 format: 'jpg',
@@ -54,6 +65,32 @@ class PrintfulClient {
                 ],
             }
         )
+
+        if (Array.isArray(create.mockups) && create.mockups.length > 0) {
+            return { mockups: create.mockups }
+        }
+
+        const taskKey = create.task_key
+        if (!taskKey) {
+            throw new Error('Printful mockup task key missing')
+        }
+
+        for (let attempt = 0; attempt < DEFAULT_MOCKUP_POLL_ATTEMPTS; attempt += 1) {
+            await new Promise((resolve) => setTimeout(resolve, DEFAULT_MOCKUP_POLL_INTERVAL_MS))
+            const task = await this.get<MockupTaskResult>(
+                `/mockup-generator/task?task_key=${encodeURIComponent(taskKey)}`
+            )
+
+            if (task.status === 'completed' && Array.isArray(task.mockups) && task.mockups.length > 0) {
+                return { mockups: task.mockups }
+            }
+
+            if (task.status === 'failed') {
+                throw new Error('Printful mockup task failed')
+            }
+        }
+
+        throw new Error('Printful mockup task timed out')
     }
 
     async createOrder(params: {
