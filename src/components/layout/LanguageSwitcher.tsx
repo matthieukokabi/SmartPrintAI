@@ -1,22 +1,9 @@
 import Link from 'next/link'
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES, getLocaleCopy, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, getLocaleCopy, getLocalizedPath, type SupportedLocale } from '@/lib/i18n'
 
 interface LanguageSwitcherProps {
     currentLocale: SupportedLocale
-    pagePath: '/' | '/careers'
-}
-
-function localePath(locale: SupportedLocale, path: '/' | '/careers'): string {
-    if (locale === DEFAULT_LOCALE && path === '/') {
-        return '/'
-    }
-    if (locale === DEFAULT_LOCALE) {
-        return path
-    }
-    if (path === '/') {
-        return `/${locale}`
-    }
-    return `/${locale}${path}`
+    pagePath: string
 }
 
 export default function LanguageSwitcher({ currentLocale, pagePath }: LanguageSwitcherProps) {
@@ -29,7 +16,7 @@ export default function LanguageSwitcher({ currentLocale, pagePath }: LanguageSw
                 return (
                     <Link
                         key={locale}
-                        href={localePath(locale, pagePath)}
+                        href={getLocalizedPath(locale, pagePath)}
                         className={`px-2.5 py-1 rounded-full text-xs transition-colors ${isActive
                                 ? 'bg-purple-600 text-white'
                                 : 'text-muted-foreground hover:text-foreground'

@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
-import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type ProductColor = {
     name: string
@@ -34,25 +34,37 @@ function isProductColor(value: unknown): value is ProductColor {
     )
 }
 
-type ProductPageProps = {
+type LocaleProductPageProps = {
     params: {
+        locale: string
         id: string
     }
 }
 
-const copy = getLocaleCopy(DEFAULT_LOCALE).productDetail
+export const dynamic = 'force-dynamic'
+export const dynamicParams = false
+
+export function generateStaticParams() {
+    return SUPPORTED_LOCALES.map((locale) => ({ locale }))
+}
 
 async function getProduct(id: string) {
     return prisma.product.findUnique({ where: { id } })
 }
 
-export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: LocaleProductPageProps): Promise<Metadata> {
+    if (!isSupportedLocale(params.locale)) {
+        return {}
+    }
+
+    const locale = params.locale as SupportedLocale
+    const detailCopy = getLocaleCopy(locale).productDetail
     const product = await getProduct(params.id)
 
     if (!product) {
         return {
-            title: copy.notFoundSeoTitle,
-            description: copy.notFoundDescription,
+            title: detailCopy.notFoundSeoTitle,
+            description: detailCopy.notFoundDescription,
             robots: {
                 index: false,
                 follow: false,
@@ -67,14 +79,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         title: product.name,
         description,
         alternates: {
-            canonical: `/products/${product.id}`,
+            canonical: `/${locale}/products/${product.id}`,
             languages: buildLocaleAlternates(`/products/${product.id}`),
         },
         openGraph: {
             title: `${product.name} | SmartPrintAI`,
             description,
             type: 'website',
-            url: `/products/${product.id}`,
+            url: `/${locale}/products/${product.id}`,
             images: [{ url: imageUrl }],
         },
         twitter: {
@@ -86,7 +98,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     }
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function LocalizedProductPage({ params }: LocaleProductPageProps) {
+    if (!isSupportedLocale(params.locale)) {
+        notFound()
+    }
+
+    const locale = params.locale as SupportedLocale
+    const detailCopy = getLocaleCopy(locale).productDetail
+
     const product = await getProduct(params.id)
     if (!product) {
         notFound()
@@ -133,7 +152,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             priceCurrency: 'USD',
             price: product.sellPrice.toFixed(2),
             availability: 'https://schema.org/InStock',
-            url: toAbsoluteUrl(`/products/${product.id}`),
+            url: toAbsoluteUrl(`/${locale}/products/${product.id}`),
         },
     }
 
@@ -144,18 +163,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
             />
             <div className="mb-5 flex justify-center">
-                <LanguageSwitcher currentLocale={DEFAULT_LOCALE} pagePath={`/products/${product.id}`} />
+                <LanguageSwitcher currentLocale={locale} pagePath={`/products/${product.id}`} />
             </div>
-            <Link href="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
-                <ArrowLeft className="w-4 h-4" /> {copy.backLabel}
+            <Link
+                href={`/${locale}/products`}
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8"
+            >
+                <ArrowLeft className="w-4 h-4" /> {detailCopy.backLabel}
             </Link>
 
             <ProductDetailClient
                 product={productForClient}
                 copy={{
-                    availableSizesLabel: copy.availableSizesLabel,
-                    colorsLabel: copy.colorsLabel,
-                    designButtonLabel: copy.designButtonLabel,
+                    availableSizesLabel: detailCopy.availableSizesLabel,
+                    colorsLabel: detailCopy.colorsLabel,
+                    designButtonLabel: detailCopy.designButtonLabel,
                 }}
             />
         </div>

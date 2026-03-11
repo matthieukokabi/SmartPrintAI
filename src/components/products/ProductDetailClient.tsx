@@ -25,6 +25,18 @@ type ProductDetail = {
 
 type Props = {
     product: ProductDetail
+    createPath?: string
+    copy?: {
+        availableSizesLabel: string
+        colorsLabel: string
+        designButtonLabel: string
+    }
+}
+
+const defaultCopy = {
+    availableSizesLabel: 'Available Sizes',
+    colorsLabel: 'Colors',
+    designButtonLabel: 'Design This Product with AI',
 }
 
 function colorDotStyle(hex: string) {
@@ -32,7 +44,7 @@ function colorDotStyle(hex: string) {
     return { backgroundColor: safeHex }
 }
 
-export default function ProductDetailClient({ product }: Props) {
+export default function ProductDetailClient({ product, createPath = '/create', copy = defaultCopy }: Props) {
     const initialColor = product.colors[0]?.name ?? 'Default'
     const initialSize = product.sizes[0] ?? 'One Size'
 
@@ -46,7 +58,7 @@ export default function ProductDetailClient({ product }: Props) {
 
     const imageUrl = selectedColorData?.previewImageUrl || product.imageUrl
     const createHref =
-        `/create?productId=${encodeURIComponent(product.id)}` +
+        `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
         `&size=${encodeURIComponent(selectedSize)}`
 
@@ -76,7 +88,7 @@ export default function ProductDetailClient({ product }: Props) {
 
                 <div className="space-y-4 mb-8">
                     <div>
-                        <label className="text-sm font-medium mb-2 block">Available Sizes</label>
+                        <label className="text-sm font-medium mb-2 block">{copy.availableSizesLabel}</label>
                         <div className="flex flex-wrap gap-2">
                             {product.sizes.map((size) => (
                                 <button
@@ -94,7 +106,7 @@ export default function ProductDetailClient({ product }: Props) {
                         </div>
                     </div>
                     <div>
-                        <label className="text-sm font-medium mb-2 block">Colors</label>
+                        <label className="text-sm font-medium mb-2 block">{copy.colorsLabel}</label>
                         <div className="flex flex-wrap gap-2">
                             {product.colors.map((color) => (
                                 <button
@@ -118,7 +130,7 @@ export default function ProductDetailClient({ product }: Props) {
                     href={createHref}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
                 >
-                    Design This Product with AI
+                    {copy.designButtonLabel}
                 </Link>
             </div>
         </div>

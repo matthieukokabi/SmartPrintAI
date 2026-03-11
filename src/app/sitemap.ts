@@ -63,6 +63,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
     }))
 
+    const localizedProductRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
+        products.map((product) => ({
+            url: `${siteUrl}/${locale}/products/${product.id}`,
+            lastModified: now,
+            changeFrequency: 'weekly',
+            priority: locale === 'en' ? 0.75 : 0.65,
+        }))
+    )
+
     const blogRoutes: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
         url: `${siteUrl}/blog/${post.slug}`,
         lastModified: new Date(post.publishedAt),
@@ -78,6 +87,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: locale === 'en' ? 0.85 : 0.75,
         },
         {
+            url: `${siteUrl}/${locale}/products`,
+            lastModified: now,
+            changeFrequency: 'daily',
+            priority: locale === 'en' ? 0.8 : 0.7,
+        },
+        {
             url: `${siteUrl}/${locale}/careers`,
             lastModified: now,
             changeFrequency: 'monthly',
@@ -85,5 +100,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ])
 
-    return [...staticRoutes, ...localizedCoreRoutes, ...productRoutes, ...blogRoutes]
+    return [...staticRoutes, ...localizedCoreRoutes, ...productRoutes, ...localizedProductRoutes, ...blogRoutes]
 }

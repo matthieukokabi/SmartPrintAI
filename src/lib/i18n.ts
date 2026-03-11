@@ -86,10 +86,31 @@ type CareersPageCopy = {
     closingLine: string
 }
 
+type ProductsPageCopy = {
+    metadataTitle: string
+    metadataDescription: string
+    titleLead: string
+    titleAccent: string
+    subtitle: string
+    emptyState: string
+}
+
+type ProductDetailPageCopy = {
+    notFoundSeoTitle: string
+    notFoundTitle: string
+    notFoundDescription: string
+    backLabel: string
+    availableSizesLabel: string
+    colorsLabel: string
+    designButtonLabel: string
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
     careers: CareersPageCopy
+    products: ProductsPageCopy
+    productDetail: ProductDetailPageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
@@ -201,6 +222,24 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             closingLine:
                 "Don't see your exact role? Send us your profile and what you want to build at hello@smartprintai.com.",
         },
+        products: {
+            metadataTitle: 'All Products',
+            metadataDescription:
+                'Browse SmartPrintAI catalog products and start designing custom print-on-demand items with AI.',
+            titleLead: 'All',
+            titleAccent: 'Products',
+            subtitle: 'Choose a product and start designing with AI',
+            emptyState: 'No active products available yet.',
+        },
+        productDetail: {
+            notFoundSeoTitle: 'Product Not Found',
+            notFoundTitle: 'Product Not Found',
+            notFoundDescription: 'The product you requested is not available.',
+            backLabel: 'Back',
+            availableSizesLabel: 'Available Sizes',
+            colorsLabel: 'Colors',
+            designButtonLabel: 'Design This Product with AI',
+        },
     },
     fr: {
         localeLabel: 'Francais',
@@ -305,6 +344,24 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             ],
             closingLine:
                 "Vous ne voyez pas le role parfait? Ecrivez-nous avec votre profil et ce que vous voulez construire: hello@smartprintai.com.",
+        },
+        products: {
+            metadataTitle: 'Tous les produits',
+            metadataDescription:
+                'Parcourez le catalogue SmartPrintAI et lancez vos produits personnalises avec IA.',
+            titleLead: 'Tous les',
+            titleAccent: 'produits',
+            subtitle: 'Choisissez un produit et commencez a designer avec IA',
+            emptyState: "Aucun produit actif n'est disponible pour le moment.",
+        },
+        productDetail: {
+            notFoundSeoTitle: 'Produit introuvable',
+            notFoundTitle: 'Produit introuvable',
+            notFoundDescription: "Le produit demande n'est pas disponible.",
+            backLabel: 'Retour',
+            availableSizesLabel: 'Tailles disponibles',
+            colorsLabel: 'Couleurs',
+            designButtonLabel: 'Designer ce produit avec IA',
         },
     },
     de: {
@@ -411,6 +468,24 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             closingLine:
                 'Du siehst keine perfekte Rolle? Schreib uns mit deinem Profil und was du bauen willst: hello@smartprintai.com.',
         },
+        products: {
+            metadataTitle: 'Alle Produkte',
+            metadataDescription:
+                'Entdecke den SmartPrintAI Produktkatalog und starte dein KI-Print-on-Demand Design.',
+            titleLead: 'Alle',
+            titleAccent: 'Produkte',
+            subtitle: 'Waehle ein Produkt und starte dein KI-Design',
+            emptyState: 'Noch keine aktiven Produkte verfuegbar.',
+        },
+        productDetail: {
+            notFoundSeoTitle: 'Produkt nicht gefunden',
+            notFoundTitle: 'Produkt nicht gefunden',
+            notFoundDescription: 'Das angeforderte Produkt ist nicht verfuegbar.',
+            backLabel: 'Zurueck',
+            availableSizesLabel: 'Verfuegbare Groessen',
+            colorsLabel: 'Farben',
+            designButtonLabel: 'Dieses Produkt mit KI designen',
+        },
     },
     es: {
         localeLabel: 'Espanol',
@@ -516,6 +591,24 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             closingLine:
                 'No ves tu rol exacto? Envia tu perfil y lo que quieres construir a hello@smartprintai.com.',
         },
+        products: {
+            metadataTitle: 'Todos los productos',
+            metadataDescription:
+                'Explora el catalogo de SmartPrintAI y empieza a crear productos personalizados con IA.',
+            titleLead: 'Todos los',
+            titleAccent: 'productos',
+            subtitle: 'Elige un producto y empieza a disenar con IA',
+            emptyState: 'Todavia no hay productos activos disponibles.',
+        },
+        productDetail: {
+            notFoundSeoTitle: 'Producto no encontrado',
+            notFoundTitle: 'Producto no encontrado',
+            notFoundDescription: 'El producto solicitado no esta disponible.',
+            backLabel: 'Volver',
+            availableSizesLabel: 'Tallas disponibles',
+            colorsLabel: 'Colores',
+            designButtonLabel: 'Disenar este producto con IA',
+        },
     },
 }
 
@@ -523,18 +616,23 @@ export function getLocaleCopy(locale: SupportedLocale): LocaleCopy {
     return LOCALE_COPY[locale]
 }
 
-function localizedPath(locale: SupportedLocale, path: '/' | '/careers'): string {
-    if (path === '/') {
+export function getLocalizedPath(locale: SupportedLocale, path: string): string {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
+    if (locale === DEFAULT_LOCALE) {
+        return normalizedPath
+    }
+    if (normalizedPath === '/') {
         return `/${locale}`
     }
-    return `/${locale}${path}`
+    return `/${locale}${normalizedPath}`
 }
 
-export function buildLocaleAlternates(path: '/' | '/careers'): Record<string, string> {
+export function buildLocaleAlternates(path: string): Record<string, string> {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`
     const languages: Record<string, string> = {}
     for (const locale of SUPPORTED_LOCALES) {
-        languages[locale] = localizedPath(locale, path)
+        languages[locale] = getLocalizedPath(locale, normalizedPath)
     }
-    languages['x-default'] = path
+    languages['x-default'] = normalizedPath
     return languages
 }

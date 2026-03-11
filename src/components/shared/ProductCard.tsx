@@ -8,14 +8,16 @@ interface Props {
     sellPrice: number
     category: string
     imageUrl?: string
+    href?: string
 }
 
-export default function ProductCard({ id, name, sellPrice, category, imageUrl }: Props) {
+export default function ProductCard({ id, name, sellPrice, category, imageUrl, href }: Props) {
     const hasImage = Boolean(imageUrl?.trim())
+    const productHref = href ?? `/products/${id}`
 
     return (
         <Link
-            href={`/products/${id}`}
+            href={productHref}
             className="glass rounded-2xl p-6 hover:border-purple-500/20 transition-all duration-300 hover:-translate-y-1 group block"
         >
             <div className="relative aspect-square rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-white/10 transition-colors overflow-hidden">
