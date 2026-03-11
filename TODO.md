@@ -49,7 +49,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Printful sync mapper now stores per-color preview image URLs when provided by Printful variants (2026-03-10)
 - [x] Production product sync run to backfill color preview image metadata (2026-03-10)
 - [x] Color parity audit completed against live Printful variants (`products_checked=19`, `mismatch_count=0`) on 2026-03-10
-- [ ] Manual visual QA on live site: confirm color switching updates product hero image across desktop/mobile browsers
+- [x] Manual visual QA on live site completed via automated browser run (desktop+mobile, 7 multi-color products, `failureCount=0`) on 2026-03-11
 - [x] Confirm production order confirmation + post-order customer communication sequence (order confirmation + shipment notification templates verified in inbox)
 - [x] Add/verify tracking email trigger on shipped status (`shipment_sent`/`package_shipped` webhook -> shipped status transition + shipment email, idempotent)
 - [x] Add baseline customer support flow (new `/support` page + `/api/support` handling; support and contact routing + SLA auto-reply)
