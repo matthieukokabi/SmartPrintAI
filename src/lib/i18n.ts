@@ -176,6 +176,39 @@ type SuccessPageCopy = {
     timeline: OrderTimelineCopy
 }
 
+type SupportPageCopy = {
+    metadataTitle: string
+    metadataDescription: string
+    heading: string
+    subtitle: string
+    contactChannelsLabel: string
+    emailLabel: string
+    backupLabel: string
+    includeOrderIdLabel: string
+    returnToOrdersLabel: string
+    ordersLinkLabel: string
+    nameLabel: string
+    namePlaceholder: string
+    emailFieldLabel: string
+    emailPlaceholder: string
+    orderIdLabel: string
+    orderIdPlaceholder: string
+    subjectLabel: string
+    subjectPlaceholder: string
+    messageLabel: string
+    messagePlaceholder: string
+    sendingLabel: string
+    sendLabel: string
+    fallbackSuccessLabel: string
+    fallbackErrorLabel: string
+    faqLabel: string
+    faqOne: string
+    faqTwo: string
+    shippingLabel: string
+    shippingOne: string
+    shippingTwo: string
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -185,6 +218,7 @@ export type LocaleCopy = {
     create: CreatePageCopy
     cart: CartPageCopy
     success: SuccessPageCopy
+    support: SupportPageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
@@ -381,6 +415,38 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 fulfillmentFailedNote: 'Fulfillment failed. Support intervention is required.',
             },
         },
+        support: {
+            metadataTitle: 'Support',
+            metadataDescription: 'Contact SmartPrintAI support for order, shipping, and account help.',
+            heading: 'Support',
+            subtitle: 'We answer all requests within 24 business hours. Shipping issues are prioritized with a 4 business hour target.',
+            contactChannelsLabel: 'Contact channels',
+            emailLabel: 'Email',
+            backupLabel: 'Backup',
+            includeOrderIdLabel: 'Include your order ID for faster handling.',
+            returnToOrdersLabel: 'Return to',
+            ordersLinkLabel: 'orders',
+            nameLabel: 'Name',
+            namePlaceholder: 'Your name',
+            emailFieldLabel: 'Email',
+            emailPlaceholder: 'you@example.com',
+            orderIdLabel: 'Order ID (optional)',
+            orderIdPlaceholder: 'cmm...',
+            subjectLabel: 'Subject',
+            subjectPlaceholder: 'What do you need help with?',
+            messageLabel: 'Message',
+            messagePlaceholder: 'Describe the issue, include links/screenshots context if relevant.',
+            sendingLabel: 'Sending...',
+            sendLabel: 'Send support request',
+            fallbackSuccessLabel: 'Support request received.',
+            fallbackErrorLabel: 'Unable to submit support request',
+            faqLabel: 'FAQ',
+            faqOne: 'Order not visible yet? It can take a few minutes after payment for status synchronization.',
+            faqTwo: 'Need invoice help? Send order ID and billing email in your support message.',
+            shippingLabel: 'Shipping',
+            shippingOne: 'Production usually starts right after payment confirmation and shipment notification follows carrier handoff.',
+            shippingTwo: 'Shipping incidents are prioritized. Target first response: within 4 business hours.',
+        },
     },
     fr: {
         localeLabel: 'Francais',
@@ -571,6 +637,38 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 manualReviewNote: "La commande necessite une verification manuelle avant la production.",
                 fulfillmentFailedNote: "La production a echoue. L'intervention du support est requise.",
             },
+        },
+        support: {
+            metadataTitle: 'Support',
+            metadataDescription: "Contactez le support SmartPrintAI pour l'aide commande, livraison ou compte.",
+            heading: 'Support',
+            subtitle: 'Nous repondons sous 24 heures ouvrables. Les incidents livraison sont priorises avec un objectif de 4 heures.',
+            contactChannelsLabel: 'Canaux de contact',
+            emailLabel: 'Email',
+            backupLabel: 'Secours',
+            includeOrderIdLabel: "Ajoutez votre ID de commande pour un traitement plus rapide.",
+            returnToOrdersLabel: 'Retour vers',
+            ordersLinkLabel: 'commandes',
+            nameLabel: 'Nom',
+            namePlaceholder: 'Votre nom',
+            emailFieldLabel: 'Email',
+            emailPlaceholder: 'vous@example.com',
+            orderIdLabel: 'ID commande (optionnel)',
+            orderIdPlaceholder: 'cmm...',
+            subjectLabel: 'Sujet',
+            subjectPlaceholder: "De quoi avez-vous besoin ?",
+            messageLabel: 'Message',
+            messagePlaceholder: 'Decrivez le probleme, ajoutez des liens/captures si utile.',
+            sendingLabel: 'Envoi...',
+            sendLabel: 'Envoyer la demande',
+            fallbackSuccessLabel: 'Demande de support recue.',
+            fallbackErrorLabel: "Impossible d'envoyer la demande de support",
+            faqLabel: 'FAQ',
+            faqOne: "Commande non visible ? La synchronisation du statut peut prendre quelques minutes apres paiement.",
+            faqTwo: "Besoin d'une facture ? Envoyez l'ID commande et l'email de facturation dans votre message.",
+            shippingLabel: 'Livraison',
+            shippingOne: "La production commence generalement juste apres la confirmation du paiement, puis l'avis d'expedition est envoye.",
+            shippingTwo: 'Les incidents livraison sont priorises. Premiere reponse cible: sous 4 heures ouvrables.',
         },
     },
     de: {
@@ -763,6 +861,38 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 fulfillmentFailedNote: 'Die Produktion ist fehlgeschlagen. Support-Eingriff ist erforderlich.',
             },
         },
+        support: {
+            metadataTitle: 'Support',
+            metadataDescription: 'Kontaktiere den SmartPrintAI Support fuer Hilfe zu Bestellung, Versand und Konto.',
+            heading: 'Support',
+            subtitle: 'Wir beantworten alle Anfragen innerhalb von 24 Geschaeftsstunden. Versandthemen haben Prioritaet mit 4 Stunden Zielzeit.',
+            contactChannelsLabel: 'Kontaktkanaele',
+            emailLabel: 'E-Mail',
+            backupLabel: 'Backup',
+            includeOrderIdLabel: 'Fuer schnellere Bearbeitung bitte die Bestell-ID angeben.',
+            returnToOrdersLabel: 'Zurueck zu',
+            ordersLinkLabel: 'Bestellungen',
+            nameLabel: 'Name',
+            namePlaceholder: 'Dein Name',
+            emailFieldLabel: 'E-Mail',
+            emailPlaceholder: 'du@example.com',
+            orderIdLabel: 'Bestell-ID (optional)',
+            orderIdPlaceholder: 'cmm...',
+            subjectLabel: 'Betreff',
+            subjectPlaceholder: 'Wobei brauchst du Hilfe?',
+            messageLabel: 'Nachricht',
+            messagePlaceholder: 'Beschreibe das Problem und fuege bei Bedarf Links/Screenshots hinzu.',
+            sendingLabel: 'Wird gesendet...',
+            sendLabel: 'Supportanfrage senden',
+            fallbackSuccessLabel: 'Supportanfrage erhalten.',
+            fallbackErrorLabel: 'Supportanfrage konnte nicht gesendet werden',
+            faqLabel: 'FAQ',
+            faqOne: 'Bestellung noch nicht sichtbar? Die Status-Synchronisierung kann nach der Zahlung einige Minuten dauern.',
+            faqTwo: 'Hilfe bei der Rechnung? Sende Bestell-ID und Rechnungs-E-Mail in deiner Nachricht.',
+            shippingLabel: 'Versand',
+            shippingOne: 'Die Produktion startet meist direkt nach der Zahlungsbestaetigung, danach folgt die Versandbenachrichtigung.',
+            shippingTwo: 'Versandprobleme sind priorisiert. Ziel fuer die erste Antwort: innerhalb von 4 Geschaeftsstunden.',
+        },
     },
     es: {
         localeLabel: 'Espanol',
@@ -953,6 +1083,38 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 manualReviewNote: 'El pedido requiere revision manual antes de iniciar la produccion.',
                 fulfillmentFailedNote: 'La produccion fallo. Se requiere intervencion de soporte.',
             },
+        },
+        support: {
+            metadataTitle: 'Soporte',
+            metadataDescription: 'Contacta al soporte de SmartPrintAI para ayuda con pedidos, envios y cuenta.',
+            heading: 'Soporte',
+            subtitle: 'Respondemos todas las solicitudes en 24 horas habiles. Los problemas de envio tienen prioridad con objetivo de 4 horas.',
+            contactChannelsLabel: 'Canales de contacto',
+            emailLabel: 'Email',
+            backupLabel: 'Respaldo',
+            includeOrderIdLabel: 'Incluye tu ID de pedido para una atencion mas rapida.',
+            returnToOrdersLabel: 'Volver a',
+            ordersLinkLabel: 'pedidos',
+            nameLabel: 'Nombre',
+            namePlaceholder: 'Tu nombre',
+            emailFieldLabel: 'Email',
+            emailPlaceholder: 'tu@ejemplo.com',
+            orderIdLabel: 'ID de pedido (opcional)',
+            orderIdPlaceholder: 'cmm...',
+            subjectLabel: 'Asunto',
+            subjectPlaceholder: 'Con que necesitas ayuda?',
+            messageLabel: 'Mensaje',
+            messagePlaceholder: 'Describe el problema e incluye enlaces/capturas si aplica.',
+            sendingLabel: 'Enviando...',
+            sendLabel: 'Enviar solicitud de soporte',
+            fallbackSuccessLabel: 'Solicitud de soporte recibida.',
+            fallbackErrorLabel: 'No se pudo enviar la solicitud de soporte',
+            faqLabel: 'FAQ',
+            faqOne: 'Tu pedido no aparece aun? La sincronizacion de estado puede tardar unos minutos despues del pago.',
+            faqTwo: 'Necesitas ayuda con factura? Envia ID de pedido y email de facturacion en tu mensaje.',
+            shippingLabel: 'Envio',
+            shippingOne: 'La produccion suele iniciar justo despues de confirmar el pago y luego llega la notificacion de envio.',
+            shippingTwo: 'Los incidentes de envio tienen prioridad. Objetivo de primera respuesta: en 4 horas habiles.',
         },
     },
 }
