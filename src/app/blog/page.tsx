@@ -1,21 +1,28 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { BLOG_POSTS } from '@/content/blogPosts'
+import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
+import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
+
+const locale = DEFAULT_LOCALE
+const copy = BLOG_UI_COPY[locale]
 
 export const metadata: Metadata = {
-    title: 'Blog',
-    description: 'SmartPrintAI blog with practical guides on AI design prompts, print-on-demand strategy, and conversion-focused custom product ideas.',
+    title: copy.metadataTitle,
+    description: copy.metadataDescription,
     alternates: {
         canonical: '/blog',
+        languages: buildLocaleAlternates('/blog'),
     },
 }
 
 export default function BlogIndexPage() {
+    const posts = getLocalizedBlogPosts(locale)
+
     const itemListSchema = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        itemListElement: BLOG_POSTS.map((post, index) => ({
+        itemListElement: posts.map((post, index) => ({
             '@type': 'ListItem',
             position: index + 1,
             url: toAbsoluteUrl(`/blog/${post.slug}`),
@@ -28,22 +35,20 @@ export default function BlogIndexPage() {
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
             <header className="space-y-3">
-                <h1 className="text-3xl sm:text-4xl font-bold">SmartPrintAI Blog</h1>
-                <p className="text-muted-foreground">
-                    Practical playbooks to create better AI designs, sell custom products, and grow your print-on-demand revenue.
-                </p>
+                <h1 className="text-3xl sm:text-4xl font-bold">{copy.heading}</h1>
+                <p className="text-muted-foreground">{copy.subtitle}</p>
             </header>
 
             <div className="space-y-4">
-                {BLOG_POSTS.map((post) => (
+                {posts.map((post) => (
                     <article key={post.slug} className="glass rounded-2xl p-6 space-y-3">
                         <p className="text-xs text-muted-foreground">
-                            {new Date(post.publishedAt).toLocaleDateString()} • {post.readTimeMinutes} min read
+                            {new Date(post.publishedAt).toLocaleDateString('en-US')} - {post.readTimeMinutes} {copy.readTimeSuffix}
                         </p>
                         <h2 className="text-2xl font-semibold leading-tight">{post.title}</h2>
                         <p className="text-muted-foreground">{post.description}</p>
                         <Link href={`/blog/${post.slug}`} className="inline-flex text-purple-300 hover:text-purple-200">
-                            Read article
+                            {copy.readArticleLabel}
                         </Link>
                     </article>
                 ))}

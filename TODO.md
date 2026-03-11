@@ -83,7 +83,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P2 - International Growth
 - [x] Implement SEO-safe i18n architecture with locale routes and hreflang (`en` default + `fr`, `de`, `es` phase 1) (2026-03-11: localized routes live for `/[locale]` and `/[locale]/careers`, translated copy foundation in `src/lib/i18n.ts`, language switchers, localized sitemap entries)
 - [x] Localize core conversion pages (home, create, products, product detail, cart, checkout-success, support, careers) (completed 2026-03-11: locale routes + translated UI copy for all listed pages in `en/fr/de/es`)
-- [ ] Expand multilingual SEO content (blog posts per priority locale) with localized metadata and internal links
+- [x] Expand multilingual SEO content (blog posts per priority locale) with localized metadata and internal links (2026-03-11: blog index + article routes localized for `en/fr/de/es`, translated article content shipped for 2 core posts, hreflang/canonical metadata and localized internal links to `/create` + `/products`, localized blog URLs added to sitemap)
 
 ### P3 - Scale Triggers (After first consistent revenue)
 - [ ] Upgrade image generation quality tier (fal.ai phase) when threshold is reached

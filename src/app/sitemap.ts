@@ -79,6 +79,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }))
 
+    const localizedBlogRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap<MetadataRoute.Sitemap[number]>(
+        (locale) => [
+            {
+                url: `${siteUrl}/${locale}/blog`,
+                lastModified: now,
+                changeFrequency: 'weekly',
+                priority: locale === 'en' ? 0.72 : 0.62,
+            },
+            ...BLOG_POSTS.map<MetadataRoute.Sitemap[number]>((post) => ({
+                url: `${siteUrl}/${locale}/blog/${post.slug}`,
+                lastModified: new Date(post.publishedAt),
+                changeFrequency: 'monthly',
+                priority: locale === 'en' ? 0.66 : 0.56,
+            })),
+        ]
+    )
+
     const localizedCoreRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) => [
         {
             url: `${siteUrl}/${locale}`,
@@ -112,5 +129,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
     ])
 
-    return [...staticRoutes, ...localizedCoreRoutes, ...productRoutes, ...localizedProductRoutes, ...blogRoutes]
+    return [
+        ...staticRoutes,
+        ...localizedCoreRoutes,
+        ...productRoutes,
+        ...localizedProductRoutes,
+        ...blogRoutes,
+        ...localizedBlogRoutes,
+    ]
 }
