@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
     },
   },
   sendShipmentNotification: vi.fn(),
+  sendMakeShippedReviewRequest: vi.fn(),
 }))
 
 vi.mock('@/lib/prisma', () => ({
@@ -18,6 +19,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/resend', () => ({
   sendShipmentNotification: mocks.sendShipmentNotification,
+}))
+
+vi.mock('@/lib/make', () => ({
+  sendMakeShippedReviewRequest: mocks.sendMakeShippedReviewRequest,
 }))
 
 import { POST } from './route'
@@ -103,6 +108,15 @@ describe('/api/webhooks/printful POST', () => {
       trackingNumber: 'TRACK-123',
       carrier: 'DHL',
     })
+    expect(mocks.sendMakeShippedReviewRequest).toHaveBeenCalledWith({
+      requestId: 'req-printful-ok',
+      orderId: 'order_123',
+      printfulOrderId: 'pf_order_123',
+      email: 'buyer@example.com',
+      trackingUrl: 'https://carrier.example/track/123',
+      trackingNumber: 'TRACK-123',
+      carrier: 'DHL',
+    })
   })
 
   it('ignores unsupported events', async () => {
@@ -119,6 +133,7 @@ describe('/api/webhooks/printful POST', () => {
     await expect(res.json()).resolves.toEqual({ ok: true })
     expect(mocks.prisma.order.updateMany).not.toHaveBeenCalled()
     expect(mocks.sendShipmentNotification).not.toHaveBeenCalled()
+    expect(mocks.sendMakeShippedReviewRequest).not.toHaveBeenCalled()
   })
 
   it('does not send shipment email when webhook is duplicate shipped event', async () => {
@@ -140,5 +155,6 @@ describe('/api/webhooks/printful POST', () => {
     await expect(res.json()).resolves.toEqual({ ok: true })
     expect(mocks.prisma.order.findFirst).not.toHaveBeenCalled()
     expect(mocks.sendShipmentNotification).not.toHaveBeenCalled()
+    expect(mocks.sendMakeShippedReviewRequest).not.toHaveBeenCalled()
   })
 })

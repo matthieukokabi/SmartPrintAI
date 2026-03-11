@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { sendShipmentNotification } from '@/lib/resend'
+import { sendMakeShippedReviewRequest } from '@/lib/make'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 
 type PrintfulWebhookPayload = {
@@ -140,6 +141,16 @@ export async function POST(req: NextRequest) {
                 await sendShipmentNotification({
                     email: order.email,
                     orderId: order.id,
+                    trackingUrl,
+                    trackingNumber,
+                    carrier,
+                })
+
+                await sendMakeShippedReviewRequest({
+                    requestId,
+                    orderId: order.id,
+                    printfulOrderId,
+                    email: order.email,
                     trackingUrl,
                     trackingNumber,
                     carrier,

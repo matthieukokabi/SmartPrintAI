@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
 import { sendOrderConfirmation } from '@/lib/resend'
+import { sendMakeOrderAlert } from '@/lib/make'
 import Stripe from 'stripe'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 
@@ -335,6 +336,17 @@ export async function POST(req: NextRequest) {
                 orderId: order.id,
                 items,
                 total: order.total,
+            })
+
+            await sendMakeOrderAlert({
+                requestId,
+                orderId: order.id,
+                stripeSessionId: session.id,
+                email: customerEmail,
+                total: order.total,
+                itemsCount: items.length,
+                status: 'processing',
+                printfulOrderId: String(printfulOrder.id),
             })
 
             logApiInfo(route, requestId, 'request_succeeded', { orderId: order.id })

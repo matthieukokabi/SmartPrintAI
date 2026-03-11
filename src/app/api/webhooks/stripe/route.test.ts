@@ -8,6 +8,9 @@ const mocks = vi.hoisted(() => ({
     },
   },
   prisma: {
+    user: {
+      findUnique: vi.fn(),
+    },
     product: {
       findMany: vi.fn(),
     },
@@ -23,6 +26,7 @@ const mocks = vi.hoisted(() => ({
     createOrder: vi.fn(),
   },
   sendOrderConfirmation: vi.fn(),
+  sendMakeOrderAlert: vi.fn(),
 }))
 
 vi.mock('@/lib/stripe', () => ({
@@ -39,6 +43,10 @@ vi.mock('@/lib/printful', () => ({
 
 vi.mock('@/lib/resend', () => ({
   sendOrderConfirmation: mocks.sendOrderConfirmation,
+}))
+
+vi.mock('@/lib/make', () => ({
+  sendMakeOrderAlert: mocks.sendMakeOrderAlert,
 }))
 
 import { POST } from './route'
@@ -136,5 +144,88 @@ describe('/api/webhooks/stripe POST', () => {
       })
     )
     expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.sendMakeOrderAlert).not.toHaveBeenCalled()
+  })
+
+  it('sends make order alert after successful order creation + fulfillment', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-1',
+        designId: 'design-1',
+        size: 'M',
+        color: 'Black',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_success',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 3598,
+          amount_subtotal: 2999,
+          shipping_cost: { amount_total: 599 },
+          customer_email: 'buyer@example.com',
+          customer_details: { email: 'buyer@example.com' },
+          shipping_details: {
+            name: 'Buyer',
+            address: {
+              line1: 'Main St 1',
+              city: 'Zurich',
+              country: 'CH',
+              postal_code: '8000',
+              state: null,
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-1',
+        sellPrice: 29.99,
+        colors: [{ name: 'Black', printfulVariantId: 1234 }],
+      },
+    ])
+
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design.png',
+      },
+    ])
+
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_1', total: 35.98 })
+    mocks.printful.createOrder.mockResolvedValue({ id: 'pf_12345' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-stripe-ok' }))
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('x-request-id')).toBe('req-stripe-ok')
+    await expect(res.json()).resolves.toEqual({ ok: true })
+
+    expect(mocks.sendOrderConfirmation).toHaveBeenCalledWith({
+      email: 'buyer@example.com',
+      orderId: 'order_1',
+      items: metadataItems,
+      total: 35.98,
+    })
+
+    expect(mocks.sendMakeOrderAlert).toHaveBeenCalledWith({
+      requestId: 'req-stripe-ok',
+      orderId: 'order_1',
+      stripeSessionId: 'cs_test_success',
+      email: 'buyer@example.com',
+      total: 35.98,
+      itemsCount: 1,
+      status: 'processing',
+      printfulOrderId: 'pf_12345',
+    })
   })
 })
