@@ -16,6 +16,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Rate limiting in place on auth/generation-sensitive paths
 - [x] Test stack in place (unit + API + e2e smoke) and CI check script
 - [x] Deployment/runbook baseline documented
+- [x] One-command VPS deployment script added (`npm run deploy:vps`) with sync + build + restart + health checks (2026-03-11)
 - [x] Auth magic-link flow implemented
 - [x] Account order-history page implemented
 - [x] Email delivery setup completed (Resend sending + ImprovMX forwarding)

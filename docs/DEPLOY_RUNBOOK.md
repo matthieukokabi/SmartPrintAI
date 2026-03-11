@@ -27,6 +27,34 @@ Expected:
 - Docker dependencies are `Up`
 - CI check finishes without errors (`lint`, `build`, `test`)
 
+## 2.1) One-Command Deploy (Recommended)
+
+Run from your local project folder:
+
+```bash
+cd "/Users/magikmad/Documents/New project/SmartPrintAI"
+npm run deploy:vps
+```
+
+What it does:
+- Syncs tracked files from current git `HEAD` to `/root/smartprintai` on VPS.
+- Runs `npm ci`, `npm run db:migrate:deploy-safe`, and `npm run build`.
+- Restarts `smartprintai` service.
+- Verifies local and public health checks:
+  - `/`
+  - `/blog`
+  - `/google/merchant-feed.xml`
+
+Useful flags:
+
+```bash
+# Preview only (no deploy)
+./scripts/deploy_vps.sh --dry-run
+
+# Skip npm install and migration (faster when not needed)
+./scripts/deploy_vps.sh --skip-install --skip-migrate
+```
+
 ## 3) Deployment Steps
 
 ```bash
