@@ -77,7 +77,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Set up email list capture offer (first-order discount popup) (2026-03-11: homepage discount modal in `en/fr/de/es`, lead capture API `/api/marketing/lead`, rate-limited submission, internal lead notification + customer coupon email via Resend, env vars documented)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [ ] Set up Make.com automations (order alert, shipped review request, abandoned cart, daily digest, design auto-post)
-- [ ] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth)
+- [x] Assess Etsy integration path (catalog publishing + order sync + inventory/price source of truth) (2026-03-11: integration architecture and rollout documented in `docs/marketing/ETSY_INTEGRATION_PLAN.md` with source-of-truth model, data mappings, phased implementation, risk controls, and success metrics)
 - [ ] Prepare Etsy-ready listing pack (titles, tags, thumbnails, mockups) for top 20 designs
 
 ### P2 - International Growth
