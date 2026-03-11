@@ -2,6 +2,20 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 
+interface SampleDesignsCopy {
+    titleLead: string
+    titleAccent: string
+    subtitle: string
+    fallbackText: string
+}
+
+const defaultCopy: SampleDesignsCopy = {
+    titleLead: "See What's",
+    titleAccent: 'Possible',
+    subtitle: '8 trending prompt ideas inspired by what buyers love. Tap any to reuse it.',
+    fallbackText: 'Showcase image is being prepared',
+}
+
 const curatedShowcase = [
     {
         id: 'cat-pop',
@@ -53,7 +67,11 @@ const curatedShowcase = [
     },
 ]
 
-export default async function SampleDesigns() {
+interface SampleDesignsProps {
+    copy?: SampleDesignsCopy
+}
+
+export default async function SampleDesigns({ copy = defaultCopy }: SampleDesignsProps) {
     const seededDesigns = await prisma.design.findMany({
         where: {
             status: 'ready',
@@ -89,10 +107,10 @@ export default async function SampleDesigns() {
             <div className="max-w-7xl mx-auto px-4 relative z-10">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                        See What&apos;s <span className="text-gradient">Possible</span>
+                        {copy.titleLead} <span className="text-gradient">{copy.titleAccent}</span>
                     </h2>
                     <p className="text-muted-foreground max-w-lg mx-auto">
-                        8 trending prompt ideas inspired by what buyers love. Tap any to reuse it.
+                        {copy.subtitle}
                     </p>
                 </div>
 
@@ -118,7 +136,7 @@ export default async function SampleDesigns() {
                                         ) : (
                                             <div className="w-full h-full bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.25),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(236,72,153,0.2),transparent_45%)] flex items-center justify-center p-4">
                                                 <p className="text-xs text-center text-muted-foreground/90">
-                                                    Showcase image is being prepared
+                                                    {copy.fallbackText}
                                                 </p>
                                             </div>
                                         )}

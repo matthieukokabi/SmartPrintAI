@@ -3,7 +3,27 @@ import Image from 'next/image'
 import { Shirt } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 
-export default async function FeaturedProducts() {
+interface FeaturedProductsCopy {
+    titleLead: string
+    titleAccent: string
+    subtitle: string
+    emptyState: string
+    pricePrefix: string
+}
+
+const defaultCopy: FeaturedProductsCopy = {
+    titleLead: 'Print On',
+    titleAccent: 'Anything',
+    subtitle: 'Your AI-generated designs on premium, high-quality products',
+    emptyState: 'Products will appear here after catalog sync.',
+    pricePrefix: 'from',
+}
+
+interface FeaturedProductsProps {
+    copy?: FeaturedProductsCopy
+}
+
+export default async function FeaturedProducts({ copy = defaultCopy }: FeaturedProductsProps) {
     const featured = await prisma.product.findMany({
         where: { active: true },
         orderBy: { name: 'asc' },
@@ -21,16 +41,16 @@ export default async function FeaturedProducts() {
             <div className="max-w-6xl mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                        Print On <span className="text-gradient">Anything</span>
+                        {copy.titleLead} <span className="text-gradient">{copy.titleAccent}</span>
                     </h2>
                     <p className="text-muted-foreground max-w-lg mx-auto">
-                        Your AI-generated designs on premium, high-quality products
+                        {copy.subtitle}
                     </p>
                 </div>
 
                 {featured.length === 0 ? (
                     <div className="glass rounded-2xl p-10 text-center">
-                        <p className="text-muted-foreground">Products will appear here after catalog sync.</p>
+                        <p className="text-muted-foreground">{copy.emptyState}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -57,7 +77,7 @@ export default async function FeaturedProducts() {
                                     )}
                                 </div>
                                 <h3 className="font-semibold mb-1 truncate">{product.name}</h3>
-                                <p className="text-sm text-purple-400 font-medium">from ${product.sellPrice.toFixed(2)}</p>
+                                <p className="text-sm text-purple-400 font-medium">{copy.pricePrefix} ${product.sellPrice.toFixed(2)}</p>
                             </Link>
                         ))}
                     </div>

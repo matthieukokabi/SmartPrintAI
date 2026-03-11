@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getSiteUrl } from '@/lib/site'
 import { BLOG_POSTS } from '@/content/blogPosts'
+import { SUPPORTED_LOCALES } from '@/lib/i18n'
 
 export const revalidate = 3600
 export const dynamic = 'force-dynamic'
@@ -69,5 +70,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
     }))
 
-    return [...staticRoutes, ...productRoutes, ...blogRoutes]
+    const localizedCoreRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) => [
+        {
+            url: `${siteUrl}/${locale}`,
+            lastModified: now,
+            changeFrequency: 'weekly',
+            priority: locale === 'en' ? 0.85 : 0.75,
+        },
+        {
+            url: `${siteUrl}/${locale}/careers`,
+            lastModified: now,
+            changeFrequency: 'monthly',
+            priority: 0.45,
+        },
+    ])
+
+    return [...staticRoutes, ...localizedCoreRoutes, ...productRoutes, ...blogRoutes]
 }
