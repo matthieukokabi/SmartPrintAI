@@ -45,6 +45,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Gemini paid quota/billing enabled and validated by live generation request (`/api/generate` returning 200 on 2026-03-11)
 - [x] Verify generated design image URLs open publicly after storage proxy/policy fix (2026-03-11 automated live check: `/api/generate` `200`, returned `imageUrl`, direct `HEAD` to image `200`)
 - [x] Verify `/products`, product detail, and `/create` product picker can use real product thumbnails (2026-03-11 live URL audit: product images checked `19`, color previews checked `44`, broken `0`)
+- [x] Upgrade homepage visual merchandising with real featured-product thumbnails and curated 8-card sample design gallery linked to `/create` prompts (2026-03-11)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
