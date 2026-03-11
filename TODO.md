@@ -70,7 +70,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week
 - [ ] Create Pinterest account and start daily product/mockup pins
-- [ ] Build reusable weekly content batch workflow (90 min/week)
+- [x] Build reusable weekly content batch workflow (90 min/week) (2026-03-11: added generator script `npm run marketing:weekly-batch` + docs `docs/marketing/WEEKLY_CONTENT_BATCH_WORKFLOW.md` with 90-minute operating cadence and quality gate)
 
 ### P2 - Marketing Execution (Month 2)
 - [ ] Launch first $100 Google Shopping test
