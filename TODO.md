@@ -38,6 +38,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Run one real live purchase on production and confirm payment settlement end-to-end (deferred by request until core implementation is complete)
 - [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
+- [x] Fixed production key-rotation script bug that wrote blank keys (hidden prompt newlines no longer pollute captured values) (2026-03-11)
 
 ### P1 - Product and Revenue Readiness
 - [x] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass (2026-03-11: VPS sanity chain `generate=200`, `mockup=200`, `checkout=200`)
