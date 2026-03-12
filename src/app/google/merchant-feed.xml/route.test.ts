@@ -55,7 +55,7 @@ describe('/google/merchant-feed.xml GET', () => {
         category: 'Accessories',
         sellPrice: 24,
         imageUrl: '/images/tote.png',
-        colors: [{ name: 'Natural' }],
+        colors: [{ name: 'Default' }],
         sizes: ['One Size'],
       },
     ])
@@ -76,7 +76,7 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing</g:google_product_category>')
     expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories</g:google_product_category>')
     expect(xml).toContain('<g:color>Black</g:color>')
-    expect(xml).toContain('<g:color>Natural</g:color>')
+    expect(xml).toContain('<g:color>White</g:color>')
     expect(xml).toContain('<g:gender>unisex</g:gender>')
     expect(xml).toContain('<g:age_group>adult</g:age_group>')
     expect(xml).toContain('<g:size>M</g:size>')

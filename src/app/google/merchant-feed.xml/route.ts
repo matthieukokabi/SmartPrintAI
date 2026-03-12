@@ -66,7 +66,11 @@ function resolvePrimaryColor(colors: unknown): string {
     if (meaningful) {
         return meaningful.name
     }
-    return parsed[0]?.name || 'White'
+    if (parsed.length > 0) {
+        const first = parsed[0].name.toLowerCase()
+        return first === 'default' ? 'White' : parsed[0].name
+    }
+    return 'White'
 }
 
 function isApparelOrAccessory(category: string): boolean {
