@@ -63,6 +63,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] GA4 installed with purchase conversion tracking (`NEXT_PUBLIC_GA_MEASUREMENT_ID` set on production VPS on 2026-03-09)
 - [x] GA4 code instrumentation deployed (sitewide gtag + purchase event on success page); pending only `NEXT_PUBLIC_GA_MEASUREMENT_ID` env value in production
 - [x] Google Search Console setup + sitemap submission (domain property verified via DNS TXT and `https://smartprintai.com/sitemap.xml` accepted on 2026-03-09)
+- [x] Google Merchant feed compliance patch shipped (2026-03-12): fixed category mapping to real synced values (`apparel/accessories/home/drinkware`) and added feed attributes for Google review (`g:product_type`, `g:color`, `g:gender`, `g:age_group`, `g:size` when applicable)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
 - [x] Publish third multilingual SEO blog post (2026-03-11: `top-selling-ai-tshirt-themes-you-can-launch-this-week` in `en/fr/de/es`)

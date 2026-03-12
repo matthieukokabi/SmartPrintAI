@@ -45,6 +45,8 @@ describe('/google/merchant-feed.xml GET', () => {
         category: 'Apparel',
         sellPrice: 29.99,
         imageUrl: 'https://cdn.example.com/prod-1.png',
+        colors: [{ name: 'Black' }],
+        sizes: ['M', 'L'],
       },
       {
         id: 'prod_2',
@@ -53,6 +55,8 @@ describe('/google/merchant-feed.xml GET', () => {
         category: 'Accessories',
         sellPrice: 24,
         imageUrl: '/images/tote.png',
+        colors: [{ name: 'Natural' }],
+        sizes: ['One Size'],
       },
     ])
 
@@ -70,7 +74,12 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(xml).toContain('Fun &lt;bold&gt; shirt for pet lovers')
     expect(xml).toContain('<g:price>29.99 USD</g:price>')
     expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing</g:google_product_category>')
-    expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories</g:google_product_category>')
+    expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories</g:google_product_category>')
+    expect(xml).toContain('<g:color>Black</g:color>')
+    expect(xml).toContain('<g:color>Natural</g:color>')
+    expect(xml).toContain('<g:gender>unisex</g:gender>')
+    expect(xml).toContain('<g:age_group>adult</g:age_group>')
+    expect(xml).toContain('<g:size>M</g:size>')
     expect(xml).toContain('<link>https://smartprintai.com/products/prod_2</link>')
     expect(xml).toContain('<g:image_link>https://smartprintai.com/images/tote.png</g:image_link>')
   })
