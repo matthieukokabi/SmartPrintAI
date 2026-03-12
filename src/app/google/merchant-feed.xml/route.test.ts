@@ -58,6 +58,16 @@ describe('/google/merchant-feed.xml GET', () => {
         colors: [{ name: 'Default' }],
         sizes: ['One Size'],
       },
+      {
+        id: 'prod_3',
+        name: 'Cozy Pillow',
+        description: 'Comfy pillow',
+        category: 'Home',
+        sellPrice: 19.5,
+        imageUrl: '/images/pillow.png',
+        colors: [],
+        sizes: [],
+      },
     ])
 
     const res = await GET(createRequest())
@@ -75,6 +85,7 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(xml).toContain('<g:price>29.99 USD</g:price>')
     expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing</g:google_product_category>')
     expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories</g:google_product_category>')
+    expect(xml).toContain('<g:google_product_category>Home &amp; Garden</g:google_product_category>')
     expect(xml).toContain('<g:color>Black</g:color>')
     expect(xml).toContain('<g:color>White</g:color>')
     expect(xml).toContain('<g:gender>unisex</g:gender>')
@@ -82,6 +93,13 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(xml).toContain('<g:size>M</g:size>')
     expect(xml).toContain('<link>https://smartprintai.com/products/prod_2</link>')
     expect(xml).toContain('<g:image_link>https://smartprintai.com/images/tote.png</g:image_link>')
+
+    const genderTags = xml.match(/<g:gender>/g) ?? []
+    const ageGroupTags = xml.match(/<g:age_group>/g) ?? []
+    const colorTags = xml.match(/<g:color>/g) ?? []
+    expect(genderTags).toHaveLength(3)
+    expect(ageGroupTags).toHaveLength(3)
+    expect(colorTags).toHaveLength(3)
   })
 
   it('returns an empty valid feed when no products exist', async () => {

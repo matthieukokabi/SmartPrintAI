@@ -73,11 +73,6 @@ function resolvePrimaryColor(colors: unknown): string {
     return 'White'
 }
 
-function isApparelOrAccessory(category: string): boolean {
-    const normalized = category.trim().toLowerCase()
-    return normalized === 'apparel' || normalized === 'accessories'
-}
-
 function resolvePrimarySize(sizes: string[]): string | null {
     if (!Array.isArray(sizes) || sizes.length === 0) {
         return null
@@ -95,7 +90,6 @@ function productToItemXml(product: FeedProduct): string {
 
     const googleCategory = resolveCategory(product.category)
     const color = resolvePrimaryColor(product.colors)
-    const apparelLike = isApparelOrAccessory(product.category)
     const size = resolvePrimarySize(product.sizes)
 
     return [
@@ -112,8 +106,9 @@ function productToItemXml(product: FeedProduct): string {
         `<g:google_product_category>${escapeXml(googleCategory)}</g:google_product_category>`,
         `<g:product_type>${escapeXml(product.category)}</g:product_type>`,
         `<g:color>${escapeXml(color)}</g:color>`,
-        ...(apparelLike ? ['<g:gender>unisex</g:gender>', '<g:age_group>adult</g:age_group>'] : []),
-        ...(apparelLike && size ? [`<g:size>${escapeXml(size)}</g:size>`] : []),
+        '<g:gender>unisex</g:gender>',
+        '<g:age_group>adult</g:age_group>',
+        ...(size ? [`<g:size>${escapeXml(size)}</g:size>`] : []),
         '<g:identifier_exists>false</g:identifier_exists>',
         '</item>',
     ].join('')
