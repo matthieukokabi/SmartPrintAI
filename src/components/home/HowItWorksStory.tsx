@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
-import { type LucideIcon, Package, Sparkles, Truck, Wand2 } from 'lucide-react'
+import { type LucideIcon, Package, Truck, Wand2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import RevealOnScroll from '@/components/home/RevealOnScroll'
 import SectionHeader from '@/components/home/SectionHeader'
@@ -31,78 +31,51 @@ const stepVisuals = [
     {
         icon: Wand2,
         gradient: 'from-orange-500 via-amber-400 to-sky-400',
-        orbitClass: 'left-8 top-10',
     },
     {
         icon: Package,
         gradient: 'from-sky-500 via-cyan-400 to-orange-300',
-        orbitClass: 'right-10 top-14',
     },
     {
         icon: Truck,
         gradient: 'from-orange-500 via-rose-400 to-indigo-400',
-        orbitClass: 'bottom-12 left-1/2 -translate-x-1/2',
     },
 ]
 
 export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
     const sectionRef = useRef<HTMLDivElement | null>(null)
-    const shouldReduceMotion = useReducedMotion()
+    const shouldReduceMotion = useReducedMotion() ?? false
     const [activeStep, setActiveStep] = useState(0)
 
     const { scrollYProgress } = useScroll({
         target: sectionRef,
-        offset: ['start start', 'end end'],
+        offset: ['start 70%', 'end 38%'],
     })
 
     const progress = useSpring(scrollYProgress, {
         stiffness: 120,
-        damping: 26,
-        mass: 0.35,
+        damping: 24,
+        mass: 0.4,
     })
 
     useMotionValueEvent(scrollYProgress, 'change', (value) => {
-        if (value < 0.34) {
-            setActiveStep(0)
-            return
-        }
-
-        if (value < 0.68) {
-            setActiveStep(1)
-            return
-        }
-
-        setActiveStep(2)
+        const nextStep = value < 0.3 ? 0 : value < 0.65 ? 1 : 2
+        setActiveStep((current) => (current === nextStep ? current : nextStep))
     })
 
-    const haloScale = useTransform(progress, [0, 1], shouldReduceMotion ? [1, 1] : [0.88, 1.14])
-    const haloOpacity = useTransform(progress, [0, 0.4, 1], shouldReduceMotion ? [0.24, 0.24, 0.24] : [0.2, 0.34, 0.22])
+    const haloScale = useTransform(progress, [0, 1], shouldReduceMotion ? [1, 1] : [0.96, 1.08])
+    const haloOpacity = useTransform(progress, [0, 0.45, 1], shouldReduceMotion ? [0.22, 0.22, 0.22] : [0.18, 0.3, 0.22])
+    const progressScaleX = useTransform(progress, [0, 1], [0.12, 1])
 
     const steps = copy.steps.map((step, index) => ({
         ...step,
         imageUrl: media[index]?.imageUrl ?? null,
         icon: stepVisuals[index].icon,
         gradient: stepVisuals[index].gradient,
-        orbitClass: stepVisuals[index].orbitClass,
+        index,
     }))
 
-    const cardOneX = useTransform(progress, [0, 0.22, 0.55, 1], shouldReduceMotion ? [-36, -28, -22, -18] : [-250, -92, -40, -18])
-    const cardOneY = useTransform(progress, [0, 0.22, 0.55, 1], shouldReduceMotion ? [18, 10, 6, 4] : [68, 20, -12, -18])
-    const cardOneRotate = useTransform(progress, [0, 0.22, 0.55, 1], shouldReduceMotion ? [-4, -3, -2, -1] : [-13, -7, -3, -1])
-    const cardOneScale = useTransform(progress, [0, 0.22, 0.55, 1], [0.86, 0.95, 1, 0.98])
-    const cardOneOpacity = useTransform(progress, [0, 0.18, 0.55, 1], [0.2, 1, 0.95, 0.72])
-
-    const cardTwoX = useTransform(progress, [0, 0.25, 0.56, 1], shouldReduceMotion ? [38, 28, 18, 10] : [260, 110, 32, 10])
-    const cardTwoY = useTransform(progress, [0, 0.25, 0.56, 1], shouldReduceMotion ? [-14, -10, -6, -2] : [-64, -22, -8, -2])
-    const cardTwoRotate = useTransform(progress, [0, 0.25, 0.56, 1], shouldReduceMotion ? [5, 4, 2, 0] : [12, 7, 3, 0])
-    const cardTwoScale = useTransform(progress, [0, 0.25, 0.56, 1], [0.84, 0.94, 1, 0.99])
-    const cardTwoOpacity = useTransform(progress, [0.08, 0.3, 0.7, 1], [0.1, 1, 0.98, 0.78])
-
-    const cardThreeX = useTransform(progress, [0, 0.55, 0.82, 1], shouldReduceMotion ? [0, 0, 0, 0] : [0, 0, 0, 0])
-    const cardThreeY = useTransform(progress, [0, 0.56, 0.82, 1], shouldReduceMotion ? [34, 22, 10, 6] : [220, 160, 16, -8])
-    const cardThreeRotate = useTransform(progress, [0.4, 0.82, 1], shouldReduceMotion ? [0, 0, 0] : [4, 1, 0])
-    const cardThreeScale = useTransform(progress, [0.4, 0.82, 1], [0.84, 1, 1.03])
-    const cardThreeOpacity = useTransform(progress, [0.38, 0.58, 0.88, 1], [0, 0.34, 1, 1])
+    const activeStage = steps[activeStep]
 
     return (
         <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-28">
@@ -167,8 +140,8 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                     ))}
                 </div>
 
-                <div ref={sectionRef} className="relative mt-16 hidden min-h-[220vh] lg:block">
-                    <div className="sticky top-24 grid h-[78vh] items-center gap-10 lg:grid-cols-[0.86fr_1.14fr] xl:gap-16">
+                <div ref={sectionRef} className="relative mt-16 hidden min-h-[190vh] lg:block">
+                    <div className="sticky top-24 grid h-[78vh] items-center gap-10 lg:grid-cols-[0.84fr_1.16fr] xl:gap-16">
                         <div className="space-y-5">
                             {steps.map((step, index) => {
                                 const isActive = activeStep === index
@@ -181,8 +154,8 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                                             isActive && 'ring-1 ring-[hsl(var(--premium-line-strong))]'
                                         )}
                                         animate={{
-                                            opacity: isActive ? 1 : 0.54,
-                                            y: isActive ? 0 : 8,
+                                            opacity: isActive ? 1 : 0.52,
+                                            y: isActive ? 0 : 10,
                                             scale: isActive ? 1 : 0.975,
                                         }}
                                         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
@@ -214,86 +187,77 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                             })}
                         </div>
 
-                        <div className="relative h-[42rem]">
-                            <div className="premium-panel absolute inset-0 overflow-hidden rounded-[2.6rem] p-6 xl:p-7">
+                        <div className="relative h-[43rem]">
+                            <div className="premium-panel absolute inset-0 overflow-hidden rounded-[2.7rem] p-6 xl:p-7">
                                 <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--premium-line-strong))] to-transparent" />
-                                <div className="absolute inset-[1.35rem] rounded-[2rem] border border-[hsl(var(--premium-line)/0.55)] bg-[radial-gradient(circle_at_50%_36%,hsl(var(--premium-spot-alt)/0.14),transparent_24%),radial-gradient(circle_at_50%_60%,hsl(var(--premium-spot)/0.14),transparent_34%),linear-gradient(180deg,hsl(var(--premium-surface))_0%,hsl(var(--premium-surface-soft)/0.96)_100%)]" />
+                                <div className="absolute inset-[1.35rem] rounded-[2rem] border border-[hsl(var(--premium-line)/0.55)] bg-[radial-gradient(circle_at_50%_32%,hsl(var(--premium-spot-alt)/0.12),transparent_22%),radial-gradient(circle_at_50%_62%,hsl(var(--premium-spot)/0.12),transparent_28%),linear-gradient(180deg,hsl(var(--premium-surface))_0%,hsl(var(--premium-surface-soft)/0.96)_100%)]" />
 
                                 <motion.div
-                                    className="absolute left-1/2 top-1/2 h-[22rem] w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[hsl(var(--premium-line)/0.45)] bg-[radial-gradient(circle,hsl(var(--premium-surface)/0.45),transparent_70%)]"
+                                    className="absolute left-1/2 top-[44%] h-[24rem] w-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[hsl(var(--premium-line)/0.4)] bg-[radial-gradient(circle,hsl(var(--premium-surface)/0.45),transparent_70%)]"
                                     style={{ scale: haloScale, opacity: haloOpacity }}
                                 />
 
-                                {steps.map((step) => (
-                                    <div
-                                        key={`${step.title}-orb`}
-                                        className={cn(
-                                            'absolute h-2.5 w-2.5 rounded-full bg-[hsl(var(--premium-spot))] shadow-[0_0_28px_hsl(var(--premium-spot)/0.6)]',
-                                            step.orbitClass
-                                        )}
-                                    />
-                                ))}
-
-                                <div className="absolute inset-0">
-                                    <motion.article
-                                        className="premium-panel-soft absolute left-1/2 top-1/2 z-10 -ml-[9.5rem] -mt-[12rem] w-[19rem] overflow-hidden rounded-[2rem] p-3"
-                                        style={{
-                                            x: cardOneX,
-                                            y: cardOneY,
-                                            rotate: cardOneRotate,
-                                            scale: cardOneScale,
-                                            opacity: cardOneOpacity,
-                                        }}
-                                    >
-                                        <VisualCard
-                                            imageUrl={steps[0]?.imageUrl ?? null}
-                                            label={`${copy.stepLabel} 1`}
-                                            title={steps[0]?.title ?? ''}
-                                            description={steps[0]?.description ?? ''}
-                                            icon={steps[0]?.icon ?? Sparkles}
-                                            gradient={steps[0]?.gradient ?? stepVisuals[0].gradient}
+                                <div className="absolute inset-x-0 top-6 flex justify-between px-8">
+                                    {steps.map((step) => (
+                                        <div
+                                            key={`${step.title}-dot`}
+                                            className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--premium-spot))] shadow-[0_0_28px_hsl(var(--premium-spot)/0.6)]"
                                         />
-                                    </motion.article>
+                                    ))}
+                                </div>
 
-                                    <motion.article
-                                        className="premium-panel-soft absolute left-1/2 top-1/2 z-20 -ml-[9.5rem] -mt-[12rem] w-[19rem] overflow-hidden rounded-[2rem] p-3"
-                                        style={{
-                                            x: cardTwoX,
-                                            y: cardTwoY,
-                                            rotate: cardTwoRotate,
-                                            scale: cardTwoScale,
-                                            opacity: cardTwoOpacity,
-                                        }}
-                                    >
-                                        <VisualCard
-                                            imageUrl={steps[1]?.imageUrl ?? null}
-                                            label={`${copy.stepLabel} 2`}
-                                            title={steps[1]?.title ?? ''}
-                                            description={steps[1]?.description ?? ''}
-                                            icon={steps[1]?.icon ?? Package}
-                                            gradient={steps[1]?.gradient ?? stepVisuals[1].gradient}
-                                        />
-                                    </motion.article>
+                                <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+                                    {steps.map((step, index) => {
+                                        const stageState = getStageState(index, activeStep, shouldReduceMotion)
 
-                                    <motion.article
-                                        className="premium-panel-soft absolute left-1/2 top-1/2 z-30 -ml-[9.5rem] -mt-[12rem] w-[19rem] overflow-hidden rounded-[2rem] p-3"
-                                        style={{
-                                            x: cardThreeX,
-                                            y: cardThreeY,
-                                            rotate: cardThreeRotate,
-                                            scale: cardThreeScale,
-                                            opacity: cardThreeOpacity,
-                                        }}
-                                    >
-                                        <VisualCard
-                                            imageUrl={steps[2]?.imageUrl ?? null}
-                                            label={`${copy.stepLabel} 3`}
-                                            title={steps[2]?.title ?? ''}
-                                            description={steps[2]?.description ?? ''}
-                                            icon={steps[2]?.icon ?? Truck}
-                                            gradient={steps[2]?.gradient ?? stepVisuals[2].gradient}
-                                        />
-                                    </motion.article>
+                                        return (
+                                            <motion.div
+                                                key={step.title}
+                                                className={cn(
+                                                    'absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2',
+                                                    index === activeStep ? 'z-30 w-[21rem] xl:w-[23rem]' : 'z-20 w-[13rem] xl:w-[14rem]'
+                                                )}
+                                                animate={stageState}
+                                                transition={{ duration: shouldReduceMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+                                            >
+                                                <StageCard
+                                                    step={step}
+                                                    label={`${copy.stepLabel} ${index + 1}`}
+                                                    active={index === activeStep}
+                                                />
+                                            </motion.div>
+                                        )
+                                    })}
+                                </div>
+
+                                <div className="absolute inset-x-7 bottom-7">
+                                    <div className="premium-panel-soft rounded-[1.7rem] px-5 py-4">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
+                                                    {copy.stepLabel} {activeStep + 1}
+                                                </div>
+                                                <h4 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
+                                                    {activeStage.title}
+                                                </h4>
+                                            </div>
+
+                                            <div className={`flex h-11 w-11 items-center justify-center rounded-[1rem] bg-gradient-to-br ${activeStage.gradient}`}>
+                                                <activeStage.icon className="h-5 w-5 text-white" />
+                                            </div>
+                                        </div>
+
+                                        <p className="premium-muted mt-3 max-w-lg text-sm leading-7">
+                                            {activeStage.description}
+                                        </p>
+
+                                        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--premium-line)/0.5)]">
+                                            <motion.div
+                                                className="h-full origin-left rounded-full bg-gradient-to-r from-[hsl(var(--premium-spot))] to-[hsl(var(--premium-spot-alt))]"
+                                                style={{ scaleX: progressScaleX }}
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -304,53 +268,95 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
     )
 }
 
-interface VisualCardProps {
-    imageUrl: string | null
+interface StageCardProps {
+    step: {
+        title: string
+        imageUrl: string | null
+        icon: LucideIcon
+        gradient: string
+    }
     label: string
-    title: string
-    description: string
-    icon: LucideIcon
-    gradient: string
+    active: boolean
 }
 
-function VisualCard({ imageUrl, label, title, description, icon: Icon, gradient }: VisualCardProps) {
-    return (
-        <>
-            <div className="flex items-center justify-between gap-3 px-2 pb-3 pt-2">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
-                    {label}
-                </div>
-                <div className={`flex h-9 w-9 items-center justify-center rounded-[0.95rem] bg-gradient-to-br ${gradient}`}>
-                    <Icon className="h-4 w-4 text-white" />
-                </div>
-            </div>
+function StageCard({ step, label, active }: StageCardProps) {
+    const Icon = step.icon
 
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.55rem] border border-[hsl(var(--premium-line)/0.6)] bg-[linear-gradient(180deg,hsl(var(--premium-surface))_0%,transparent_100%)]">
-                {imageUrl ? (
+    return (
+        <div className="premium-panel-soft overflow-hidden rounded-[2rem] p-3 shadow-[0_28px_80px_-42px_hsl(var(--premium-shadow)/0.72)]">
+            <div
+                className={cn(
+                    'relative overflow-hidden border border-[hsl(var(--premium-line)/0.62)] bg-[linear-gradient(180deg,hsl(var(--premium-surface))_0%,transparent_100%)]',
+                    active ? 'aspect-[4/5] rounded-[1.6rem]' : 'aspect-[4/5] rounded-[1.35rem]'
+                )}
+            >
+                {step.imageUrl ? (
                     <>
                         <Image
-                            src={imageUrl}
-                            alt={title}
+                            src={step.imageUrl}
+                            alt={step.title}
                             fill
-                            sizes="320px"
+                            sizes={active ? '368px' : '224px'}
                             className="object-cover"
                             unoptimized
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/8 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
                     </>
                 ) : (
                     <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,hsl(var(--premium-spot)/0.22),transparent_24%),radial-gradient(circle_at_70%_30%,hsl(var(--premium-spot-alt)/0.18),transparent_28%),linear-gradient(180deg,hsl(var(--premium-surface-soft))_0%,transparent_100%)]">
-                        <Icon className="h-10 w-10 text-[hsl(var(--premium-ink))]" />
+                        <Icon className="h-12 w-12 text-[hsl(var(--premium-ink))]" />
                     </div>
                 )}
-            </div>
 
-            <div className="px-2 pb-2 pt-4">
-                <h4 className="text-lg font-semibold tracking-[-0.03em]">{title}</h4>
-                <p className="premium-muted mt-2 text-sm leading-6">
-                    {description}
-                </p>
+                <div className="absolute left-3 top-3 flex items-center gap-2">
+                    <div className="rounded-full bg-black/55 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/86">
+                        {label}
+                    </div>
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br ${step.gradient} shadow-[0_14px_28px_-18px_rgba(15,23,42,0.9)]`}>
+                        <Icon className="h-3.5 w-3.5 text-white" />
+                    </div>
+                </div>
+
+                {active ? (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-4 pb-4 pt-10">
+                        <p className="text-lg font-semibold tracking-[-0.03em] text-white">
+                            {step.title}
+                        </p>
+                    </div>
+                ) : null}
             </div>
-        </>
+        </div>
     )
+}
+
+function getStageState(index: number, activeStep: number, shouldReduceMotion: boolean) {
+    const delta = index - activeStep
+
+    if (delta === 0) {
+        return {
+            x: 0,
+            y: shouldReduceMotion ? 0 : -18,
+            rotate: 0,
+            scale: 1,
+            opacity: 1,
+        }
+    }
+
+    if (delta < 0) {
+        return {
+            x: shouldReduceMotion ? -56 : -198,
+            y: shouldReduceMotion ? 26 : 74,
+            rotate: shouldReduceMotion ? -4 : -12,
+            scale: 0.78,
+            opacity: 0.34,
+        }
+    }
+
+    return {
+        x: shouldReduceMotion ? 56 : 198,
+        y: shouldReduceMotion ? -24 : -58,
+        rotate: shouldReduceMotion ? 4 : 12,
+        scale: 0.8,
+        opacity: 0.3,
+    }
 }
