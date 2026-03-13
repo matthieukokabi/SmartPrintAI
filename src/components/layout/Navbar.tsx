@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useCart } from '@/store/cart'
 import { ShoppingCart, Sparkles } from 'lucide-react'
+import ThemeToggle from '@/components/theme/ThemeToggle'
 
 export default function Navbar() {
     const itemCount = useCart((s) => s.itemCount())
@@ -55,6 +56,8 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <ThemeToggle compact className="hidden lg:inline-flex" />
+
                         <Link
                             href="/create"
                             className="site-nav-cta hidden rounded-full bg-gradient-to-r from-orange-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-[0_18px_36px_-26px_rgba(14,165,233,0.8)] transition-all duration-300 hover:opacity-90 sm:inline-flex sm:items-center sm:gap-2"
