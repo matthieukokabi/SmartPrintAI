@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
+    "prod:live-preflight": "./scripts/live_purchase_preflight.sh",
     "marketing:weekly-batch": "tsx scripts/generate_weekly_content_batch.ts",
     "deploy:vps": "./scripts/deploy_vps.sh"
   },

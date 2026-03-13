@@ -37,6 +37,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Rotate all exposed/leaked keys before launch (Resend + Printful rotated and validated on VPS on 2026-03-11; Printful auth `200`, Resend sending endpoint `200`)
 - [x] Final production secret audit (.env.local) (2026-03-11 masked check on VPS: required keys present, suspicious bare-token lines none)
 - [ ] Run one real live purchase on production and confirm payment settlement end-to-end (deferred by request until core implementation is complete)
+- [x] Add production live-purchase preflight automation (2026-03-13: shipped `npm run prod:live-preflight` + checklist `docs/PROD_LIVE_PURCHASE_CHECKLIST.md` to validate all non-owner prerequisites before the real payment run)
 - [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
 - [x] Fixed production key-rotation script bug that wrote blank keys (hidden prompt newlines no longer pollute captured values) (2026-03-11)
