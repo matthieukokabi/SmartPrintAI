@@ -18,9 +18,9 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
     return (
         <>
             <div className="premium-home-shell">
+                <HomeThemeScope />
                 <section className="relative pt-6">
-                    <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-                        <HomeThemeScope />
+                    <div className="mx-auto flex max-w-7xl justify-center px-4 sm:px-6 lg:justify-end lg:px-8">
                         <LanguageSwitcher currentLocale={locale} pagePath="/" />
                     </div>
                 </section>

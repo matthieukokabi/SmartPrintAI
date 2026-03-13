@@ -42,17 +42,17 @@ function SignInContent() {
     }
 
     return (
-        <div className="max-w-md mx-auto px-4 py-16">
-            <div className="glass rounded-2xl p-6 space-y-5">
+        <div className="mx-auto max-w-md px-4 py-16 sm:py-24">
+            <div className="glass space-y-6 rounded-[2rem] p-7 sm:p-8">
                 <div>
                     <h1 className="text-2xl font-bold">Sign In</h1>
-                    <p className="text-sm text-muted-foreground mt-2">
+                    <p className="mt-2 text-sm text-muted-foreground">
                         Enter your email to access your SmartPrintAI order history.
                     </p>
                 </div>
 
                 {error && (
-                    <p className="text-sm text-red-300 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2">
+                    <p className="rounded-xl border border-[hsl(0_72%_54%/0.18)] bg-[hsl(0_72%_54%/0.08)] px-3 py-2 text-sm text-[hsl(0_72%_56%)]">
                         Your sign-in link is invalid or expired. Request a new link.
                     </p>
                 )}
@@ -67,14 +67,14 @@ function SignInContent() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-purple-400"
+                        className="app-input w-full rounded-xl px-3.5 py-3 text-sm outline-none"
                         placeholder="you@example.com"
                     />
 
                     <button
                         type="submit"
                         disabled={submitState === 'submitting'}
-                        className="w-full inline-flex justify-center items-center px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium disabled:opacity-60"
+                        className="app-primaryButton inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60"
                     >
                         {submitState === 'submitting' ? 'Sending...' : 'Send Sign-In Link'}
                     </button>
@@ -84,8 +84,8 @@ function SignInContent() {
                     <p
                         className={
                             submitState === 'success'
-                                ? 'text-sm text-green-300 bg-green-900/20 border border-green-900/40 rounded-lg px-3 py-2'
-                                : 'text-sm text-red-300 bg-red-900/20 border border-red-900/40 rounded-lg px-3 py-2'
+                                ? 'rounded-xl border border-[hsl(142_72%_45%/0.18)] bg-[hsl(142_72%_45%/0.08)] px-3 py-2 text-sm text-[hsl(142_56%_42%)]'
+                                : 'rounded-xl border border-[hsl(0_72%_54%/0.18)] bg-[hsl(0_72%_54%/0.08)] px-3 py-2 text-sm text-[hsl(0_72%_56%)]'
                         }
                     >
                         {message}
@@ -94,7 +94,7 @@ function SignInContent() {
 
                 <p className="text-sm text-muted-foreground">
                     Return to{' '}
-                    <Link href="/" className="text-purple-300 hover:text-purple-200">
+                    <Link href="/" className="font-medium text-foreground/70 underline decoration-border underline-offset-4 transition-colors hover:text-foreground">
                         Home
                     </Link>
                 </p>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import ThemeToggle from '@/components/theme/ThemeToggle'
 
 export default function HomeThemeScope() {
     useEffect(() => {
@@ -12,5 +11,5 @@ export default function HomeThemeScope() {
         }
     }, [])
 
-    return <ThemeToggle variant="premium" />
+    return null
 }

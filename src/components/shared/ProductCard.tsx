@@ -18,9 +18,9 @@ export default function ProductCard({ id, name, sellPrice, category, imageUrl, h
     return (
         <Link
             href={productHref}
-            className="glass rounded-2xl p-6 hover:border-purple-500/20 transition-all duration-300 hover:-translate-y-1 group block"
+            className="glass group block rounded-[1.75rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-foreground/10"
         >
-            <div className="relative aspect-square rounded-xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-white/10 transition-colors overflow-hidden">
+            <div className="relative mb-4 aspect-square overflow-hidden rounded-[1.35rem] bg-secondary/55 transition-colors duration-300 group-hover:bg-secondary/80">
                 {hasImage ? (
                     <Image
                         src={imageUrl!}
@@ -31,12 +31,14 @@ export default function ProductCard({ id, name, sellPrice, category, imageUrl, h
                         unoptimized
                     />
                 ) : (
-                    <Shirt className="w-12 h-12 text-muted-foreground group-hover:text-purple-400 transition-colors" />
+                    <div className="flex h-full items-center justify-center">
+                        <Shirt className="h-12 w-12 text-muted-foreground transition-colors group-hover:text-[hsl(var(--brand-end))]" />
+                    </div>
                 )}
             </div>
             <h3 className="font-semibold truncate">{name}</h3>
             <p className="text-xs text-muted-foreground capitalize mt-0.5">{category}</p>
-            <p className="text-sm text-purple-400 font-medium mt-2">${sellPrice.toFixed(2)}</p>
+            <p className="mt-2 text-sm font-medium text-[hsl(var(--brand-start))]">${sellPrice.toFixed(2)}</p>
         </Link>
     )
 }

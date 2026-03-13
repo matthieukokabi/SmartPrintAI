@@ -55,8 +55,8 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <ThemeToggle compact className="hidden lg:inline-flex" />
+                    <div className="flex items-center gap-2.5">
+                        <ThemeToggle compact className="inline-flex" />
 
                         <Link
                             href="/create"
@@ -76,7 +76,7 @@ export default function Navbar() {
                             </Link>
                         )}
 
-                        <Link href="/cart" className="site-nav-cart relative rounded-full border border-border/70 bg-background/55 p-2.5 text-foreground transition-colors hover:bg-white/5">
+                        <Link href="/cart" className="site-nav-cart relative rounded-full border border-border/70 bg-background/55 p-2.5 text-foreground transition-colors hover:bg-secondary/75">
                             <ShoppingCart className="w-5 h-5" />
                             {itemCount > 0 && (
                                 <span className="site-nav-cartBadge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold">
