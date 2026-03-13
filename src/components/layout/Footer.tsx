@@ -3,23 +3,23 @@ import { Sparkles } from 'lucide-react'
 
 export default function Footer() {
     return (
-        <footer className="border-t border-white/5 mt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <footer className="site-footer mt-24 border-t border-border/60">
+            <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
                     <div className="col-span-1 md:col-span-2">
-                        <Link href="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <Link href="/" className="mb-5 flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-sky-500">
                                 <Sparkles className="w-4 h-4 text-white" />
                             </div>
-                            <span className="text-lg font-bold text-gradient">SmartPrintAI</span>
+                            <span className="text-base font-semibold uppercase tracking-[0.14em]">SmartPrintAI</span>
                         </Link>
-                        <p className="text-sm text-muted-foreground max-w-sm">
+                        <p className="max-w-sm text-sm leading-6 text-muted-foreground">
                             Describe your vision, watch AI create it, and get it printed on premium products. No design skills needed.
                         </p>
                     </div>
 
                     <div>
-                        <h4 className="text-sm font-semibold mb-4">Product</h4>
+                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Product</h4>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li><Link href="/create" className="hover:text-foreground transition-colors">Create Design</Link></li>
                             <li><Link href="/products" className="hover:text-foreground transition-colors">Products</Link></li>
@@ -30,7 +30,7 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="text-sm font-semibold mb-4">Support</h4>
+                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Support</h4>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li><Link href="/support" className="hover:text-foreground transition-colors">Contact</Link></li>
                             <li><Link href="/support#faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
@@ -39,7 +39,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-white/5 mt-8 pt-8 text-center text-xs text-muted-foreground">
+                <div className="mt-10 border-t border-border/60 pt-8 text-center text-xs text-muted-foreground">
                     © {new Date().getFullYear()} SmartPrintAI. All rights reserved.
                 </div>
             </div>

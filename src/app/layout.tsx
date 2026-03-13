@@ -53,10 +53,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className="dark">
-            <body>
+            <body className="overflow-x-hidden">
                 <GoogleAnalytics />
                 <Navbar />
-                <main className="min-h-screen pt-16">{children}</main>
+                <main className="min-h-screen pt-20">{children}</main>
                 <Footer />
             </body>
         </html>

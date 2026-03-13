@@ -29,57 +29,57 @@ export default function Navbar() {
     }, [])
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+        <nav className="site-nav fixed inset-x-0 top-0 z-50 px-3 sm:px-4 lg:px-6">
+            <div className="site-nav-shell mx-auto mt-3 flex max-w-7xl items-center rounded-full border border-border/70 bg-background/80 px-4 shadow-[0_24px_60px_-40px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:px-6">
+                <div className="flex h-16 w-full items-center justify-between gap-4">
+                    <Link href="/" className="group flex items-center gap-3">
+                        <div className="site-nav-logoMark flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-sky-500 transition-transform duration-300 group-hover:scale-105">
                             <Sparkles className="w-4 h-4 text-white" />
                         </div>
-                        <span className="text-lg font-bold text-gradient">SmartPrintAI</span>
+                        <span className="site-nav-brand text-base font-semibold uppercase tracking-[0.14em] text-foreground">SmartPrintAI</span>
                     </Link>
 
-                    <div className="hidden md:flex items-center gap-8">
-                        <Link href="/create" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <div className="hidden md:flex items-center gap-6">
+                        <Link href="/create" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Create
                         </Link>
-                        <Link href="/products" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/products" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Products
                         </Link>
-                        <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/blog" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Blog
                         </Link>
-                        <Link href="/careers" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/careers" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Careers
                         </Link>
-                        <Link href="/account/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <Link href="/account/orders" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Orders
                         </Link>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <Link
                             href="/create"
-                            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                            className="site-nav-cta hidden rounded-full bg-gradient-to-r from-orange-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-[0_18px_36px_-26px_rgba(14,165,233,0.8)] transition-all duration-300 hover:opacity-90 sm:inline-flex sm:items-center sm:gap-2"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
                             Start Creating
                         </Link>
 
                         {isSignedIn ? (
-                            <Link href="/api/auth/logout" className="hidden sm:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <Link href="/api/auth/logout" className="site-nav-link hidden text-sm text-muted-foreground transition-colors sm:inline-flex">
                                 Sign out
                             </Link>
                         ) : (
-                            <Link href="/signin" className="hidden sm:inline-flex text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            <Link href="/signin" className="site-nav-link hidden text-sm text-muted-foreground transition-colors sm:inline-flex">
                                 Sign in
                             </Link>
                         )}
 
-                        <Link href="/cart" className="relative p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <Link href="/cart" className="site-nav-cart relative rounded-full border border-border/70 bg-background/55 p-2.5 text-foreground transition-colors hover:bg-white/5">
                             <ShoppingCart className="w-5 h-5" />
                             {itemCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-500 text-xs font-bold flex items-center justify-center">
+                                <span className="site-nav-cartBadge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold">
                                     {itemCount}
                                 </span>
                             )}
