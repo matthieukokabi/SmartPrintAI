@@ -51,6 +51,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Homepage redesign refinement (2026-03-13: unified top-aligned section headers, scroll-reveal motion on landing sections, and removed visible careers discovery from nav/footer/sitemap)
 - [x] Homepage cinematic scroll pass (2026-03-13: added Framer Motion reveal timing, immersive sticky "How It Works" story cards with centered scroll choreography, and smoother premium theme surface transitions)
 - [x] Homepage scroll-story repair (2026-03-13: replaced the broken overlapping sticky card stack with a cleaner centered image stage, supporting side previews, and a readable active-step footer)
+- [x] Homepage scroll-story cleanup (2026-03-13: removed the oversized blank-scroll gap and simplified desktop "How It Works" to one sticky premium preview image with smoother step-driven transitions)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
