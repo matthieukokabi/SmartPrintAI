@@ -1,4 +1,6 @@
 import { Wand2, Package, Truck } from 'lucide-react'
+import RevealOnScroll from '@/components/home/RevealOnScroll'
+import SectionHeader from '@/components/home/SectionHeader'
 
 type StepCopy = {
     title: string
@@ -62,48 +64,42 @@ export default function HowItWorks({ copy = defaultCopy }: HowItWorksProps) {
 
     return (
         <section id="how-it-works" className="relative py-24 sm:py-28">
-            <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
-                <div className="lg:sticky lg:top-28 lg:self-start">
-                    <div className="premium-chip inline-flex rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em]">
-                        {copy.stepLabel}
-                    </div>
-                    <h2 className="mt-6 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-                        {copy.titleLead} <span className="font-editorial text-gradient">{copy.titleAccent}</span>
-                    </h2>
-                    <p className="premium-muted mt-5 max-w-md text-base leading-7">
-                        {copy.subtitle}
-                    </p>
-                </div>
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <RevealOnScroll>
+                    <SectionHeader
+                        titleLead={copy.titleLead}
+                        titleAccent={copy.titleAccent}
+                        subtitle={copy.subtitle}
+                    />
+                </RevealOnScroll>
 
-                <div className="relative lg:pl-10">
-                    <div className="absolute left-6 top-4 hidden h-[calc(100%-2rem)] w-px bg-[linear-gradient(180deg,transparent,hsl(var(--premium-line-strong)),transparent)] lg:block" />
-
-                    <div className="space-y-5">
-                        {steps.map((step, i) => (
-                            <article key={step.title} className="premium-panel relative rounded-[2rem] p-6 sm:p-8 lg:ml-12">
-                                <div className="absolute left-6 top-7 hidden h-4 w-4 rounded-full border border-[hsl(var(--premium-line-strong))] bg-[hsl(var(--premium-surface))] lg:block" />
-                                <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                                    <div className="flex items-start gap-4">
-                                        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.2rem] bg-gradient-to-br ${step.gradient} shadow-[0_22px_48px_-32px_rgba(15,23,42,0.8)]`}>
-                                            <step.icon className="h-6 w-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
-                                                {copy.stepLabel} {i + 1}
-                                            </div>
-                                            <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">{step.title}</h3>
-                                        </div>
+                <div className="mt-14 grid gap-5 lg:grid-cols-3">
+                    {steps.map((step, i) => (
+                        <RevealOnScroll
+                            key={step.title}
+                            direction={i === 0 ? 'left' : i === 1 ? 'up' : 'right'}
+                            delayMs={i * 90}
+                        >
+                            <article className="premium-panel relative h-full rounded-[2rem] p-6 sm:p-8">
+                                <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[hsl(var(--premium-line-strong))] to-transparent" />
+                                <div className={`flex h-14 w-14 items-center justify-center rounded-[1.2rem] bg-gradient-to-br ${step.gradient} shadow-[0_22px_48px_-32px_rgba(15,23,42,0.8)]`}>
+                                    <step.icon className="h-6 w-6 text-white" />
+                                </div>
+                                <div className="mt-6 flex items-center justify-between gap-3">
+                                    <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
+                                        {copy.stepLabel} {i + 1}
                                     </div>
                                     <div className="rounded-full border border-[hsl(var(--premium-line)/0.7)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
                                         0{i + 1}
                                     </div>
                                 </div>
-                                <p className="premium-muted mt-5 max-w-2xl text-sm leading-7 sm:text-base">
+                                <h3 className="mt-4 text-2xl font-semibold tracking-[-0.03em]">{step.title}</h3>
+                                <p className="premium-muted mt-4 text-sm leading-7 sm:text-base">
                                     {step.description}
                                 </p>
                             </article>
-                        ))}
-                    </div>
+                        </RevealOnScroll>
+                    ))}
                 </div>
             </div>
         </section>
