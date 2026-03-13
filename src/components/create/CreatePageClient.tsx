@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import PromptInput from '@/components/create/PromptInput'
 import StyleSelector from '@/components/create/StyleSelector'
 import GeneratedImage from '@/components/create/GeneratedImage'
@@ -23,6 +24,9 @@ function colorDotStyle(hex: string) {
     return { backgroundColor: safeHex }
 }
 
+const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024
+const SUPPORTED_REFERENCE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
+
 export default function CreatePageClient({ locale, copy }: CreatePageClientProps) {
     const searchParams = useSearchParams()
     const initialPrompt = searchParams.get('prompt') || ''
@@ -35,6 +39,9 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [designId, setDesignId] = useState<string | null>(null)
     const [imageUrl, setImageUrl] = useState<string | null>(null)
     const [currentPrompt, setCurrentPrompt] = useState(initialPrompt)
+    const [referenceImageDataUrl, setReferenceImageDataUrl] = useState<string | null>(null)
+    const [referenceImageName, setReferenceImageName] = useState<string | null>(null)
+    const [referenceImageError, setReferenceImageError] = useState<string | null>(null)
 
     const [products, setProducts] = useState<Product[]>([])
     const [selectedProduct, setSelectedProduct] = useState<string | null>(initialProductId)
@@ -132,7 +139,11 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             const res = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, style }),
+                body: JSON.stringify({
+                    prompt,
+                    style,
+                    sourceImageDataUrl: referenceImageDataUrl ?? undefined,
+                }),
             })
             const data = await res.json()
             if (data.imageUrl) {
@@ -148,6 +159,55 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
     const handleProductSelect = (productId: string) => {
         setSelectedProduct(productId)
+    }
+
+    const handleReferenceImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) {
+            return
+        }
+
+        if (!SUPPORTED_REFERENCE_IMAGE_TYPES.has(file.type)) {
+            setReferenceImageError('Use PNG, JPG, or WEBP only.')
+            setReferenceImageDataUrl(null)
+            setReferenceImageName(null)
+            event.target.value = ''
+            return
+        }
+
+        if (file.size > MAX_REFERENCE_IMAGE_BYTES) {
+            setReferenceImageError('Image is too large. Max size is 8MB.')
+            setReferenceImageDataUrl(null)
+            setReferenceImageName(null)
+            event.target.value = ''
+            return
+        }
+
+        const reader = new FileReader()
+        reader.onload = () => {
+            if (typeof reader.result !== 'string') {
+                setReferenceImageError('Could not read image. Please try another file.')
+                return
+            }
+
+            setReferenceImageDataUrl(reader.result)
+            setReferenceImageName(file.name)
+            setReferenceImageError(null)
+            event.target.value = ''
+        }
+        reader.onerror = () => {
+            setReferenceImageError('Could not read image. Please try another file.')
+            setReferenceImageDataUrl(null)
+            setReferenceImageName(null)
+            event.target.value = ''
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const clearReferenceImage = () => {
+        setReferenceImageDataUrl(null)
+        setReferenceImageName(null)
+        setReferenceImageError(null)
     }
 
     const handleAddToCart = () => {
@@ -193,6 +253,52 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-8">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5 space-y-3">
+                        <div>
+                            <p className="text-sm font-semibold text-foreground">Reference Photo (optional)</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Upload your own image and AI will transform it using your prompt.
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <label className="inline-flex items-center px-4 py-2 rounded-xl glass text-sm cursor-pointer hover:text-foreground transition-colors">
+                                Upload Photo
+                                <input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    className="hidden"
+                                    onChange={handleReferenceImageUpload}
+                                />
+                            </label>
+                            {referenceImageDataUrl && (
+                                <button
+                                    type="button"
+                                    onClick={clearReferenceImage}
+                                    className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    Remove
+                                </button>
+                            )}
+                        </div>
+                        {referenceImageName && (
+                            <p className="text-xs text-muted-foreground truncate">{referenceImageName}</p>
+                        )}
+                        {referenceImageError && (
+                            <p className="text-xs text-red-300">{referenceImageError}</p>
+                        )}
+                        {referenceImageDataUrl && (
+                            <div className="relative h-40 w-full max-w-sm overflow-hidden rounded-xl border border-white/10 bg-black/20">
+                                <Image
+                                    src={referenceImageDataUrl}
+                                    alt="Uploaded reference image"
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+                        )}
+                    </div>
+
                     <PromptInput
                         onGenerate={handleGenerate}
                         isLoading={isGenerating}

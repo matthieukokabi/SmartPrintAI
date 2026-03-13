@@ -62,6 +62,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Homepage scroll-story cleanup (2026-03-13: removed the oversized blank-scroll gap and simplified desktop "How It Works" to one sticky premium preview image with smoother step-driven transitions)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
+- [x] `/create` upload-and-edit flow (2026-03-13: customers can upload their own PNG/JPG/WEBP reference photo, send it through `/api/generate`, and receive AI-edited print-ready output; verified with `npm run lint`, `npm run test`, and `npm run build` using placeholder local env values)
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
 - [x] Printful sync mapper now stores per-color preview image URLs when provided by Printful variants (2026-03-10)
 - [x] Production product sync run to backfill color preview image metadata (2026-03-10)

@@ -5,6 +5,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 export interface GenerateImageOptions {
     prompt: string
     style?: 'artistic' | 'watercolor' | 'cartoon' | 'minimalist' | 'pop-art' | 'photorealistic'
+    sourceImageDataUrl?: string
 }
 
 type ImageInlineData = {
@@ -25,8 +26,26 @@ const STYLE_PROMPTS: Record<string, string> = {
     photorealistic: 'photorealistic digital art, highly detailed, professional quality',
 }
 
+type GeminiRequestPart = {
+    text?: string
+    inlineData?: ImageInlineData
+}
+
+const SOURCE_IMAGE_DATA_URL_REGEX = /^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=]+)$/i
+
+function parseSourceImageDataUrl(sourceImageDataUrl: string): ImageInlineData {
+    const match = SOURCE_IMAGE_DATA_URL_REGEX.exec(sourceImageDataUrl.trim())
+    if (!match) {
+        throw new Error('Invalid source image format')
+    }
+
+    const mimeType = match[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : match[1].toLowerCase()
+    const data = match[2]
+    return { mimeType, data }
+}
+
 export async function generateImage(options: GenerateImageOptions): Promise<string> {
-    const { prompt, style = 'artistic' } = options
+    const { prompt, style = 'artistic', sourceImageDataUrl } = options
     const stylePrompt = STYLE_PROMPTS[style] || STYLE_PROMPTS.artistic
 
     const fullPrompt = `${prompt}. ${stylePrompt}. Transparent or white background. High quality print-ready design. No text unless specifically requested. Square format.`
@@ -35,8 +54,19 @@ export async function generateImage(options: GenerateImageOptions): Promise<stri
         model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
     })
 
+    const parts: GeminiRequestPart[] = sourceImageDataUrl
+        ? [
+            {
+                text: `Edit the provided source image using this request: ${fullPrompt}. Keep the main composition centered and suitable for premium product printing.`,
+            },
+            {
+                inlineData: parseSourceImageDataUrl(sourceImageDataUrl),
+            },
+        ]
+        : [{ text: fullPrompt }]
+
     const request = {
-        contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+        contents: [{ role: 'user', parts }],
         generationConfig: {
             responseModalities: ['image'],
         },

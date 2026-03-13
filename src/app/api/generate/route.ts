@@ -12,6 +12,7 @@ type GeneratePayload = {
     prompt: string
     style: DesignStyle
     sessionId?: string
+    sourceImageDataUrl?: string
 }
 
 const ALLOWED_STYLES = new Set<DesignStyle>([
@@ -22,6 +23,9 @@ const ALLOWED_STYLES = new Set<DesignStyle>([
     'pop-art',
     'photorealistic',
 ])
+
+const SOURCE_IMAGE_DATA_URL_REGEX = /^data:(image\/(?:png|jpeg|jpg|webp));base64,[A-Za-z0-9+/=]+$/i
+const MAX_SOURCE_IMAGE_DATA_URL_LENGTH = 15_000_000
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
@@ -68,7 +72,25 @@ function validateGeneratePayload(input: unknown):
         sessionId = trimmed
     }
 
-    return { ok: true, data: { prompt, style, sessionId } }
+    let sourceImageDataUrl: string | undefined
+    if (input.sourceImageDataUrl !== undefined && input.sourceImageDataUrl !== null) {
+        if (typeof input.sourceImageDataUrl !== 'string') {
+            return { ok: false, error: 'Invalid source image' }
+        }
+
+        const trimmed = input.sourceImageDataUrl.trim()
+        if (trimmed.length === 0 || trimmed.length > MAX_SOURCE_IMAGE_DATA_URL_LENGTH) {
+            return { ok: false, error: 'Invalid source image' }
+        }
+
+        if (!SOURCE_IMAGE_DATA_URL_REGEX.test(trimmed)) {
+            return { ok: false, error: 'Invalid source image format' }
+        }
+
+        sourceImageDataUrl = trimmed
+    }
+
+    return { ok: true, data: { prompt, style, sessionId, sourceImageDataUrl } }
 }
 
 export async function POST(req: NextRequest) {
@@ -103,9 +125,13 @@ export async function POST(req: NextRequest) {
             return respond({ error: validation.error }, { status: 400 })
         }
 
-        const { prompt, style, sessionId } = validation.data
+        const { prompt, style, sessionId, sourceImageDataUrl } = validation.data
 
-        const base64Image = await generateImage({ prompt, style })
+        const base64Image = await generateImage({
+            prompt,
+            style,
+            ...(sourceImageDataUrl ? { sourceImageDataUrl } : {}),
+        })
         const imageUrl = await uploadBase64Image(base64Image)
 
         const design = await prisma.design.create({

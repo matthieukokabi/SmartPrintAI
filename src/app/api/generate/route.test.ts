@@ -101,6 +101,53 @@ describe('/api/generate POST', () => {
     expect(mocks.sendMakeDesignAutoPost).not.toHaveBeenCalled()
   })
 
+  it('returns 400 for invalid source image payload', async () => {
+    const res = await POST(createRequest(JSON.stringify({
+      prompt: 'cyberpunk geisha portrait',
+      style: 'artistic',
+      sourceImageDataUrl: 'https://example.com/image.png',
+    })))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Invalid source image format',
+    })
+    expect(mocks.generateImage).not.toHaveBeenCalled()
+    expect(mocks.sendMakeDesignAutoPost).not.toHaveBeenCalled()
+  })
+
+  it('passes uploaded source image data to the generator', async () => {
+    mocks.prisma.design.create.mockResolvedValueOnce({
+      id: 'design_2',
+      prompt: 'turn this portrait into watercolor poster art',
+      style: 'watercolor',
+      imageUrl: 'https://cdn.smartprintai.com/designs/design-2.png',
+      sessionId: null,
+      createdAt: new Date('2026-03-11T10:05:00.000Z'),
+    })
+    mocks.uploadBase64Image.mockResolvedValueOnce('https://cdn.smartprintai.com/designs/design-2.png')
+
+    const sourceImageDataUrl = 'data:image/png;base64,ZmFrZS1pbWFnZS1ieXRlcw=='
+
+    const res = await POST(createRequest(JSON.stringify({
+      prompt: 'turn this portrait into watercolor poster art',
+      style: 'watercolor',
+      sourceImageDataUrl,
+    })))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({
+      designId: 'design_2',
+      imageUrl: 'https://cdn.smartprintai.com/designs/design-2.png',
+    })
+
+    expect(mocks.generateImage).toHaveBeenCalledWith({
+      prompt: 'turn this portrait into watercolor poster art',
+      style: 'watercolor',
+      sourceImageDataUrl,
+    })
+  })
+
   it('creates design and dispatches make auto-post event', async () => {
     const res = await POST(createRequest(JSON.stringify({
       prompt: 'funny french bulldog in sunglasses',
