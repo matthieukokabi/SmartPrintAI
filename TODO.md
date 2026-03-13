@@ -49,6 +49,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Upgrade homepage visual merchandising with real featured-product thumbnails and curated 8-card sample design gallery linked to `/create` prompts (2026-03-11)
 - [x] Premium homepage redesign (2026-03-13: homepage-only premium light/dark treatment, editorial hero/layout pass, upgraded nav/footer styling, and verification via `npm run lint`, `npm run test`, and `npm run build` with local placeholder secrets + local service URLs)
 - [x] Homepage redesign refinement (2026-03-13: unified top-aligned section headers, scroll-reveal motion on landing sections, and removed visible careers discovery from nav/footer/sitemap)
+- [x] Homepage cinematic scroll pass (2026-03-13: added Framer Motion reveal timing, immersive sticky "How It Works" story cards with centered scroll choreography, and smoother premium theme surface transitions)
 - [x] Product detail color/size selectors are now interactive and passed into `/create` query params (2026-03-10)
 - [x] `/create` now applies selected product/color/size and regenerates mockup when color changes (2026-03-10)
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)

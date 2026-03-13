@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { motion, useInView, useReducedMotion } from 'framer-motion'
+import { useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 type RevealDirection = 'up' | 'left' | 'right'
@@ -12,12 +13,6 @@ interface RevealOnScrollProps {
     direction?: RevealDirection
 }
 
-const hiddenClassByDirection: Record<RevealDirection, string> = {
-    up: 'translate-y-10',
-    left: '-translate-x-12',
-    right: 'translate-x-12',
-}
-
 export default function RevealOnScroll({
     children,
     className,
@@ -25,40 +20,42 @@ export default function RevealOnScroll({
     direction = 'up',
 }: RevealOnScrollProps) {
     const ref = useRef<HTMLDivElement | null>(null)
-    const [isVisible, setIsVisible] = useState(false)
+    const shouldReduceMotion = useReducedMotion()
+    const isInView = useInView(ref, {
+        once: true,
+        amount: 0.18,
+        margin: '0px 0px -12% 0px',
+    })
 
-    useEffect(() => {
-        const node = ref.current
-        if (!node) return
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (!entry.isIntersecting) return
-                setIsVisible(true)
-                observer.unobserve(node)
-            },
-            {
-                threshold: 0.18,
-                rootMargin: '0px 0px -12% 0px',
-            }
-        )
-
-        observer.observe(node)
-
-        return () => observer.disconnect()
-    }, [])
+    const hiddenState = shouldReduceMotion
+        ? { opacity: 1, x: 0, y: 0 }
+        : {
+              opacity: 0,
+              x:
+                  direction === 'left'
+                      ? -56
+                      : direction === 'right'
+                        ? 56
+                        : 0,
+              y: direction === 'up' ? 44 : 0,
+          }
 
     return (
-        <div
+        <motion.div
             ref={ref}
             className={cn(
-                'transition-all duration-700 ease-out motion-reduce:transform-none motion-reduce:opacity-100',
-                isVisible ? 'translate-x-0 translate-y-0 opacity-100' : cn('opacity-0', hiddenClassByDirection[direction]),
+                'motion-reduce:transform-none motion-reduce:opacity-100',
                 className
             )}
-            style={{ transitionDelay: `${delayMs}ms` }}
+            initial={hiddenState}
+            animate={isInView ? { opacity: 1, x: 0, y: 0 } : hiddenState}
+            transition={{
+                duration: shouldReduceMotion ? 0 : 0.85,
+                delay: shouldReduceMotion ? 0 : delayMs / 1000,
+                ease: [0.22, 1, 0.36, 1],
+            }}
         >
             {children}
-        </div>
+        </motion.div>
     )
 }
