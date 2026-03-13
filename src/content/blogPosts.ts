@@ -43,6 +43,7 @@ export type BlogUiCopy = {
     nextStepsCreateDescription: string
     nextStepsProductsLabel: string
     nextStepsProductsDescription: string
+    relatedPostsHeading: string
 }
 
 function mirrorAllLocales(content: LocalizedBlogPostContent): Record<SupportedLocale, LocalizedBlogPostContent> {
@@ -70,6 +71,7 @@ export const BLOG_UI_COPY: Record<SupportedLocale, BlogUiCopy> = {
         nextStepsCreateDescription: 'Use one prompt from this guide and generate your first design in under 30 seconds.',
         nextStepsProductsLabel: 'Pick a product',
         nextStepsProductsDescription: 'Open the catalog, choose your product base, and test the design on real mockups.',
+        relatedPostsHeading: 'Related articles',
     },
     fr: {
         metadataTitle: 'Blog',
@@ -86,6 +88,7 @@ export const BLOG_UI_COPY: Record<SupportedLocale, BlogUiCopy> = {
         nextStepsCreateDescription: 'Reutilisez un prompt de ce guide et generez votre premier design en moins de 30 secondes.',
         nextStepsProductsLabel: 'Choisir un produit',
         nextStepsProductsDescription: 'Ouvrez le catalogue, selectionnez un produit, puis testez le design sur des mockups reels.',
+        relatedPostsHeading: 'Articles similaires',
     },
     de: {
         metadataTitle: 'Blog',
@@ -102,6 +105,7 @@ export const BLOG_UI_COPY: Record<SupportedLocale, BlogUiCopy> = {
         nextStepsCreateDescription: 'Nutze einen Prompt aus diesem Guide und erstelle dein erstes Design in weniger als 30 Sekunden.',
         nextStepsProductsLabel: 'Produkt auswaehlen',
         nextStepsProductsDescription: 'Oeffne den Katalog, waehle ein Produkt und teste das Design direkt auf realen Mockups.',
+        relatedPostsHeading: 'Aehnliche Artikel',
     },
     es: {
         metadataTitle: 'Blog',
@@ -118,6 +122,7 @@ export const BLOG_UI_COPY: Record<SupportedLocale, BlogUiCopy> = {
         nextStepsCreateDescription: 'Reutiliza un prompt de esta guia y genera tu primer diseno en menos de 30 segundos.',
         nextStepsProductsLabel: 'Elegir un producto',
         nextStepsProductsDescription: 'Abre el catalogo, elige la base del producto y prueba el diseno en mockups reales.',
+        relatedPostsHeading: 'Articulos relacionados',
     },
 }
 
@@ -1161,6 +1166,40 @@ export function getLocalizedBlogPosts(locale: SupportedLocale): LocalizedBlogPos
     return BLOG_POSTS.map((post) => localizeBlogPost(post, locale)).sort(
         (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     )
+}
+
+function normalizeKeyword(value: string): string {
+    return value.toLowerCase().trim()
+}
+
+function keywordOverlapScore(a: string[], b: string[]): number {
+    const normalizedA = new Set(a.map(normalizeKeyword))
+    return b.reduce((score, keyword) => (normalizedA.has(normalizeKeyword(keyword)) ? score + 1 : score), 0)
+}
+
+export function getRelatedLocalizedBlogPosts(slug: string, locale: SupportedLocale, limit = 3): LocalizedBlogPost[] {
+    const currentPost = BLOG_POSTS.find((candidate) => candidate.slug === slug)
+    if (!currentPost) {
+        return []
+    }
+
+    const currentKeywords = (currentPost.translations[locale] ?? currentPost.translations.en).keywords
+
+    return BLOG_POSTS.filter((candidate) => candidate.slug !== slug)
+        .map((candidate) => {
+            const localizedCandidate = localizeBlogPost(candidate, locale)
+            const candidateKeywords = (candidate.translations[locale] ?? candidate.translations.en).keywords
+            const overlap = keywordOverlapScore(currentKeywords, candidateKeywords)
+            const recency = new Date(localizedCandidate.publishedAt).getTime()
+
+            return {
+                post: localizedCandidate,
+                score: overlap * 10_000_000_000_000 + recency,
+            }
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, Math.max(0, limit))
+        .map((entry) => entry.post)
 }
 
 export function getLocalizedBlogPostBySlug(slug: string, locale: SupportedLocale): LocalizedBlogPost | null {

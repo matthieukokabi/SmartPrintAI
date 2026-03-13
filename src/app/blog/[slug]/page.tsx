@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug } from '@/content/blogPosts'
+import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
 
@@ -54,6 +54,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
     if (!post) {
         notFound()
     }
+    const relatedPosts = getRelatedLocalizedBlogPosts(post.slug, locale, 3)
 
     const articleSchema = {
         '@context': 'https://schema.org',
@@ -101,6 +102,24 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                     </section>
                 ))}
             </div>
+
+            {relatedPosts.length > 0 && (
+                <section className="glass rounded-2xl p-6 space-y-4">
+                    <h2 className="text-xl font-semibold">{copy.relatedPostsHeading}</h2>
+                    <div className="space-y-3">
+                        {relatedPosts.map((relatedPost) => (
+                            <Link
+                                key={relatedPost.slug}
+                                href={`/blog/${relatedPost.slug}`}
+                                className="block rounded-xl border border-white/10 p-4 transition-colors hover:border-purple-400/60"
+                            >
+                                <p className="font-medium text-foreground">{relatedPost.title}</p>
+                                <p className="mt-2 text-sm text-muted-foreground">{relatedPost.description}</p>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             <section className="glass rounded-2xl p-6 space-y-4">
                 <h2 className="text-xl font-semibold">{copy.nextStepsHeading}</h2>
