@@ -6,6 +6,35 @@
 
 @layer base {
   :root,
+  html.theme-light {
+    --background: 34 34% 96%;
+    --foreground: 224 27% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 27% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 27% 12%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 34 24% 91%;
+    --secondary-foreground: 224 24% 18%;
+    --muted: 34 24% 92%;
+    --muted-foreground: 220 12% 42%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 74% 54%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 28 18% 82%;
+    --input: 28 18% 82%;
+    --ring: 204 85% 60%;
+    --page-ambient-warm: 24 95% 88%;
+    --page-ambient-cool: 204 92% 90%;
+    --page-gradient-end: 34 28% 92%;
+    --surface-shadow: 218 30% 44%;
+    --surface-highlight: 0 0% 100%;
+    --brand-start: 28 89% 56%;
+    --brand-end: 204 85% 58%;
+  }
+
   html.theme-dark {
     --background: 0 0% 3%;
     --foreground: 0 0% 98%;
@@ -34,35 +63,6 @@
     --surface-highlight: 0 0% 100%;
     --brand-start: 28 95% 68%;
     --brand-end: 204 88% 67%;
-  }
-
-  html.theme-light {
-    --background: 34 34% 96%;
-    --foreground: 224 27% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 27% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 27% 12%;
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 34 24% 91%;
-    --secondary-foreground: 224 24% 18%;
-    --muted: 34 24% 92%;
-    --muted-foreground: 220 12% 42%;
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 74% 54%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 28 18% 82%;
-    --input: 28 18% 82%;
-    --ring: 204 85% 60%;
-    --page-ambient-warm: 24 95% 88%;
-    --page-ambient-cool: 204 92% 90%;
-    --page-gradient-end: 34 28% 92%;
-    --surface-shadow: 218 30% 44%;
-    --surface-highlight: 0 0% 100%;
-    --brand-start: 28 89% 56%;
-    --brand-end: 204 85% 58%;
   }
 }
 
