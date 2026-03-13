@@ -81,6 +81,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
 - [x] Publish third multilingual SEO blog post (2026-03-11: `top-selling-ai-tshirt-themes-you-can-launch-this-week` in `en/fr/de/es`)
+- [x] Publish SEO blog expansion batch (2026-03-13: added 6 new high-intent blog topics for fitness merch, family reunions, bachelorette events, Etsy mug niches, graduation gifts, and small-business merch; wired into all locale blog routes and sorted blog index by latest publish date)
 - [x] Add final favicon/app icon pack and verify social preview image consistency (OG/Twitter/favicon/browser tab icons) (2026-03-11: Next file-based metadata routes added for `/icon`, `/apple-icon`, `/opengraph-image`, `/twitter-image`, and `/manifest.webmanifest`; validated via lint/typecheck/tests/build)
 - [x] Add Careers page (`/careers`) and wire global discovery links (navbar, footer, sitemap) (2026-03-11)
 

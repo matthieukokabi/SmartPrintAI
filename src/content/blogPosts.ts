@@ -45,6 +45,15 @@ export type BlogUiCopy = {
     nextStepsProductsDescription: string
 }
 
+function mirrorAllLocales(content: LocalizedBlogPostContent): Record<SupportedLocale, LocalizedBlogPostContent> {
+    return {
+        en: content,
+        fr: content,
+        de: content,
+        es: content,
+    }
+}
+
 export const BLOG_UI_COPY: Record<SupportedLocale, BlogUiCopy> = {
     en: {
         metadataTitle: 'Blog',
@@ -810,6 +819,324 @@ export const BLOG_POSTS: BlogPost[] = [
             },
         },
     },
+    {
+        slug: 'best-ai-gym-shirt-ideas-for-fitness-brands-and-coaches',
+        publishedAt: '2026-03-13T11:00:00.000Z',
+        readTimeMinutes: 7,
+        translations: mirrorAllLocales({
+            title: 'Best AI Gym Shirt Ideas for Fitness Brands and Coaches',
+            description:
+                'A practical playbook to launch high-converting AI gym shirt designs for coaches, gyms, and fitness creators with clear prompt formulas.',
+            keywords: [
+                'gym shirt design ideas',
+                'fitness merch with ai',
+                'personal trainer t shirt',
+                'print on demand gym apparel',
+            ],
+            sections: [
+                {
+                    heading: 'Why fitness apparel is a strong niche',
+                    paragraphs: [
+                        'Fitness buyers identify with routines, goals, and communities. Apparel works as both self-expression and social proof in gyms and online content.',
+                        'This makes gym-themed prints a repeat-purchase category when your designs map to specific training identities.',
+                    ],
+                },
+                {
+                    heading: 'Prompt formulas that produce better gym visuals',
+                    paragraphs: [
+                        'Use this structure: role plus mood plus visual style plus composition. Example: "strength coach themed t-shirt graphic, clean bold vector style, high contrast, center chest composition, no tiny details."',
+                        'Create variants for powerlifting, running, cross training, yoga, and combat sports to test audience segments quickly.',
+                    ],
+                },
+                {
+                    heading: 'Top product and pricing setup',
+                    paragraphs: [
+                        'Launch one core unisex shirt and one premium hoodie version for every winning concept.',
+                        'Use a simple two-tier price ladder: entry product for volume and premium variant for margin.',
+                    ],
+                },
+                {
+                    heading: 'SEO angles that bring purchase-intent traffic',
+                    paragraphs: [
+                        'Target phrases with buyer intent such as "gym shirt ideas", "fitness coach merch", and "workout quote t-shirt".',
+                        'Use clear title patterns that include audience plus style plus use case.',
+                    ],
+                },
+                {
+                    heading: '7-day execution plan',
+                    paragraphs: [
+                        'Day 1 to 2: create 12 concepts across five fitness sub-niches. Day 3: publish top six. Day 4 to 7: optimize based on click-through and add-to-cart.',
+                        'Keep only the top performers and iterate with new color or layout variants.',
+                    ],
+                },
+            ],
+        }),
+    },
+    {
+        slug: 'custom-family-reunion-shirt-ideas-made-with-ai',
+        publishedAt: '2026-03-13T11:30:00.000Z',
+        readTimeMinutes: 6,
+        translations: mirrorAllLocales({
+            title: 'Custom Family Reunion Shirt Ideas Made with AI',
+            description:
+                'Create memorable family reunion shirts in minutes with AI prompts, personalization structure, and a launch checklist for group orders.',
+            keywords: [
+                'family reunion shirt ideas',
+                'custom reunion t shirt',
+                'ai personalized family shirts',
+                'group order print on demand',
+            ],
+            sections: [
+                {
+                    heading: 'Why reunion shirts convert fast',
+                    paragraphs: [
+                        'Family reunion orders are event-driven and deadline-based, which means high urgency and predictable demand windows.',
+                        'Personalized name, year, and location elements make the product feel unique without adding production complexity.',
+                    ],
+                },
+                {
+                    heading: 'Prompt framework for reunion designs',
+                    paragraphs: [
+                        'Structure each prompt as event plus family identity plus style plus layout. Example: "Smith family reunion 2026, vintage summer picnic style, warm palette, front chest badge plus back statement layout."',
+                        'Generate minimal, retro, and playful variants to match different age groups in the same order.',
+                    ],
+                },
+                {
+                    heading: 'Bundle strategy for larger carts',
+                    paragraphs: [
+                        'Offer matching adult and kids shirts plus optional mugs for gift tables or hosts.',
+                        'Add one premium variant for organizers who want upgraded fabrics or hoodies.',
+                    ],
+                },
+                {
+                    heading: 'SEO and landing copy structure',
+                    paragraphs: [
+                        'Use keywords like "family reunion shirts 2026", "matching family t-shirts", and "custom reunion party shirts".',
+                        'In copy, emphasize easy personalization, fast production timeline, and group order simplicity.',
+                    ],
+                },
+                {
+                    heading: 'Operational checklist before launch',
+                    paragraphs: [
+                        'Prepare three design styles, define color-safe options, and preview all variants on light and dark garments.',
+                        'Set a clear order deadline message to protect fulfillment timing.',
+                    ],
+                },
+            ],
+        }),
+    },
+    {
+        slug: 'bachelorette-party-shirt-designs-made-with-ai',
+        publishedAt: '2026-03-13T12:00:00.000Z',
+        readTimeMinutes: 7,
+        translations: mirrorAllLocales({
+            title: 'Bachelorette Party Shirt Designs Made with AI',
+            description:
+                'Launch bachelorette party shirt collections with AI prompts, bridal role variants, and conversion-focused listing patterns.',
+            keywords: [
+                'bachelorette party shirts',
+                'bridal party t shirt ideas',
+                'custom hen party shirts',
+                'ai event merch design',
+            ],
+            sections: [
+                {
+                    heading: 'Event merch works because timing is fixed',
+                    paragraphs: [
+                        'Bachelorette groups buy in short bursts before a known date, which makes planning and conversion optimization easier.',
+                        'Winning designs usually combine role clarity, humor, and photo-ready styling.',
+                    ],
+                },
+                {
+                    heading: 'Prompt templates for role-based sets',
+                    paragraphs: [
+                        'Use role-specific templates like bride, maid of honor, bridesmaid, and crew. Keep one visual family so the full set feels coordinated.',
+                        'Example: "coastal bachelorette weekend t-shirt set, elegant script plus minimal iconography, role-specific text placeholders, high contrast for nightlife photos."',
+                    ],
+                },
+                {
+                    heading: 'Offer architecture that increases order value',
+                    paragraphs: [
+                        'Pair shirts with tote bags or drinkware for the same party theme and color palette.',
+                        'Create one premium upgraded set with metallic-effect artwork style for buyers who want a luxe feel.',
+                    ],
+                },
+                {
+                    heading: 'SEO targeting for high-intent searches',
+                    paragraphs: [
+                        'Target terms such as "bachelorette shirts", "bridal party outfit ideas", and location-specific variants where relevant.',
+                        'Use article sections that answer style choice, timeline, and quantity questions to improve long-tail visibility.',
+                    ],
+                },
+                {
+                    heading: 'Production timeline to prevent late deliveries',
+                    paragraphs: [
+                        'Recommend ordering two to three weeks before the event and highlight this clearly on product pages.',
+                        'Use simple sizing guidance and one-click reorder links for last-minute participant additions.',
+                    ],
+                },
+            ],
+        }),
+    },
+    {
+        slug: 'etsy-ready-ai-mug-design-prompts-that-sell',
+        publishedAt: '2026-03-13T12:30:00.000Z',
+        readTimeMinutes: 6,
+        translations: mirrorAllLocales({
+            title: 'Etsy-Ready AI Mug Design Prompts That Sell',
+            description:
+                'Use these AI mug prompt structures and listing angles to launch Etsy-ready designs with clear niche targeting and print-safe outputs.',
+            keywords: [
+                'etsy mug design ideas',
+                'ai mug prompts',
+                'print on demand mug niche',
+                'custom coffee mug seo',
+            ],
+            sections: [
+                {
+                    heading: 'Why mugs are an ideal SEO product',
+                    paragraphs: [
+                        'Mugs are low-friction gift purchases with broad buyer intent across birthdays, holidays, coworkers, and relationship niches.',
+                        'Because design surface area is smaller, strong concepts with clean composition can outperform overly detailed artwork.',
+                    ],
+                },
+                {
+                    heading: 'Prompt structures for better mug outcomes',
+                    paragraphs: [
+                        'Use a concise structure: recipient plus mood plus style plus color plus print layout. Example: "gift mug for dog mom, playful retro illustration, warm pastel tones, clean centered composition."',
+                        'Test quote-based and illustration-based variants separately to understand what drives clicks.',
+                    ],
+                },
+                {
+                    heading: 'Print-safe rules for mug graphics',
+                    paragraphs: [
+                        'Avoid ultra-thin lines and tiny text; prioritize bold outlines and mid-to-high contrast.',
+                        'Preview on both white and dark mockups where available before publishing.',
+                    ],
+                },
+                {
+                    heading: 'Listing SEO essentials',
+                    paragraphs: [
+                        'Use keyword clusters by recipient and occasion such as "gift for teacher mug", "cat mom coffee mug", and "funny office mug".',
+                        'Write descriptions that include use context, gifting scenario, and a clear call to action.',
+                    ],
+                },
+                {
+                    heading: 'Scale playbook',
+                    paragraphs: [
+                        'Publish in themed sets of eight to twelve designs, then keep only top performers by click-through and conversion.',
+                        'Recycle winning artwork direction to matching shirts or tote bags for cross-sell potential.',
+                    ],
+                },
+            ],
+        }),
+    },
+    {
+        slug: 'graduation-gift-ideas-with-ai-print-on-demand',
+        publishedAt: '2026-03-13T13:00:00.000Z',
+        readTimeMinutes: 7,
+        translations: mirrorAllLocales({
+            title: 'Graduation Gift Ideas with AI Print-on-Demand',
+            description:
+                'A graduation-season AI merch playbook with prompt ideas, personalization patterns, and launch timing to capture purchase-intent traffic.',
+            keywords: [
+                'graduation gift ideas',
+                'custom graduation shirts',
+                'ai personalized graduation gifts',
+                'class of 2026 merch',
+            ],
+            sections: [
+                {
+                    heading: 'Graduation season creates concentrated demand',
+                    paragraphs: [
+                        'Graduation is a fixed seasonal moment with strong emotional buying behavior from families, friends, and classmates.',
+                        'This makes personalized print-on-demand products a strong fit for both direct orders and group purchases.',
+                    ],
+                },
+                {
+                    heading: 'Prompt ideas by audience segment',
+                    paragraphs: [
+                        'Create separate prompt sets for graduate-focused designs, proud family gifts, and school-spirit collections.',
+                        'Example: "Class of 2026 celebratory t-shirt design, modern collegiate typography, clean emblem layout, high contrast print-ready style."',
+                    ],
+                },
+                {
+                    heading: 'Personalization structure that scales',
+                    paragraphs: [
+                        'Use reusable slots for name, year, and school colors so one concept can serve many variants quickly.',
+                        'Keep personalization optional to avoid friction for buyers who want a fast checkout.',
+                    ],
+                },
+                {
+                    heading: 'SEO and content angle',
+                    paragraphs: [
+                        'Target terms like "graduation gifts 2026", "class of 2026 shirt", and "custom grad merch".',
+                        'Publish practical buying guides early in season, then update with gift-focused internal links.',
+                    ],
+                },
+                {
+                    heading: 'Launch calendar',
+                    paragraphs: [
+                        'Prepare core designs four to six weeks before peak ceremonies and refresh weekly with new style variants.',
+                        'Push urgency messaging during final two weeks to capture late buyers.',
+                    ],
+                },
+            ],
+        }),
+    },
+    {
+        slug: 'small-business-merch-ideas-using-ai-print-on-demand',
+        publishedAt: '2026-03-13T13:30:00.000Z',
+        readTimeMinutes: 8,
+        translations: mirrorAllLocales({
+            title: 'Small Business Merch Ideas Using AI Print-on-Demand',
+            description:
+                'Help local businesses launch branded merch faster with AI prompts, product mixes, and a practical rollout model for recurring orders.',
+            keywords: [
+                'small business merch ideas',
+                'ai branded merchandise',
+                'local business custom shirts',
+                'print on demand for businesses',
+            ],
+            sections: [
+                {
+                    heading: 'Why B2B merch is a high-value opportunity',
+                    paragraphs: [
+                        'Local businesses need branded products for staff, giveaways, and loyal customers, often with repeat purchasing cycles.',
+                        'AI-assisted design cuts turnaround time so you can offer faster concept-to-delivery for business owners.',
+                    ],
+                },
+                {
+                    heading: 'Prompt framework for business-ready concepts',
+                    paragraphs: [
+                        'Use this formula: business type plus brand mood plus visual direction plus placement constraints.',
+                        'Example: "modern coffee shop merch, minimalist line-art emblem, earthy tones, front chest logo and back statement option."',
+                    ],
+                },
+                {
+                    heading: 'Recommended starter product mix',
+                    paragraphs: [
+                        'Start with staff shirts, customer tote bags, and branded mugs for practical daily use.',
+                        'Add one premium item such as hoodies for loyal customers or seasonal campaigns.',
+                    ],
+                },
+                {
+                    heading: 'SEO strategy to attract business owners',
+                    paragraphs: [
+                        'Target intent keywords such as "custom merch for cafes", "restaurant branded shirts", and "small business promotional products".',
+                        'Write case-style sections that show how one concept scales into multiple products.',
+                    ],
+                },
+                {
+                    heading: 'Delivery model for repeat revenue',
+                    paragraphs: [
+                        'Package merch drops as monthly or seasonal refreshes so clients reorder consistently.',
+                        'Track which categories move fastest and turn winners into recurring bundles.',
+                    ],
+                },
+            ],
+        }),
+    },
 ]
 
 function localizeBlogPost(post: BlogPost, locale: SupportedLocale): LocalizedBlogPost {
@@ -831,7 +1158,9 @@ export function getBlogSlugs(): string[] {
 }
 
 export function getLocalizedBlogPosts(locale: SupportedLocale): LocalizedBlogPost[] {
-    return BLOG_POSTS.map((post) => localizeBlogPost(post, locale))
+    return BLOG_POSTS.map((post) => localizeBlogPost(post, locale)).sort(
+        (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    )
 }
 
 export function getLocalizedBlogPostBySlug(slug: string, locale: SupportedLocale): LocalizedBlogPost | null {
