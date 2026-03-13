@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import HowItWorksStory from '@/components/home/HowItWorksStory'
+import { curatedShowcase, howItWorksShowcaseOrder } from '@/components/home/curatedShowcase'
 
 type StepCopy = {
     title: string
@@ -40,44 +41,47 @@ interface HowItWorksProps {
 }
 
 export default async function HowItWorks({ copy = defaultCopy }: HowItWorksProps) {
-    const [latestReadyDesign, activeProducts] = await Promise.all([
-        prisma.design.findFirst({
-            where: {
-                status: 'ready',
-                imageUrl: { not: '' },
+    const readyCuratedDesigns = await prisma.design.findMany({
+        where: {
+            status: 'ready',
+            prompt: {
+                in: curatedShowcase.map((item) => item.prompt),
             },
-            orderBy: { createdAt: 'desc' },
-            select: {
-                imageUrl: true,
-            },
-        }),
-        prisma.product.findMany({
-            where: {
-                active: true,
-                imageUrl: { not: '' },
-            },
-            orderBy: { name: 'asc' },
-            take: 2,
-            select: {
-                imageUrl: true,
-            },
-        }),
-    ])
+            imageUrl: { not: '' },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        select: {
+            prompt: true,
+            imageUrl: true,
+        },
+    })
 
-    const media = [
-        {
-            title: copy.steps[0].title,
-            imageUrl: latestReadyDesign?.imageUrl ?? activeProducts[0]?.imageUrl ?? null,
-        },
-        {
-            title: copy.steps[1].title,
-            imageUrl: activeProducts[0]?.imageUrl ?? latestReadyDesign?.imageUrl ?? null,
-        },
-        {
-            title: copy.steps[2].title,
-            imageUrl: activeProducts[1]?.imageUrl ?? activeProducts[0]?.imageUrl ?? latestReadyDesign?.imageUrl ?? null,
-        },
+    const designByPrompt = new Map<string, string>()
+    for (const design of readyCuratedDesigns) {
+        if (!designByPrompt.has(design.prompt) && design.imageUrl.startsWith('http') && !design.imageUrl.includes('localhost')) {
+            designByPrompt.set(design.prompt, design.imageUrl)
+        }
+    }
+
+    const preferredStoryIds = new Set<string>(howItWorksShowcaseOrder)
+
+    const curatedPriority = [
+        ...howItWorksShowcaseOrder
+            .map((id) => curatedShowcase.find((item) => item.id === id))
+            .filter((item): item is (typeof curatedShowcase)[number] => Boolean(item)),
+        ...curatedShowcase.filter((item) => !preferredStoryIds.has(item.id)),
     ]
+
+    const curatedImageSequence = curatedPriority
+        .map((item) => designByPrompt.get(item.prompt) ?? null)
+        .filter((imageUrl): imageUrl is string => Boolean(imageUrl))
+
+    const fallbackImage = curatedImageSequence[0] ?? null
+    const media = copy.steps.map((step, index) => ({
+        title: step.title,
+        imageUrl: curatedImageSequence[index] ?? fallbackImage,
+    }))
 
     return <HowItWorksStory copy={copy} media={media} />
 }

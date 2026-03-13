@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { type LucideIcon, Package, Truck, Wand2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import RevealOnScroll from '@/components/home/RevealOnScroll'
@@ -82,6 +82,7 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
     }, [steps.length])
 
     const activeStage = steps[activeStep] ?? steps[0]
+    const ActiveIcon = activeStage?.icon ?? stepVisuals[0].icon
 
     return (
         <section id="how-it-works" className="relative overflow-hidden py-24 sm:py-28">
@@ -208,8 +209,8 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                                         <div className="rounded-full bg-black/48 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/88">
                                             {copy.stepLabel} {activeStep + 1}
                                         </div>
-                                        <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${activeStage.gradient} shadow-[0_18px_38px_-24px_rgba(15,23,42,0.92)]`}>
-                                            <activeStage.icon className="h-4.5 w-4.5 text-white" />
+                                        <div className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${activeStage?.gradient ?? stepVisuals[0].gradient} shadow-[0_18px_38px_-24px_rgba(15,23,42,0.92)]`}>
+                                            <ActiveIcon className="h-4.5 w-4.5 text-white" />
                                         </div>
                                     </div>
 
@@ -229,32 +230,26 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                                 </div>
 
                                 <div className="absolute inset-0">
-                                    <AnimatePresence mode="wait">
-                                        <motion.div
-                                            key={activeStage.title}
-                                            initial={{ opacity: 0, y: 24, scale: 1.04 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: -18, scale: 0.985 }}
-                                            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-                                            className="absolute inset-0"
-                                        >
-                                            <StagePreview step={activeStage} />
-                                        </motion.div>
-                                    </AnimatePresence>
-                                </div>
+                                    {steps.map((step, index) => {
+                                        const isActive = index === activeStep
 
-                                <div className="absolute inset-x-6 bottom-6 z-20">
-                                    <div className="premium-panel-soft rounded-[1.85rem] px-5 py-5 backdrop-blur-xl">
-                                        <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--premium-muted))]">
-                                            {copy.stepLabel} {activeStep + 1}
-                                        </div>
-                                        <h4 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em]">
-                                            {activeStage.title}
-                                        </h4>
-                                        <p className="premium-muted mt-3 max-w-lg text-sm leading-7">
-                                            {activeStage.description}
-                                        </p>
-                                    </div>
+                                        return (
+                                            <motion.div
+                                                key={step.title}
+                                                initial={false}
+                                                animate={{
+                                                    opacity: isActive ? 1 : 0,
+                                                    scale: isActive ? 1 : 1.035,
+                                                    y: isActive ? 0 : 20,
+                                                }}
+                                                transition={{ duration: 0.95, ease: [0.22, 1, 0.36, 1] }}
+                                                className="absolute inset-0"
+                                                style={{ zIndex: isActive ? 2 : 1 }}
+                                            >
+                                                <StagePreview step={step} />
+                                            </motion.div>
+                                        )
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -281,7 +276,7 @@ function StagePreview({ step }: StagePreviewProps) {
         <div className="relative h-full w-full overflow-hidden rounded-[2.2rem]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,hsl(var(--premium-spot-alt)/0.16),transparent_18%),radial-gradient(circle_at_30%_72%,hsl(var(--premium-spot)/0.14),transparent_22%),linear-gradient(180deg,hsl(var(--premium-surface-soft)/0.82)_0%,transparent_100%)]" />
 
-            <div className="absolute inset-x-[9%] top-[11%] bottom-[20%] overflow-hidden rounded-[2.4rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] shadow-[0_38px_110px_-60px_rgba(0,0,0,0.78)]">
+            <div className="absolute inset-x-[8%] top-[12%] bottom-[10%] overflow-hidden rounded-[2.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] shadow-[0_38px_110px_-60px_rgba(0,0,0,0.78)]">
                 {step.imageUrl ? (
                     <Image
                         src={step.imageUrl}
@@ -297,7 +292,7 @@ function StagePreview({ step }: StagePreviewProps) {
                     </div>
                 )}
 
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,15,30,0.02)_0%,rgba(8,15,30,0.08)_48%,rgba(8,15,30,0.3)_100%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,15,30,0.04)_0%,rgba(8,15,30,0.08)_42%,rgba(8,15,30,0.22)_100%)]" />
             </div>
 
             <div className="absolute right-[10%] top-[17%] h-3 w-3 rounded-full bg-[hsl(var(--premium-spot))] shadow-[0_0_24px_hsl(var(--premium-spot)/0.75)]" />
