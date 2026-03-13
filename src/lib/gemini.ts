@@ -15,6 +15,13 @@ type ImageInlineData = {
 
 type CandidatePart = {
     inlineData?: ImageInlineData
+    text?: string
+}
+
+type Candidate = {
+    content?: {
+        parts?: CandidatePart[]
+    }
 }
 
 const STYLE_PROMPTS: Record<string, string> = {
@@ -54,32 +61,65 @@ export async function generateImage(options: GenerateImageOptions): Promise<stri
         model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
     })
 
-    const parts: GeminiRequestPart[] = sourceImageDataUrl
-        ? [
-            {
-                text: `Edit the provided source image using this request: ${fullPrompt}. Keep the main composition centered and suitable for premium product printing.`,
+    const requestImage = async (parts: GeminiRequestPart[]): Promise<string | null> => {
+        const request = {
+            contents: [{ role: 'user', parts }],
+            generationConfig: {
+                responseModalities: ['image'],
             },
-            {
-                inlineData: parseSourceImageDataUrl(sourceImageDataUrl),
-            },
-        ]
-        : [{ text: fullPrompt }]
+        } as unknown as Parameters<typeof model.generateContent>[0]
 
-    const request = {
-        contents: [{ role: 'user', parts }],
-        generationConfig: {
-            responseModalities: ['image'],
-        },
-    } as unknown as Parameters<typeof model.generateContent>[0]
+        const response = await model.generateContent(request)
+        const candidates = (response.response.candidates || []) as Candidate[]
 
-    const response = await model.generateContent(request)
+        for (const candidate of candidates) {
+            const candidateParts = candidate.content?.parts || []
+            for (const part of candidateParts) {
+                if (part.inlineData?.mimeType && part.inlineData?.data) {
+                    return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`
+                }
+            }
+        }
 
-    const candidate = response.response.candidates?.[0]
-    const imagePart = candidate?.content?.parts?.find((p: CandidatePart) => Boolean(p.inlineData))
+        return null
+    }
 
-    if (!imagePart?.inlineData) {
+    if (!sourceImageDataUrl) {
+        const image = await requestImage([{ text: fullPrompt }])
+        if (image) {
+            return image
+        }
         throw new Error('No image generated')
     }
 
-    return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`
+    const editParts: GeminiRequestPart[] = [
+        {
+            text: `Edit the provided source image using this request: ${fullPrompt}. Keep the main composition centered and suitable for premium product printing.`,
+        },
+        {
+            inlineData: parseSourceImageDataUrl(sourceImageDataUrl),
+        },
+    ]
+
+    try {
+        const editedImage = await requestImage(editParts)
+        if (editedImage) {
+            return editedImage
+        }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : ''
+        if (!message.includes('Unable to process input image')) {
+            throw error
+        }
+    }
+
+    const fallbackImage = await requestImage([{
+        text: `${fullPrompt} Use the uploaded photo as inspiration and generate a clean high-end printable variation of the same core subject.`,
+    }])
+
+    if (fallbackImage) {
+        return fallbackImage
+    }
+
+    throw new Error('No image generated')
 }
