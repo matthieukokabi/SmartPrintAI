@@ -6,7 +6,7 @@
 
 @layer base {
   :root,
-  html.theme-light {
+  html[data-theme-mode='light'] {
     --background: 34 34% 96%;
     --foreground: 224 27% 12%;
     --card: 0 0% 100%;
@@ -35,7 +35,7 @@
     --brand-end: 204 85% 58%;
   }
 
-  html.theme-dark {
+  html[data-theme-mode='dark'] {
     --background: 0 0% 3%;
     --foreground: 0 0% 98%;
     --card: 0 0% 6%;
@@ -192,6 +192,8 @@
       color 420ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
+  html[data-theme-mode='dark'] body:has(.premium-home-shell),
+  html[data-theme-mode='dark'] body.premium-home,
   html.theme-dark body:has(.premium-home-shell),
   html.theme-dark body.premium-home {
     --premium-page-bg: 226 30% 8%;
