@@ -179,21 +179,23 @@ export default function FirstOrderDiscountPopup({ locale, delayMs = 9000 }: Firs
     }
 
     return (
-        <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm p-4 sm:p-6 flex items-end sm:items-center justify-center">
-            <div className="relative w-full max-w-lg rounded-3xl border border-white/10 bg-[#09090f] shadow-2xl overflow-hidden">
+        <div className="premium-home-popupOverlay fixed inset-0 z-[80] flex items-end justify-center p-4 sm:items-center sm:p-6">
+            <div className="premium-home-popupPanel relative w-full max-w-lg overflow-hidden rounded-[2rem]">
                 <button
                     type="button"
                     onClick={dismiss}
-                    className="absolute right-4 top-4 text-zinc-500 hover:text-zinc-300"
+                    className="premium-home-popupDismiss absolute right-4 top-4 z-20"
                     aria-label="Close"
                 >
                     <X className="h-5 w-5" />
                 </button>
 
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-pink-500/10 pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--premium-spot)/0.14),transparent_32%),radial-gradient(circle_at_82%_18%,hsl(var(--premium-spot-alt)/0.16),transparent_28%)]" />
+                <div className="pointer-events-none absolute -left-12 top-8 h-32 w-32 rounded-full bg-[radial-gradient(circle,hsl(var(--premium-spot)/0.18),transparent_72%)] blur-2xl" />
+                <div className="pointer-events-none absolute -right-14 bottom-0 h-40 w-40 rounded-full bg-[radial-gradient(circle,hsl(var(--premium-spot-alt)/0.16),transparent_74%)] blur-3xl" />
 
-                <div className="relative p-6 sm:p-8 space-y-5">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/40 bg-purple-500/10 px-3 py-1 text-xs text-purple-200">
+                <div className="relative space-y-5 p-6 sm:p-8">
+                    <div className="premium-home-popupBadge inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em]">
                         <Sparkles className="h-3.5 w-3.5" />
                         {copy.badge}
                     </div>
@@ -201,37 +203,39 @@ export default function FirstOrderDiscountPopup({ locale, delayMs = 9000 }: Firs
                     {!couponCode ? (
                         <>
                             <div className="space-y-2">
-                                <h3 className="text-2xl font-bold text-white">{copy.title}</h3>
-                                <p className="text-sm text-zinc-300">{copy.subtitle}</p>
+                                <h3 className="text-2xl font-semibold tracking-[-0.04em] text-[hsl(var(--premium-ink))]">
+                                    {copy.title}
+                                </h3>
+                                <p className="premium-home-popupCopy text-sm leading-6">{copy.subtitle}</p>
                             </div>
 
                             <form onSubmit={submit} className="space-y-3">
                                 <div className="relative">
-                                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                                    <Mail className="premium-home-popupInputIcon pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(event) => setEmail(event.target.value)}
                                         placeholder={copy.emailPlaceholder}
-                                        className="w-full rounded-xl border border-white/10 bg-black/40 px-10 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-purple-400/70 focus:outline-none"
+                                        className="premium-home-popupInput w-full rounded-[1rem] px-10 py-3 text-sm focus:outline-none"
                                         required
                                     />
                                 </div>
 
-                                {error && <p className="text-sm text-red-300">{error}</p>}
+                                {error && <p className="premium-home-popupError text-sm">{error}</p>}
 
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="premium-home-popupPrimary flex-1 rounded-[1rem] px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {isSubmitting ? copy.submittingLabel : copy.submitLabel}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={dismiss}
-                                        className="rounded-xl border border-white/10 px-4 py-3 text-sm text-zinc-300 hover:border-white/20"
+                                        className="premium-home-popupSecondary rounded-[1rem] px-4 py-3 text-sm"
                                     >
                                         {copy.dismissLabel}
                                     </button>
@@ -240,17 +244,19 @@ export default function FirstOrderDiscountPopup({ locale, delayMs = 9000 }: Firs
                         </>
                     ) : (
                         <div className="space-y-4">
-                            <h3 className="text-2xl font-bold text-white">{copy.successTitle}</h3>
-                            <p className="text-sm text-zinc-300">{copy.successSubtitle}</p>
+                            <h3 className="text-2xl font-semibold tracking-[-0.04em] text-[hsl(var(--premium-ink))]">
+                                {copy.successTitle}
+                            </h3>
+                            <p className="premium-home-popupCopy text-sm leading-6">{copy.successSubtitle}</p>
                             {couponCode && (
-                                <div className="rounded-xl border border-green-400/40 bg-green-500/10 px-4 py-3">
-                                    <p className="text-xs uppercase tracking-wide text-green-300">{copy.couponLabel}</p>
-                                    <p className="mt-1 text-xl font-bold text-green-200">{couponCode}</p>
+                                <div className="premium-home-popupSuccess rounded-[1rem] px-4 py-3">
+                                    <p className="premium-home-popupSuccessLabel text-xs uppercase tracking-[0.22em]">{copy.couponLabel}</p>
+                                    <p className="premium-home-popupSuccessCode mt-1 text-xl font-semibold tracking-[-0.03em]">{couponCode}</p>
                                 </div>
                             )}
                             <a
                                 href={createPath}
-                                className="inline-flex rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
+                                className="premium-home-popupPrimary inline-flex rounded-[1rem] px-5 py-3 text-sm font-semibold"
                             >
                                 {copy.continueLabel}
                             </a>
