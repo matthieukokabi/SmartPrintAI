@@ -29,6 +29,9 @@ const SUPPORTED_REFERENCE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'ima
 const MAX_REFERENCE_IMAGE_DATA_URL_LENGTH = 900_000
 const TARGET_REFERENCE_IMAGE_LONG_EDGE = 1400
 const MIN_REFERENCE_IMAGE_LONG_EDGE = 768
+const MAX_MOCKUP_RETRY_ATTEMPTS = 4
+const DEFAULT_MOCKUP_RETRY_SEC = 12
+const MAX_MOCKUP_RETRY_SEC = 60
 
 function readFileAsDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -127,6 +130,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [selectedProduct, setSelectedProduct] = useState<string | null>(initialProductId)
     const [mockupUrl, setMockupUrl] = useState<string | null>(null)
     const [isMockupLoading, setIsMockupLoading] = useState(false)
+    const [mockupError, setMockupError] = useState<string | null>(null)
 
     const [selectedSize, setSelectedSize] = useState(initialSize)
     const [selectedColor, setSelectedColor] = useState(initialColor)
@@ -176,10 +180,15 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
         const controller = new AbortController()
         let cancelled = false
+        let retryTimer: ReturnType<typeof setTimeout> | null = null
 
-        async function generateMockup() {
+        async function generateMockup(attempt = 0) {
+            let keepLoadingForRetry = false
             setIsMockupLoading(true)
-            setMockupUrl(null)
+            if (attempt === 0) {
+                setMockupUrl(null)
+                setMockupError(null)
+            }
             try {
                 const res = await fetch('/api/mockup', {
                     method: 'POST',
@@ -187,25 +196,64 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                     body: JSON.stringify({ designId, productId: selectedProduct, color: selectedColor }),
                     signal: controller.signal,
                 })
-                const data = await res.json()
-                if (!cancelled && data.mockupUrl) {
+
+                const contentType = res.headers.get('content-type') || ''
+                const data = contentType.includes('application/json')
+                    ? (await res.json()) as { mockupUrl?: string; error?: string; retryAfterSec?: number }
+                    : null
+
+                if (res.status === 429) {
+                    const retryAfterHeader = Number(res.headers.get('retry-after') || '')
+                    const retryAfterBody = typeof data?.retryAfterSec === 'number' ? data.retryAfterSec : NaN
+                    const retryAfterSecRaw = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
+                        ? retryAfterHeader
+                        : (Number.isFinite(retryAfterBody) && retryAfterBody > 0 ? retryAfterBody : DEFAULT_MOCKUP_RETRY_SEC)
+                    const retryAfterSec = Math.min(Math.max(Math.round(retryAfterSecRaw), 1), MAX_MOCKUP_RETRY_SEC)
+
+                    if (attempt < MAX_MOCKUP_RETRY_ATTEMPTS && !cancelled) {
+                        keepLoadingForRetry = true
+                        retryTimer = setTimeout(() => {
+                            void generateMockup(attempt + 1)
+                        }, retryAfterSec * 1000)
+                        return
+                    }
+
+                    throw new Error(data?.error || 'Mockup provider is busy. Please try again in about one minute.')
+                }
+
+                if (!res.ok) {
+                    throw new Error(data?.error || 'Mockup generation failed')
+                }
+
+                if (!data?.mockupUrl) {
+                    throw new Error('Mockup generation failed')
+                }
+
+                if (!cancelled) {
                     setMockupUrl(data.mockupUrl)
                 }
             } catch (err) {
                 if (!cancelled) {
                     console.error(err)
+                    if (err instanceof Error && err.name === 'AbortError') {
+                        return
+                    }
+                    setMockupError(err instanceof Error ? err.message : 'Mockup generation failed')
                 }
             } finally {
-                if (!cancelled) {
+                if (!cancelled && !keepLoadingForRetry) {
                     setIsMockupLoading(false)
                 }
             }
         }
 
-        generateMockup()
+        void generateMockup()
         return () => {
             cancelled = true
             controller.abort()
+            if (retryTimer) {
+                clearTimeout(retryTimer)
+            }
         }
     }, [designId, selectedProduct, selectedColor])
 
@@ -214,6 +262,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
         setImageUrl(null)
         setDesignId(null)
         setMockupUrl(null)
+        setMockupError(null)
         setCurrentPrompt(prompt)
         setGenerateError(null)
         try {
@@ -513,14 +562,19 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                         }}
                     />
                     {imageUrl && selectedProduct && (
-                        <MockupPreview
-                            mockupUrl={mockupUrl}
-                            isLoading={isMockupLoading}
-                            copy={{
-                                generatingLabel: copy.generatingMockupLabel,
-                                placeholderLabel: copy.mockupPlaceholderLabel,
-                            }}
-                        />
+                        <>
+                            <MockupPreview
+                                mockupUrl={mockupUrl}
+                                isLoading={isMockupLoading}
+                                copy={{
+                                    generatingLabel: copy.generatingMockupLabel,
+                                    placeholderLabel: copy.mockupPlaceholderLabel,
+                                }}
+                            />
+                            {mockupError && (
+                                <p className="text-sm text-red-300 -mt-3">{mockupError}</p>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

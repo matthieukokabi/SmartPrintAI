@@ -71,6 +71,18 @@ function parseProductColors(colors: unknown): ProductColor[] {
         }))
 }
 
+function parsePrintfulRateLimit(error: unknown): { retryAfterSec: number } | null {
+    if (!(error instanceof Error)) return null
+    if (!error.message.includes('Printful API error: 429')) return null
+
+    const fromMessage = /after\s+(\d+)\s+seconds/i.exec(error.message)
+    const retryAfterSec = fromMessage ? Number(fromMessage[1]) : 30
+    if (!Number.isFinite(retryAfterSec) || retryAfterSec < 1) {
+        return { retryAfterSec: 30 }
+    }
+    return { retryAfterSec }
+}
+
 export async function POST(req: NextRequest) {
     const route = '/api/mockup'
     const requestId = getRequestId(req)
@@ -166,6 +178,20 @@ export async function POST(req: NextRequest) {
         logApiInfo(route, requestId, 'request_succeeded')
         return respond({ mockupUrl })
     } catch (error) {
+        const rateLimit = parsePrintfulRateLimit(error)
+        if (rateLimit) {
+            logApiWarn(route, requestId, 'provider_rate_limited', { retryAfterSec: rateLimit.retryAfterSec })
+            const response = respond(
+                {
+                    error: 'Mockup provider is temporarily busy. Retrying shortly.',
+                    retryAfterSec: rateLimit.retryAfterSec,
+                },
+                { status: 429 }
+            )
+            response.headers.set('retry-after', String(rateLimit.retryAfterSec))
+            return response
+        }
+
         logApiError(route, requestId, 'request_failed', error)
         return respond({ error: 'Mockup generation failed' }, { status: 500 })
     }
