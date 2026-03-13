@@ -116,6 +116,23 @@ describe('/api/generate POST', () => {
     expect(mocks.sendMakeDesignAutoPost).not.toHaveBeenCalled()
   })
 
+  it('returns 400 when source image payload is too large', async () => {
+    const oversizedSourceImage = `data:image/png;base64,${'a'.repeat(900001)}`
+
+    const res = await POST(createRequest(JSON.stringify({
+      prompt: 'cyberpunk geisha portrait',
+      style: 'artistic',
+      sourceImageDataUrl: oversizedSourceImage,
+    })))
+
+    expect(res.status).toBe(400)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Invalid source image',
+    })
+    expect(mocks.generateImage).not.toHaveBeenCalled()
+    expect(mocks.sendMakeDesignAutoPost).not.toHaveBeenCalled()
+  })
+
   it('passes uploaded source image data to the generator', async () => {
     mocks.prisma.design.create.mockResolvedValueOnce({
       id: 'design_2',

@@ -25,7 +25,7 @@ const ALLOWED_STYLES = new Set<DesignStyle>([
 ])
 
 const SOURCE_IMAGE_DATA_URL_REGEX = /^data:(image\/(?:png|jpeg|jpg|webp));base64,[A-Za-z0-9+/=]+$/i
-const MAX_SOURCE_IMAGE_DATA_URL_LENGTH = 15_000_000
+const MAX_SOURCE_IMAGE_DATA_URL_LENGTH = 900_000
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null

@@ -26,6 +26,85 @@ function colorDotStyle(hex: string) {
 
 const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024
 const SUPPORTED_REFERENCE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/jpg', 'image/webp'])
+const MAX_REFERENCE_IMAGE_DATA_URL_LENGTH = 900_000
+const TARGET_REFERENCE_IMAGE_LONG_EDGE = 1400
+const MIN_REFERENCE_IMAGE_LONG_EDGE = 768
+
+function readFileAsDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result)
+                return
+            }
+            reject(new Error('Could not read image. Please try another file.'))
+        }
+        reader.onerror = () => reject(new Error('Could not read image. Please try another file.'))
+        reader.readAsDataURL(file)
+    })
+}
+
+function loadImageElement(dataUrl: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const image = new window.Image()
+        image.onload = () => resolve(image)
+        image.onerror = () => reject(new Error('Could not process image. Please try another file.'))
+        image.src = dataUrl
+    })
+}
+
+function renderImageDataUrl(
+    image: HTMLImageElement,
+    longEdge: number,
+    preferredFormat: 'image/webp' | 'image/jpeg',
+    quality: number
+): string {
+    const longestSide = Math.max(image.width, image.height)
+    const scale = longestSide > longEdge ? longEdge / longestSide : 1
+    const width = Math.max(1, Math.round(image.width * scale))
+    const height = Math.max(1, Math.round(image.height * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) {
+        throw new Error('Could not process image. Please try another file.')
+    }
+    ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(image, 0, 0, width, height)
+
+    let output = canvas.toDataURL(preferredFormat, quality)
+    if (!output.startsWith(`data:${preferredFormat}`)) {
+        output = canvas.toDataURL('image/jpeg', quality)
+    }
+    return output
+}
+
+async function prepareReferenceImageDataUrl(file: File): Promise<string> {
+    const originalDataUrl = await readFileAsDataUrl(file)
+    const image = await loadImageElement(originalDataUrl)
+
+    if (originalDataUrl.length <= MAX_REFERENCE_IMAGE_DATA_URL_LENGTH) {
+        return originalDataUrl
+    }
+
+    const format: 'image/webp' | 'image/jpeg' = file.type === 'image/png' ? 'image/webp' : 'image/jpeg'
+    const longEdgeTargets = [TARGET_REFERENCE_IMAGE_LONG_EDGE, 1200, 1024, MIN_REFERENCE_IMAGE_LONG_EDGE]
+    const qualityTargets = [0.88, 0.8, 0.72, 0.64, 0.56, 0.5]
+
+    for (const longEdge of longEdgeTargets) {
+        for (const quality of qualityTargets) {
+            const candidate = renderImageDataUrl(image, longEdge, format, quality)
+            if (candidate.length <= MAX_REFERENCE_IMAGE_DATA_URL_LENGTH) {
+                return candidate
+            }
+        }
+    }
+
+    throw new Error('Uploaded photo is too large. Please use a smaller image.')
+}
 
 export default function CreatePageClient({ locale, copy }: CreatePageClientProps) {
     const searchParams = useSearchParams()
@@ -42,6 +121,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [referenceImageDataUrl, setReferenceImageDataUrl] = useState<string | null>(null)
     const [referenceImageName, setReferenceImageName] = useState<string | null>(null)
     const [referenceImageError, setReferenceImageError] = useState<string | null>(null)
+    const [generateError, setGenerateError] = useState<string | null>(null)
 
     const [products, setProducts] = useState<Product[]>([])
     const [selectedProduct, setSelectedProduct] = useState<string | null>(initialProductId)
@@ -135,6 +215,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
         setDesignId(null)
         setMockupUrl(null)
         setCurrentPrompt(prompt)
+        setGenerateError(null)
         try {
             const res = await fetch('/api/generate', {
                 method: 'POST',
@@ -145,20 +226,33 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                     sourceImageDataUrl: referenceImageDataUrl ?? undefined,
                 }),
             })
+            if (!res.ok) {
+                if (res.status === 413) {
+                    throw new Error('Uploaded photo is too large. Please use a smaller image.')
+                }
+
+                const contentType = res.headers.get('content-type') || ''
+                if (contentType.includes('application/json')) {
+                    const errorData = (await res.json()) as { error?: string }
+                    throw new Error(errorData.error || 'Image generation failed. Please try again.')
+                }
+
+                throw new Error('Image generation failed. Please try again.')
+            }
+
             const data = await res.json()
             if (data.imageUrl) {
                 setImageUrl(data.imageUrl)
                 setDesignId(data.designId)
+                return
             }
+            throw new Error(data.error || 'Image generation failed. Please try again.')
         } catch (err) {
             console.error(err)
+            setGenerateError(err instanceof Error ? err.message : 'Image generation failed. Please try again.')
         } finally {
             setIsGenerating(false)
         }
-    }
-
-    const handleProductSelect = (productId: string) => {
-        setSelectedProduct(productId)
     }
 
     const handleReferenceImageUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -171,6 +265,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             setReferenceImageError('Use PNG, JPG, or WEBP only.')
             setReferenceImageDataUrl(null)
             setReferenceImageName(null)
+            setGenerateError(null)
             event.target.value = ''
             return
         }
@@ -179,35 +274,55 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             setReferenceImageError('Image is too large. Max size is 8MB.')
             setReferenceImageDataUrl(null)
             setReferenceImageName(null)
+            setGenerateError(null)
             event.target.value = ''
             return
         }
 
-        const reader = new FileReader()
-        reader.onload = () => {
-            if (typeof reader.result !== 'string') {
-                setReferenceImageError('Could not read image. Please try another file.')
-                return
-            }
-
-            setReferenceImageDataUrl(reader.result)
-            setReferenceImageName(file.name)
-            setReferenceImageError(null)
-            event.target.value = ''
-        }
-        reader.onerror = () => {
-            setReferenceImageError('Could not read image. Please try another file.')
-            setReferenceImageDataUrl(null)
-            setReferenceImageName(null)
-            event.target.value = ''
-        }
-        reader.readAsDataURL(file)
+        prepareReferenceImageDataUrl(file)
+            .then((dataUrl) => {
+                setReferenceImageDataUrl(dataUrl)
+                setReferenceImageName(file.name)
+                setReferenceImageError(null)
+                setGenerateError(null)
+                event.target.value = ''
+            })
+            .catch((error) => {
+                const message = error instanceof Error
+                    ? error.message
+                    : 'Could not process image. Please try another file.'
+                setReferenceImageError(message)
+                setReferenceImageDataUrl(null)
+                setReferenceImageName(null)
+                setGenerateError(null)
+                event.target.value = ''
+            })
     }
 
     const clearReferenceImage = () => {
         setReferenceImageDataUrl(null)
         setReferenceImageName(null)
         setReferenceImageError(null)
+        setGenerateError(null)
+    }
+
+    const clearGenerationError = () => {
+        if (generateError) {
+            setGenerateError(null)
+        }
+    }
+
+    const handlePromptInputFocus = () => {
+        clearGenerationError()
+    }
+
+    const handleStyleChange = (nextStyle: DesignStyle) => {
+        clearGenerationError()
+        setStyle(nextStyle)
+    }
+
+    const handleProductSelect = (productId: string) => {
+        setSelectedProduct(productId)
     }
 
     const handleAddToCart = () => {
@@ -299,18 +414,23 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                         )}
                     </div>
 
-                    <PromptInput
-                        onGenerate={handleGenerate}
-                        isLoading={isGenerating}
-                        initialPrompt={initialPrompt}
-                        copy={{
-                            placeholder: copy.promptPlaceholder,
-                            generatingLabel: copy.promptGeneratingLabel,
-                            generateLabel: copy.promptGenerateLabel,
-                            tip: copy.promptTip,
-                        }}
-                    />
-                    <StyleSelector selected={style} onSelect={setStyle} label={copy.styleLabel} />
+                    <div onFocusCapture={handlePromptInputFocus}>
+                        <PromptInput
+                            onGenerate={handleGenerate}
+                            isLoading={isGenerating}
+                            initialPrompt={initialPrompt}
+                            copy={{
+                                placeholder: copy.promptPlaceholder,
+                                generatingLabel: copy.promptGeneratingLabel,
+                                generateLabel: copy.promptGenerateLabel,
+                                tip: copy.promptTip,
+                            }}
+                        />
+                    </div>
+                    {generateError && (
+                        <p className="text-sm text-red-300 -mt-4">{generateError}</p>
+                    )}
+                    <StyleSelector selected={style} onSelect={handleStyleChange} label={copy.styleLabel} />
 
                     {imageUrl && (
                         <>
