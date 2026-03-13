@@ -29,9 +29,10 @@ const SUPPORTED_REFERENCE_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'ima
 const MAX_REFERENCE_IMAGE_DATA_URL_LENGTH = 900_000
 const TARGET_REFERENCE_IMAGE_LONG_EDGE = 1400
 const MIN_REFERENCE_IMAGE_LONG_EDGE = 768
-const MAX_MOCKUP_RETRY_ATTEMPTS = 4
+const MAX_MOCKUP_RETRY_ATTEMPTS = 2
 const DEFAULT_MOCKUP_RETRY_SEC = 12
-const MAX_MOCKUP_RETRY_SEC = 60
+const MAX_MOCKUP_RETRY_SEC = 90
+const MOCKUP_RETRY_BUFFER_SEC = 3
 
 function readFileAsDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -208,7 +209,10 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                     const retryAfterSecRaw = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
                         ? retryAfterHeader
                         : (Number.isFinite(retryAfterBody) && retryAfterBody > 0 ? retryAfterBody : DEFAULT_MOCKUP_RETRY_SEC)
-                    const retryAfterSec = Math.min(Math.max(Math.round(retryAfterSecRaw), 1), MAX_MOCKUP_RETRY_SEC)
+                    const retryAfterSec = Math.min(
+                        Math.max(Math.ceil(retryAfterSecRaw) + MOCKUP_RETRY_BUFFER_SEC, 1),
+                        MAX_MOCKUP_RETRY_SEC
+                    )
 
                     if (attempt < MAX_MOCKUP_RETRY_ATTEMPTS && !cancelled) {
                         keepLoadingForRetry = true
