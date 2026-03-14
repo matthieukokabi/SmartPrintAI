@@ -8,6 +8,7 @@ import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { normalizeProductDescription } from '@/lib/product-description'
 
 type ProductColor = {
     name: string
@@ -61,7 +62,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         }
     }
 
-    const description = product.description || `Customize ${product.name} with your AI-generated design and order it online.`
+    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
+    const description = normalizeProductDescription(product.description, fallbackDescription, 260)
     const imageUrl = toAbsoluteUrl(product.imageUrl || '/favicon.ico')
 
     return {
@@ -93,6 +95,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         notFound()
     }
 
+    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
+    const normalizedDescription = normalizeProductDescription(product.description, fallbackDescription)
+
     const colors = Array.isArray(product.colors)
         ? product.colors
             .filter(isProductColor)
@@ -110,7 +115,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const productForClient = {
         id: product.id,
         name: product.name,
-        description: product.description,
+        description: normalizedDescription,
         category: product.category,
         sellPrice: product.sellPrice,
         sizes: product.sizes,
@@ -123,7 +128,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
-        description: product.description,
+        description: normalizedDescription,
         category: product.category,
         image: [toAbsoluteUrl(product.imageUrl || '/favicon.ico')],
         brand: {

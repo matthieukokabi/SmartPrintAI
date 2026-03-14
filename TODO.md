@@ -1,6 +1,6 @@
 # SmartPrintAI Unified TODO
 
-Last sync: 2026-03-13
+Last sync: 2026-03-14
 Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ## Done (Completed)
@@ -79,6 +79,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Gelato image-mixing rollback (2026-03-14: removed Printful-image fallback reuse from Gelato sync so catalog cards no longer show repeated/mismatched Printful photos; Gelato products now only persist native Gelato media when provided by API, preventing cross-provider thumbnail pollution; verified with `npm run lint`, `npm run test`, and `npm run build` using placeholder local env values)
 - [x] Gelato catalog sync dedupe + stale cleanup hardening (2026-03-14: updated `scripts/sync_gelato_products.ts` to page full catalog results, dedupe repeated variant-name rows per catalog, sanitize non-Gelato image URLs, and deactivate stale `gelato:*` products not present in current sync, eliminating legacy repeated-card carryover after provider sync; verified with `npm run lint`, `npm run test`, and `NODE_ENV=production npm run build` sourced from `.env.example`)
 - [x] Gelato store-template sync mode + fixed template mapping scaffold (2026-03-14: added `GELATO_SYNC_MODE=store-templates` path in `scripts/sync_gelato_products.ts` that hydrates Gelato products from store listings and template UID matching, upserts stable `gelato:template:*` rows with provider metadata, and deactivates stale noisy Gelato catalog rows; added `src/lib/gelato-template-mapping.ts` defaults for SmartPrintAI store + 5 template IDs and new ecommerce extractors/tests in `src/lib/gelato.ts`; updated unified sync guard and env docs for `GELATO_ECOMMERCE_BASE_URL`, `GELATO_SYNC_MODE`, `GELATO_STORE_ID`, and `GELATO_TEMPLATE_MAP_JSON`; verified with `npm run lint`, `npm run test`, and `NODE_ENV=production npm run build` sourced from `.env.example`)
+- [x] Gelato product-description sanitization on detail pages (2026-03-14: added `normalizeProductDescription` to decode entity-encoded markup, strip HTML/table artifacts, and trim noisy provider text before rendering SEO metadata, JSON-LD, and product detail copy in both localized and default routes; verified with `npm run lint`, `npm run test`, and `NODE_ENV=production npm run build` sourced from `.env.example`)
 - [ ] Build product margin cheat sheet (provider, base cost, sell price, Stripe fee estimate, net margin) for pricing decisions
 - [x] `/api/mockup` now supports non-`front` Printful placements via product file-type fallback (MG-4 recovery) (2026-03-11)
 - [x] Printful sync mapper now stores per-color preview image URLs when provided by Printful variants (2026-03-10)
