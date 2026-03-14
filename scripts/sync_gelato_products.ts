@@ -16,6 +16,7 @@ import {
 type CatalogSyncStats = {
     synced: number
     skippedNoPrice: number
+    skippedUnavailable: number
     skippedNoProducts: number
 }
 
@@ -53,6 +54,19 @@ function parseCatalogName(payload: unknown, fallback: string): string {
     }
 
     return fallback
+}
+
+function isSkippableProductError(error: unknown): boolean {
+    if (!(error instanceof Error)) {
+        return false
+    }
+
+    const message = error.message.toLowerCase()
+    return (
+        message.includes('gelato api error 404') ||
+        message.includes('prices not found for product') ||
+        message.includes('gelato api error 403')
+    )
 }
 
 const databaseUrl = process.env.DATABASE_URL
@@ -94,73 +108,84 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
 
     if (productUids.length === 0) {
         console.log(`Catalog ${catalogUid}: no products returned.`)
-        return { synced: 0, skippedNoPrice: 0, skippedNoProducts: 1 }
+        return { synced: 0, skippedNoPrice: 0, skippedUnavailable: 0, skippedNoProducts: 1 }
     }
 
     let synced = 0
     let skippedNoPrice = 0
+    let skippedUnavailable = 0
 
     for (const productUid of productUids) {
-        const [productPayload, pricesPayload] = await Promise.all([
-            gelato.getProduct(productUid),
-            gelato.getProductPrices(productUid, {
-                country: GELATO_PRICE_COUNTRY,
-                currency: GELATO_PRICE_CURRENCY,
-            }),
-        ])
+        try {
+            const [productPayload, pricesPayload] = await Promise.all([
+                gelato.getProduct(productUid),
+                gelato.getProductPrices(productUid, {
+                    country: GELATO_PRICE_COUNTRY,
+                    currency: GELATO_PRICE_CURRENCY,
+                }),
+            ])
 
-        const basePrice = extractGelatoMinUnitPrice(pricesPayload)
-        if (!basePrice || basePrice <= 0) {
-            skippedNoPrice += 1
-            console.log(`Skip ${productUid}: no unit price found.`)
-            continue
+            const basePrice = extractGelatoMinUnitPrice(pricesPayload)
+            if (!basePrice || basePrice <= 0) {
+                skippedNoPrice += 1
+                console.log(`Skip ${productUid}: no unit price found.`)
+                continue
+            }
+
+            const productName = extractGelatoProductName(productPayload) || `Gelato Product ${productUid}`
+            const description = extractGelatoProductDescription(productPayload) || productName
+            const imageUrl = extractGelatoProductImageUrl(productPayload) || ''
+            const sizes = extractGelatoProductSizes(productPayload)
+            const printfulId = `gelato:${productUid}`
+            const category = classifyCategory(`${catalogName} ${productName}`)
+
+            const existing = await prisma.product.findUnique({ where: { printfulId } })
+            const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
+
+            const data = {
+                name: `${productName}`,
+                printfulId,
+                description,
+                category,
+                basePrice,
+                sellPrice,
+                sizes,
+                colors: [
+                    {
+                        name: 'Default',
+                        hex: '#FFFFFF',
+                        printfulVariantId: 0,
+                    },
+                ],
+                imageUrl,
+                printArea: existing?.printArea || { width: 4200, height: 4800, dpi: 300 },
+                active: true,
+            }
+
+            if (GELATO_SYNC_DRY_RUN) {
+                console.log(`[dry-run] upsert ${printfulId} (${productName})`)
+                continue
+            }
+
+            await prisma.product.upsert({
+                where: { printfulId },
+                update: data,
+                create: data,
+            })
+            synced += 1
+            console.log(`Synced ${printfulId} (${productName})`)
+        } catch (error) {
+            if (isSkippableProductError(error)) {
+                skippedUnavailable += 1
+                const reason = error instanceof Error ? error.message : 'unknown'
+                console.log(`Skip ${productUid}: unavailable for sync (${reason}).`)
+                continue
+            }
+            throw error
         }
-
-        const productName = extractGelatoProductName(productPayload) || `Gelato Product ${productUid}`
-        const description = extractGelatoProductDescription(productPayload) || productName
-        const imageUrl = extractGelatoProductImageUrl(productPayload) || ''
-        const sizes = extractGelatoProductSizes(productPayload)
-        const printfulId = `gelato:${productUid}`
-        const category = classifyCategory(`${catalogName} ${productName}`)
-
-        const existing = await prisma.product.findUnique({ where: { printfulId } })
-        const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
-
-        const data = {
-            name: `${productName}`,
-            printfulId,
-            description,
-            category,
-            basePrice,
-            sellPrice,
-            sizes,
-            colors: [
-                {
-                    name: 'Default',
-                    hex: '#FFFFFF',
-                    printfulVariantId: 0,
-                },
-            ],
-            imageUrl,
-            printArea: existing?.printArea || { width: 4200, height: 4800, dpi: 300 },
-            active: true,
-        }
-
-        if (GELATO_SYNC_DRY_RUN) {
-            console.log(`[dry-run] upsert ${printfulId} (${productName})`)
-            continue
-        }
-
-        await prisma.product.upsert({
-            where: { printfulId },
-            update: data,
-            create: data,
-        })
-        synced += 1
-        console.log(`Synced ${printfulId} (${productName})`)
     }
 
-    return { synced, skippedNoPrice, skippedNoProducts: 0 }
+    return { synced, skippedNoPrice, skippedUnavailable, skippedNoProducts: 0 }
 }
 
 async function main() {
@@ -172,17 +197,19 @@ async function main() {
 
     let totalSynced = 0
     let totalSkippedNoPrice = 0
+    let totalSkippedUnavailable = 0
     let totalCatalogsWithoutProducts = 0
 
     for (const catalogUid of rawCatalogUids) {
         const stats = await syncCatalog(catalogUid)
         totalSynced += stats.synced
         totalSkippedNoPrice += stats.skippedNoPrice
+        totalSkippedUnavailable += stats.skippedUnavailable
         totalCatalogsWithoutProducts += stats.skippedNoProducts
     }
 
     console.log(
-        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} emptyCatalogs=${totalCatalogsWithoutProducts}`
+        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} emptyCatalogs=${totalCatalogsWithoutProducts}`
     )
 }
 
@@ -194,4 +221,3 @@ main()
     .finally(async () => {
         await prisma.$disconnect()
     })
-
