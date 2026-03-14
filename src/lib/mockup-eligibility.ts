@@ -20,6 +20,11 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
         return false
     }
 
+    // Only Printful-backed numeric product ids are eligible for current AI mockup flow.
+    if (!/^\d+$/.test(printfulId)) {
+        return false
+    }
+
     if (MOCKUP_UNSUPPORTED_PRINTFUL_IDS.has(printfulId)) {
         return false
     }
@@ -32,4 +37,3 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
 
     return true
 }
-

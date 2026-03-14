@@ -16,6 +16,7 @@
     "db:migrate:resolve": "prisma migrate resolve",
     "ci:check": "./scripts/ci_non_interactive.sh",
     "sync:products": "tsx scripts/sync_printful_products.ts",
+    "sync:products:gelato": "tsx scripts/sync_gelato_products.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
