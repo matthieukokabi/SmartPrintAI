@@ -23,19 +23,6 @@ type CatalogSyncStats = {
     skippedNoProducts: number
 }
 
-const FALLBACK_IMAGE_HINTS: Record<string, RegExp[]> = {
-    't-shirts': [/t[- ]?shirt/i, /tee/i, /jersey/i],
-    hoodies: [/hoodie/i, /sweatshirt/i],
-    sweatshirts: [/sweatshirt/i, /crew[\s-]?neck/i],
-    mugs: [/mug/i, /cup/i],
-    posters: [/poster/i],
-    canvas: [/canvas/i, /rug/i, /pillow/i, /wall/i],
-    'tote-bags': [/tote/i, /bag/i, /backpack/i, /drawstring/i],
-    'phone-cases': [/phone/i, /case/i, /airpods/i],
-    'dad-hat': [/dad hat/i, /hat/i, /beanie/i],
-    polos: [/polo/i],
-}
-
 function classifyCategory(text: string): string {
     const v = text.toLowerCase()
     if (/(shirt|hoodie|sweatshirt|tank|apparel|tee|polo)/.test(v)) return 'apparel'
@@ -88,37 +75,6 @@ function buildFallbackName(productUid: string, catalogName: string): string {
     return `Gelato ${normalizedCatalog} ${tail}`
 }
 
-async function buildCatalogFallbackImages(catalogUids: string[]): Promise<Record<string, string>> {
-    const productsWithImages = await prisma.product.findMany({
-        where: {
-            active: true,
-            imageUrl: { not: '' },
-        },
-        select: {
-            name: true,
-            imageUrl: true,
-            printfulId: true,
-        },
-    })
-
-    const printfulCandidates = productsWithImages.filter(
-        (product) => /^\d+$/.test(product.printfulId) && /^https?:\/\//i.test(product.imageUrl)
-    )
-    const defaultImage = printfulCandidates[0]?.imageUrl || ''
-
-    const fallbackByCatalog: Record<string, string> = {}
-    for (const catalogUid of catalogUids) {
-        const hints = FALLBACK_IMAGE_HINTS[catalogUid] || []
-        const match = printfulCandidates.find((candidate) =>
-            hints.some((pattern) => pattern.test(candidate.name))
-        )
-
-        fallbackByCatalog[catalogUid] = match?.imageUrl || defaultImage
-    }
-
-    return fallbackByCatalog
-}
-
 function isSkippableProductError(error: unknown): boolean {
     if (!(error instanceof Error)) {
         return false
@@ -160,8 +116,7 @@ const prisma = new PrismaClient({ adapter })
 const gelato = new GelatoClient(gelatoApiKey, process.env.GELATO_PRODUCTS_BASE_URL)
 
 async function syncCatalog(
-    catalogUid: string,
-    fallbackImageByCatalog: Record<string, string>
+    catalogUid: string
 ): Promise<CatalogSyncStats> {
     const catalogPayload = await gelato.getCatalog(catalogUid)
     const catalogName = parseCatalogName(catalogPayload, `Gelato Catalog ${catalogUid}`)
@@ -215,11 +170,7 @@ async function syncCatalog(
 
             const existing = await prisma.product.findUnique({ where: { printfulId } })
             const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
-            const imageUrl =
-                extractGelatoProductImageUrl(productPayload) ||
-                (typeof existing?.imageUrl === 'string' ? existing.imageUrl : '') ||
-                fallbackImageByCatalog[catalogUid] ||
-                ''
+            const imageUrl = extractGelatoProductImageUrl(productPayload) || ''
 
             const data = {
                 name: `${productName}`,
@@ -288,10 +239,9 @@ async function main() {
     let totalSkippedUnavailable = 0
     let totalSkippedUnprintable = 0
     let totalCatalogsWithoutProducts = 0
-    const fallbackImageByCatalog = await buildCatalogFallbackImages(rawCatalogUids)
 
     for (const catalogUid of rawCatalogUids) {
-        const stats = await syncCatalog(catalogUid, fallbackImageByCatalog)
+        const stats = await syncCatalog(catalogUid)
         totalSynced += stats.synced
         totalSkippedNoPrice += stats.skippedNoPrice
         totalSkippedUnavailable += stats.skippedUnavailable
