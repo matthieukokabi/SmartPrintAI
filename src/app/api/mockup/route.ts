@@ -3,6 +3,7 @@ import { printful } from '@/lib/printful'
 import { prisma } from '@/lib/prisma'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type MockupPayload = {
     designId: string
@@ -135,6 +136,14 @@ export async function POST(req: NextRequest) {
         if (!design || !product) {
             logApiWarn(route, requestId, 'resource_not_found')
             return respond({ error: 'Design or product not found' }, { status: 404 })
+        }
+
+        if (!isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })) {
+            logApiWarn(route, requestId, 'product_not_mockup_eligible', { productId, printfulId: product.printfulId })
+            return respond(
+                { error: 'This product is currently sold without AI custom mockup preview.' },
+                { status: 400 }
+            )
         }
 
         const colors = parseProductColors(product.colors)

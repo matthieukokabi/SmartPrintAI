@@ -13,6 +13,7 @@ import { useCart } from '@/store/cart'
 import type { DesignStyle, Product } from '@/types'
 import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import { ShoppingCart, Check } from 'lucide-react'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
@@ -146,15 +147,19 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             .catch(console.error)
     }, [])
 
+    const mockupEligibleProducts = products.filter((p) =>
+        isMockupEligibleProduct({ name: p.name, printfulId: p.printfulId })
+    )
+
     useEffect(() => {
-        if (!products.length || !selectedProduct) return
-        const exists = products.some((p) => p.id === selectedProduct)
+        if (!mockupEligibleProducts.length || !selectedProduct) return
+        const exists = mockupEligibleProducts.some((p) => p.id === selectedProduct)
         if (!exists) {
             setSelectedProduct(null)
         }
-    }, [products, selectedProduct])
+    }, [mockupEligibleProducts, selectedProduct])
 
-    const product = products.find((p) => p.id === selectedProduct)
+    const product = mockupEligibleProducts.find((p) => p.id === selectedProduct)
 
     useEffect(() => {
         if (!product) return
@@ -488,7 +493,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                     {imageUrl && (
                         <>
                             <ProductPicker
-                                products={products}
+                                products={mockupEligibleProducts}
                                 selectedId={selectedProduct}
                                 onSelect={handleProductSelect}
                                 chooseLabel={copy.chooseProductLabel}
