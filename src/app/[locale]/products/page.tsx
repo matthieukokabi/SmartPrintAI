@@ -5,6 +5,7 @@ import ProductCard from '@/components/shared/ProductCard'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type LocaleProductsPageProps = {
     params: {
@@ -14,6 +15,41 @@ type LocaleProductsPageProps = {
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = false
+
+const sectionCopyByLocale: Record<
+    SupportedLocale,
+    {
+        customizableTitle: string
+        customizableSubtitle: string
+        readyTitle: string
+        readySubtitle: string
+    }
+> = {
+    en: {
+        customizableTitle: 'AI Customizable',
+        customizableSubtitle: 'These products support AI design generation and live mockup previews.',
+        readyTitle: 'Ready-to-Buy',
+        readySubtitle: 'These products are sold as standard catalog items (no AI design customization).',
+    },
+    fr: {
+        customizableTitle: 'Personnalisables avec IA',
+        customizableSubtitle: 'Ces produits prennent en charge la generation IA et les apercus mockup en direct.',
+        readyTitle: 'Pret-a-acheter',
+        readySubtitle: 'Ces produits sont vendus en mode catalogue standard (sans personnalisation IA).',
+    },
+    de: {
+        customizableTitle: 'Mit KI personalisierbar',
+        customizableSubtitle: 'Diese Produkte unterstuetzen KI-Design und Live-Mockup-Vorschau.',
+        readyTitle: 'Sofort kaufbar',
+        readySubtitle: 'Diese Produkte werden als Standard-Katalogartikel verkauft (ohne KI-Anpassung).',
+    },
+    es: {
+        customizableTitle: 'Personalizable con IA',
+        customizableSubtitle: 'Estos productos admiten generacion con IA y vista previa de mockup en vivo.',
+        readyTitle: 'Listo para comprar',
+        readySubtitle: 'Estos productos se venden como catalogo estandar (sin personalizacion con IA).',
+    },
+}
 
 export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
@@ -44,11 +80,18 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
 
     const locale = params.locale as SupportedLocale
     const copy = getLocaleCopy(locale).products
+    const sectionCopy = sectionCopyByLocale[locale]
 
     const products = await prisma.product.findMany({
         where: { active: true },
         orderBy: { name: 'asc' },
     })
+    const customizableProducts = products.filter((product) =>
+        isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+    )
+    const readyToBuyProducts = products.filter((product) =>
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+    )
 
     const itemListSchema = {
         '@context': 'https://schema.org',
@@ -82,18 +125,50 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
                     <p className="text-muted-foreground">{copy.emptyState}</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            id={product.id}
-                            name={product.name}
-                            sellPrice={product.sellPrice}
-                            category={product.category}
-                            imageUrl={product.imageUrl}
-                            href={`/${locale}/products/${product.id}`}
-                        />
-                    ))}
+                <div className="space-y-12">
+                    {customizableProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">{sectionCopy.customizableTitle}</h2>
+                                <p className="text-sm text-muted-foreground">{sectionCopy.customizableSubtitle}</p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {customizableProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                        href={`/${locale}/products/${product.id}`}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {readyToBuyProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">{sectionCopy.readyTitle}</h2>
+                                <p className="text-sm text-muted-foreground">{sectionCopy.readySubtitle}</p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {readyToBuyProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                        href={`/${locale}/products/${product.id}`}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
             )}
         </div>

@@ -4,6 +4,7 @@ import ProductCard from '@/components/shared/ProductCard'
 import { toAbsoluteUrl } from '@/lib/site'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,12 @@ export default async function ProductsPage() {
         where: { active: true },
         orderBy: { name: 'asc' },
     })
+    const customizableProducts = products.filter((product) =>
+        isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+    )
+    const readyToBuyProducts = products.filter((product) =>
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+    )
 
     const itemListSchema = {
         '@context': 'https://schema.org',
@@ -56,17 +63,52 @@ export default async function ProductsPage() {
                     <p className="text-muted-foreground">{copy.emptyState}</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            id={product.id}
-                            name={product.name}
-                            sellPrice={product.sellPrice}
-                            category={product.category}
-                            imageUrl={product.imageUrl}
-                        />
-                    ))}
+                <div className="space-y-12">
+                    {customizableProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">AI Customizable</h2>
+                                <p className="text-sm text-muted-foreground">
+                                    These products support AI design generation and live mockup previews.
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {customizableProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {readyToBuyProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">Ready-to-Buy</h2>
+                                <p className="text-sm text-muted-foreground">
+                                    These products are sold as standard catalog items (no AI design customization).
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {readyToBuyProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
             )}
         </div>

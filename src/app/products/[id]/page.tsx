@@ -7,6 +7,7 @@ import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type ProductColor = {
     name: string
@@ -116,6 +117,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         imageUrl: product.imageUrl,
         colors,
     }
+    const canDesignWithAI = isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
 
     const productSchema = {
         '@context': 'https://schema.org',
@@ -152,10 +154,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <ProductDetailClient
                 product={productForClient}
+                canDesignWithAI={canDesignWithAI}
                 copy={{
                     availableSizesLabel: copy.availableSizesLabel,
                     colorsLabel: copy.colorsLabel,
                     designButtonLabel: copy.designButtonLabel,
+                    readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
                 }}
             />
         </div>

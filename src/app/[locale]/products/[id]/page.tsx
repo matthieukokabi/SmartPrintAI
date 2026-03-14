@@ -7,6 +7,7 @@ import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type ProductColor = {
     name: string
@@ -43,6 +44,13 @@ type LocaleProductPageProps = {
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = false
+
+const readyToBuyOnlyLabelByLocale: Record<SupportedLocale, string> = {
+    en: 'This product is sold as-is and is not available in AI design mode.',
+    fr: "Ce produit est vendu tel quel et n'est pas disponible en mode design IA.",
+    de: 'Dieses Produkt wird unveraendert verkauft und ist nicht im KI-Design-Modus verfuegbar.',
+    es: 'Este producto se vende tal cual y no esta disponible en modo de diseno con IA.',
+}
 
 export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
@@ -135,6 +143,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         imageUrl: product.imageUrl,
         colors,
     }
+    const canDesignWithAI = isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
 
     const productSchema = {
         '@context': 'https://schema.org',
@@ -174,10 +183,12 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
 
             <ProductDetailClient
                 product={productForClient}
+                canDesignWithAI={canDesignWithAI}
                 copy={{
                     availableSizesLabel: detailCopy.availableSizesLabel,
                     colorsLabel: detailCopy.colorsLabel,
                     designButtonLabel: detailCopy.designButtonLabel,
+                    readyToBuyOnlyLabel: readyToBuyOnlyLabelByLocale[locale],
                 }}
             />
         </div>

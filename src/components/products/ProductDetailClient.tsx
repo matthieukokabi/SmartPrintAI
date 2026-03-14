@@ -26,10 +26,12 @@ type ProductDetail = {
 type Props = {
     product: ProductDetail
     createPath?: string
+    canDesignWithAI?: boolean
     copy?: {
         availableSizesLabel: string
         colorsLabel: string
         designButtonLabel: string
+        readyToBuyOnlyLabel: string
     }
 }
 
@@ -37,6 +39,7 @@ const defaultCopy = {
     availableSizesLabel: 'Available Sizes',
     colorsLabel: 'Colors',
     designButtonLabel: 'Design This Product with AI',
+    readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
 }
 
 function colorDotStyle(hex: string) {
@@ -44,7 +47,12 @@ function colorDotStyle(hex: string) {
     return { backgroundColor: safeHex }
 }
 
-export default function ProductDetailClient({ product, createPath = '/create', copy = defaultCopy }: Props) {
+export default function ProductDetailClient({
+    product,
+    createPath = '/create',
+    canDesignWithAI = true,
+    copy = defaultCopy,
+}: Props) {
     const initialColor = product.colors[0]?.name ?? 'Default'
     const initialSize = product.sizes[0] ?? 'One Size'
 
@@ -126,12 +134,18 @@ export default function ProductDetailClient({ product, createPath = '/create', c
                     </div>
                 </div>
 
-                <Link
-                    href={createHref}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
-                >
-                    {copy.designButtonLabel}
-                </Link>
+                {canDesignWithAI ? (
+                    <Link
+                        href={createHref}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
+                    >
+                        {copy.designButtonLabel}
+                    </Link>
+                ) : (
+                    <div className="rounded-xl border border-border bg-card/40 px-4 py-3 text-center text-sm text-muted-foreground">
+                        {copy.readyToBuyOnlyLabel}
+                    </div>
+                )}
             </div>
         </div>
     )
