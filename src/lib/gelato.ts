@@ -1,4 +1,5 @@
 const DEFAULT_GELATO_PRODUCTS_BASE_URL = 'https://product.gelatoapis.com'
+const DEFAULT_GELATO_ECOMMERCE_BASE_URL = 'https://ecommerce.gelatoapis.com'
 
 type RequestOptions = {
     method?: 'GET' | 'POST'
@@ -165,6 +166,188 @@ export function extractGelatoProductUids(searchPayload: unknown): string[] {
     }
 
     return []
+}
+
+export function extractGelatoStoreProducts(storeProductsPayload: unknown): unknown[] {
+    if (!isObject(storeProductsPayload)) {
+        return []
+    }
+
+    const listCandidates = [
+        storeProductsPayload.products,
+        storeProductsPayload.items,
+        storeProductsPayload.results,
+        storeProductsPayload.data,
+    ]
+
+    for (const candidate of listCandidates) {
+        if (Array.isArray(candidate)) {
+            return candidate
+        }
+    }
+
+    return []
+}
+
+export function extractGelatoStoreProductUid(storeProductPayload: unknown): string | null {
+    if (!isObject(storeProductPayload)) {
+        return null
+    }
+
+    return pickString(storeProductPayload, ['id', 'uid', 'productUid', 'storeProductUid'])
+}
+
+export function extractGelatoStoreProductName(storeProductPayload: unknown): string | null {
+    if (!isObject(storeProductPayload)) {
+        return null
+    }
+
+    return pickString(storeProductPayload, ['title', 'name', 'productName', 'displayName'])
+}
+
+export function extractGelatoStoreProductDescription(storeProductPayload: unknown): string | null {
+    if (!isObject(storeProductPayload)) {
+        return null
+    }
+
+    return pickString(storeProductPayload, ['description', 'summary', 'shortDescription'])
+}
+
+export function extractGelatoStoreProductImageUrl(storeProductPayload: unknown): string | null {
+    if (!isObject(storeProductPayload)) {
+        return null
+    }
+
+    const direct = asHttpUrl(
+        pickString(storeProductPayload, ['previewUrl', 'externalThumbnailUrl', 'thumbnailUrl', 'imageUrl'])
+    )
+    if (direct) {
+        return direct
+    }
+
+    return findImageUrlDeep(storeProductPayload, 0)
+}
+
+export function extractGelatoStoreProductVariantUids(storeProductPayload: unknown): string[] {
+    if (!isObject(storeProductPayload)) {
+        return []
+    }
+
+    const variants = storeProductPayload.variants
+    if (!Array.isArray(variants)) {
+        return []
+    }
+
+    const productUids: string[] = []
+
+    for (const variant of variants) {
+        if (!isObject(variant)) {
+            continue
+        }
+
+        const directUid = pickString(variant, ['productUid', 'uid'])
+        if (directUid) {
+            productUids.push(directUid)
+        }
+
+        if (isObject(variant.product)) {
+            const nestedUid = pickString(variant.product, ['productUid', 'uid', 'id'])
+            if (nestedUid) {
+                productUids.push(nestedUid)
+            }
+        }
+    }
+
+    return collectStrings(productUids)
+}
+
+function extractGelatoStoreProductOptionValues(
+    storeProductPayload: unknown,
+    optionNamePattern: RegExp
+): string[] {
+    if (!isObject(storeProductPayload)) {
+        return []
+    }
+
+    const rawOptions = storeProductPayload.productVariantOptions
+    if (!Array.isArray(rawOptions)) {
+        return []
+    }
+
+    const values: string[] = []
+    for (const option of rawOptions) {
+        if (!isObject(option)) {
+            continue
+        }
+
+        const optionName = pickString(option, ['name', 'optionName'])
+        if (!optionNamePattern.test((optionName || '').toLowerCase())) {
+            continue
+        }
+
+        const optionValues = option.values
+        if (!Array.isArray(optionValues)) {
+            continue
+        }
+
+        for (const optionValue of optionValues) {
+            if (isObject(optionValue)) {
+                const valueName = pickString(optionValue, ['value', 'name', 'label'])
+                if (valueName) {
+                    values.push(valueName)
+                }
+            } else {
+                const primitiveValue = asNonEmptyString(optionValue)
+                if (primitiveValue) {
+                    values.push(primitiveValue)
+                }
+            }
+        }
+    }
+
+    return collectStrings(values)
+}
+
+export function extractGelatoStoreProductSizes(storeProductPayload: unknown): string[] {
+    const values = extractGelatoStoreProductOptionValues(storeProductPayload, /(size|format|paper)/i)
+    if (values.length === 0) {
+        return []
+    }
+
+    return values.map((value) => toReadableSize(value))
+}
+
+export function extractGelatoStoreProductColorNames(storeProductPayload: unknown): string[] {
+    const values = extractGelatoStoreProductOptionValues(storeProductPayload, /color/i)
+    if (values.length === 0) {
+        return []
+    }
+
+    return values.map((value) => toTitleCase(value))
+}
+
+export function extractGelatoTemplateProductUids(templatePayload: unknown): string[] {
+    if (!isObject(templatePayload)) {
+        return []
+    }
+
+    const variants = templatePayload.variants
+    if (!Array.isArray(variants)) {
+        return []
+    }
+
+    const productUids: string[] = []
+    for (const variant of variants) {
+        if (!isObject(variant)) {
+            continue
+        }
+        const productUid = pickString(variant, ['productUid'])
+        if (productUid) {
+            productUids.push(productUid)
+        }
+    }
+
+    return collectStrings(productUids)
 }
 
 export function extractGelatoProductName(productPayload: unknown): string | null {
@@ -419,10 +602,16 @@ function findImageUrlDeep(candidate: unknown, depth: number): string | null {
 export class GelatoClient {
     private readonly apiKey: string
     private readonly baseUrl: string
+    private readonly ecommerceBaseUrl: string
 
-    constructor(apiKey = process.env.GELATO_API_KEY, baseUrl = process.env.GELATO_PRODUCTS_BASE_URL) {
+    constructor(
+        apiKey = process.env.GELATO_API_KEY,
+        baseUrl = process.env.GELATO_PRODUCTS_BASE_URL,
+        ecommerceBaseUrl = process.env.GELATO_ECOMMERCE_BASE_URL
+    ) {
         this.apiKey = (apiKey || '').trim()
         this.baseUrl = (baseUrl || DEFAULT_GELATO_PRODUCTS_BASE_URL).trim().replace(/\/+$/, '')
+        this.ecommerceBaseUrl = (ecommerceBaseUrl || DEFAULT_GELATO_ECOMMERCE_BASE_URL).trim().replace(/\/+$/, '')
     }
 
     private buildHeaders() {
@@ -457,6 +646,32 @@ export class GelatoClient {
                 ? pickString(payload, ['message', 'error', 'detail']) || text
                 : text
             throw new Error(`Gelato API error ${res.status} for ${path}: ${message}`)
+        }
+
+        return payload as T
+    }
+
+    private async ecommerceRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+        const method = options.method || 'GET'
+        const res = await fetch(`${this.ecommerceBaseUrl}${path}`, {
+            method,
+            headers: this.buildHeaders(),
+            body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+        })
+
+        const text = await res.text()
+        let payload: unknown
+        try {
+            payload = text ? JSON.parse(text) : {}
+        } catch {
+            throw new Error(`Gelato ecommerce API returned invalid JSON for ${path}`)
+        }
+
+        if (!res.ok) {
+            const message = isObject(payload)
+                ? pickString(payload, ['message', 'error', 'detail']) || text
+                : text
+            throw new Error(`Gelato ecommerce API error ${res.status} for ${path}: ${message}`)
         }
 
         return payload as T
@@ -507,6 +722,39 @@ export class GelatoClient {
         return this.request<unknown>(
             `/v3/products/${encodeURIComponent(uid)}/prices?${searchParams.toString()}`
         )
+    }
+
+    async listStoreProducts(
+        storeId: string,
+        params: { limit?: number; offset?: number; orderBy?: string; order?: 'asc' | 'desc' } = {}
+    ) {
+        const uid = storeId.trim()
+        if (!uid) {
+            throw new Error('storeId is required')
+        }
+
+        const searchParams = new URLSearchParams()
+        searchParams.set('limit', String(params.limit ?? 25))
+        searchParams.set('offset', String(params.offset ?? 0))
+        if (params.orderBy) {
+            searchParams.set('orderBy', params.orderBy)
+        }
+        if (params.order) {
+            searchParams.set('order', params.order)
+        }
+
+        return this.ecommerceRequest<unknown>(
+            `/v1/stores/${encodeURIComponent(uid)}/products?${searchParams.toString()}`
+        )
+    }
+
+    async getTemplate(templateId: string) {
+        const uid = templateId.trim()
+        if (!uid) {
+            throw new Error('templateId is required')
+        }
+
+        return this.ecommerceRequest<unknown>(`/v1/templates/${encodeURIComponent(uid)}`)
     }
 }
 

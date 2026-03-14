@@ -101,11 +101,21 @@ async function main() {
   console.log('Starting unified product sync...')
   runSyncScript('sync:products:printful')
 
-  const hasGelatoConfig = hasEnv('GELATO_API_KEY') && hasEnv('GELATO_CATALOG_UIDS')
+  const gelatoSyncMode = (process.env.GELATO_SYNC_MODE || 'catalog').trim().toLowerCase()
+  const hasGelatoApiKey = hasEnv('GELATO_API_KEY')
+  const hasGelatoConfig =
+    gelatoSyncMode === 'store-templates'
+      ? hasGelatoApiKey
+      : hasGelatoApiKey && hasEnv('GELATO_CATALOG_UIDS')
+
   if (hasGelatoConfig) {
     runSyncScript('sync:products:gelato')
   } else {
-    console.log('Skipping Gelato sync: GELATO_API_KEY or GELATO_CATALOG_UIDS is not configured.')
+    if (gelatoSyncMode === 'store-templates') {
+      console.log('Skipping Gelato sync: GELATO_API_KEY is not configured for store-templates mode.')
+    } else {
+      console.log('Skipping Gelato sync: GELATO_API_KEY or GELATO_CATALOG_UIDS is not configured.')
+    }
   }
 
   await printCatalogSummary()

@@ -4,6 +4,11 @@ import {
     extractGelatoMinUnitPrice,
     extractGelatoProductName,
     extractGelatoProductSizes,
+    extractGelatoStoreProductColorNames,
+    extractGelatoStoreProductSizes,
+    extractGelatoStoreProducts,
+    extractGelatoStoreProductVariantUids,
+    extractGelatoTemplateProductUids,
 } from './gelato'
 
 describe('extractGelatoMinUnitPrice', () => {
@@ -51,5 +56,59 @@ describe('Gelato payload extraction', () => {
 
     it('extracts color names from object-based attributes payloads', () => {
         expect(extractGelatoColorName(apparelPayload)).toBe('Black Heather')
+    })
+})
+
+describe('Gelato ecommerce payload extraction', () => {
+    const storeProductPayload = {
+        products: [
+            {
+                id: 'store-product-1',
+                title: 'SPAI T-Shirt Template',
+                productVariantOptions: [
+                    {
+                        name: 'Color',
+                        values: [{ value: 'white' }, { value: 'black' }],
+                    },
+                    {
+                        name: 'Size',
+                        values: [{ value: 'S' }, { value: '2XL' }],
+                    },
+                ],
+                variants: [
+                    { productUid: 'apparel_product_uid_1' },
+                    { productUid: 'apparel_product_uid_2' },
+                ],
+            },
+        ],
+    }
+
+    it('reads store product rows from ecommerce list payload', () => {
+        expect(extractGelatoStoreProducts(storeProductPayload)).toHaveLength(1)
+    })
+
+    it('extracts variant product uids from store product payload', () => {
+        const [storeProduct] = extractGelatoStoreProducts(storeProductPayload)
+        expect(extractGelatoStoreProductVariantUids(storeProduct)).toEqual([
+            'apparel_product_uid_1',
+            'apparel_product_uid_2',
+        ])
+    })
+
+    it('extracts readable size and color values from store product options', () => {
+        const [storeProduct] = extractGelatoStoreProducts(storeProductPayload)
+        expect(extractGelatoStoreProductSizes(storeProduct)).toEqual(['S', '2XL'])
+        expect(extractGelatoStoreProductColorNames(storeProduct)).toEqual(['White', 'Black'])
+    })
+
+    it('extracts template product uids from template payload', () => {
+        const payload = {
+            variants: [
+                { productUid: 'uid_1' },
+                { productUid: 'uid_2' },
+            ],
+        }
+
+        expect(extractGelatoTemplateProductUids(payload)).toEqual(['uid_1', 'uid_2'])
     })
 })
