@@ -24,6 +24,56 @@ function asFiniteNumber(value: unknown): number | null {
     return value
 }
 
+function toTitleCase(value: string): string {
+    return value
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .split(' ')
+        .map((part) => {
+            if (part.length === 0) return part
+            return part[0].toUpperCase() + part.slice(1).toLowerCase()
+        })
+        .join(' ')
+}
+
+function normalizeAttributeKey(value: string): string {
+    return value.replace(/[^a-z0-9]/gi, '').toLowerCase()
+}
+
+function asHttpUrl(value: unknown): string | null {
+    const normalized = asNonEmptyString(value)
+    if (!normalized) {
+        return null
+    }
+
+    if (!/^https?:\/\//i.test(normalized)) {
+        return null
+    }
+
+    return normalized
+}
+
+function toReadableQuality(value: string): string {
+    const normalized = value.trim().toLowerCase()
+    const map: Record<string, string> = {
+        prm: 'Premium',
+        premium: 'Premium',
+        classic: 'Classic',
+        organic: 'Organic',
+        performance: 'Performance',
+    }
+    return map[normalized] || toTitleCase(value)
+}
+
+function toReadableSize(value: string): string {
+    const normalized = value.trim()
+    if (/^\d*xl$/i.test(normalized) || /^(xs|s|m|l|xl|xxl|xxxl|onesize)$/i.test(normalized)) {
+        return normalized.toUpperCase().replace(/^ONESIZE$/, 'One Size')
+    }
+    return toTitleCase(normalized)
+}
+
 function pickString(record: Record<string, unknown>, keys: string[]): string | null {
     for (const key of keys) {
         const value = asNonEmptyString(record[key])
@@ -45,6 +95,41 @@ function collectStrings(values: unknown[]): string[] {
         }
         seen.add(normalized)
         out.push(normalized)
+    }
+
+    return out
+}
+
+function extractGelatoAttributesMap(productPayload: unknown): Record<string, string> {
+    if (!isObject(productPayload)) {
+        return {}
+    }
+
+    const attributes = productPayload.attributes
+    const out: Record<string, string> = {}
+
+    if (Array.isArray(attributes)) {
+        for (const attribute of attributes) {
+            if (!isObject(attribute)) continue
+            const rawKey = pickString(attribute, ['name', 'code', 'attributeName', 'id'])
+            if (!rawKey) continue
+            const key = normalizeAttributeKey(rawKey)
+            const value =
+                pickString(attribute, ['value', 'label', 'displayName']) ||
+                (Array.isArray(attribute.values) ? asNonEmptyString(attribute.values[0]) : null)
+            if (!value || out[key]) continue
+            out[key] = value
+        }
+        return out
+    }
+
+    if (isObject(attributes)) {
+        for (const [rawKey, rawValue] of Object.entries(attributes)) {
+            const key = normalizeAttributeKey(rawKey)
+            const value = asNonEmptyString(rawValue)
+            if (!value || out[key]) continue
+            out[key] = value
+        }
     }
 
     return out
@@ -100,7 +185,62 @@ export function extractGelatoProductName(productPayload: unknown): string | null
 
     const productTemplate = productPayload.productTemplate
     if (isObject(productTemplate)) {
-        return pickString(productTemplate, ['name', 'title', 'displayName'])
+        const templateName = pickString(productTemplate, ['name', 'title', 'displayName'])
+        if (templateName) {
+            return templateName
+        }
+    }
+
+    const attrs = extractGelatoAttributesMap(productPayload)
+    const apparelCategory = attrs.garmentcategory
+    const apparelSubcategory = attrs.garmentsubcategory
+    const garmentCut = attrs.garmentcut
+    const garmentQuality = attrs.garmentquality
+    const apparelManufacturer = attrs.apparelmanufacturer
+
+    if (apparelCategory) {
+        const parts: string[] = []
+        const qualityNormalized = asNonEmptyString(garmentQuality)?.toLowerCase()
+        if (qualityNormalized && qualityNormalized !== 'classic') {
+            parts.push(toReadableQuality(garmentQuality!))
+        }
+        if (garmentCut && garmentCut.toLowerCase() !== 'none') {
+            parts.push(toTitleCase(garmentCut))
+        }
+        if (apparelSubcategory && apparelSubcategory.toLowerCase() !== apparelCategory.toLowerCase()) {
+            parts.push(toTitleCase(apparelSubcategory))
+        }
+        parts.push(toTitleCase(apparelCategory))
+
+        let base = parts.join(' ').trim()
+        if (!base) {
+            base = toTitleCase(apparelCategory)
+        }
+        if (apparelManufacturer && apparelManufacturer.toLowerCase() !== 'none') {
+            base += ` (${toTitleCase(apparelManufacturer)})`
+        }
+        return base
+    }
+
+    if (attrs.bagsubcategory) {
+        const quality = attrs.bagquality && attrs.bagquality.toLowerCase() !== 'none' ? `${toTitleCase(attrs.bagquality)} ` : ''
+        return `${quality}${toTitleCase(attrs.bagsubcategory)}`
+    }
+
+    if (attrs.phonemodel) {
+        return `${toTitleCase(attrs.phonemodel)} Phone Case`
+    }
+
+    if (attrs.mugsize) {
+        return `${toTitleCase(attrs.mugsize)} Mug`
+    }
+
+    if (attrs.unifiedcanvasformat) {
+        return `${toTitleCase(attrs.unifiedcanvasformat)} Canvas`
+    }
+
+    if (attrs.paperformat) {
+        return `${toTitleCase(attrs.paperformat)} Poster`
     }
 
     return null
@@ -129,19 +269,27 @@ export function extractGelatoProductImageUrl(productPayload: unknown): string | 
         return null
     }
 
-    const direct = pickString(productPayload, ['imageUrl', 'thumbnailUrl', 'previewUrl'])
+    const direct = asHttpUrl(pickString(productPayload, ['imageUrl', 'thumbnailUrl', 'previewUrl']))
     if (direct) {
         return direct
     }
 
-    const images = productPayload.images
-    if (Array.isArray(images)) {
-        for (const image of images) {
-            if (!isObject(image)) continue
-            const url = pickString(image, ['url', 'imageUrl', 'thumbnailUrl', 'previewUrl'])
-            if (url) {
-                return url
-            }
+    const candidates = [
+        productPayload.images,
+        productPayload.previews,
+        productPayload.thumbnails,
+        productPayload.mockups,
+        productPayload.media,
+        productPayload.assets,
+        productPayload.productTemplate,
+        productPayload.productType,
+        productPayload.productTypeUid,
+    ]
+
+    for (const candidate of candidates) {
+        const url = findImageUrlDeep(candidate, 0)
+        if (url) {
+            return url
         }
     }
 
@@ -149,42 +297,40 @@ export function extractGelatoProductImageUrl(productPayload: unknown): string | 
 }
 
 export function extractGelatoProductSizes(productPayload: unknown): string[] {
+    const attrs = extractGelatoAttributesMap(productPayload)
+    const sizeCandidates = [
+        attrs.garmentsize,
+        attrs.bagsize,
+        attrs.mugsize,
+        attrs.paperformat,
+        attrs.unifiedcanvasformat,
+        attrs.size,
+        attrs.format,
+    ]
+        .map((value) => asNonEmptyString(value))
+        .filter((value): value is string => Boolean(value))
+        .map((value) => toReadableSize(value))
+
+    return sizeCandidates.length > 0 ? collectStrings(sizeCandidates) : ['Default']
+}
+
+export function extractGelatoColorName(productPayload: unknown): string | null {
+    const attrs = extractGelatoAttributesMap(productPayload)
+    const color = attrs.garmentcolor || attrs.bagcolor || attrs.colortype || attrs.color
+    const normalized = asNonEmptyString(color)
+    return normalized ? toTitleCase(normalized) : null
+}
+
+export function extractGelatoIsPrintable(productPayload: unknown): boolean {
     if (!isObject(productPayload)) {
-        return ['Default']
+        return true
     }
 
-    const attributes = productPayload.attributes
-    if (!Array.isArray(attributes)) {
-        return ['Default']
+    if (typeof productPayload.isPrintable === 'boolean') {
+        return productPayload.isPrintable
     }
 
-    const sizeCandidates: string[] = []
-
-    for (const attribute of attributes) {
-        if (!isObject(attribute)) continue
-        const attributeName = pickString(attribute, ['name', 'code', 'attributeName'])?.toLowerCase() || ''
-        if (!attributeName.includes('size') && !attributeName.includes('format')) {
-            continue
-        }
-
-        const values = Array.isArray(attribute.values) ? attribute.values : []
-        for (const value of values) {
-            if (isObject(value)) {
-                const label = pickString(value, ['label', 'name', 'value', 'displayName'])
-                if (label) {
-                    sizeCandidates.push(label)
-                }
-            } else {
-                const normalized = asNonEmptyString(value)
-                if (normalized) {
-                    sizeCandidates.push(normalized)
-                }
-            }
-        }
-    }
-
-    const unique = collectStrings(sizeCandidates)
-    return unique.length > 0 ? unique : ['Default']
+    return true
 }
 
 export function extractGelatoMinUnitPrice(pricePayload: unknown): number | null {
@@ -226,6 +372,44 @@ export function extractGelatoMinUnitPrice(pricePayload: unknown): number | null 
 
         if (unitPrices.length > 0) {
             return Math.min(...unitPrices)
+        }
+    }
+
+    return null
+}
+
+function findImageUrlDeep(candidate: unknown, depth: number): string | null {
+    if (depth > 4 || candidate == null) {
+        return null
+    }
+
+    if (Array.isArray(candidate)) {
+        for (const entry of candidate) {
+            const nested = findImageUrlDeep(entry, depth + 1)
+            if (nested) {
+                return nested
+            }
+        }
+        return null
+    }
+
+    if (!isObject(candidate)) {
+        return asHttpUrl(candidate)
+    }
+
+    for (const [key, value] of Object.entries(candidate)) {
+        if (typeof value === 'string' && /image|thumb|preview|mockup|photo|url/i.test(key)) {
+            const direct = asHttpUrl(value)
+            if (direct) {
+                return direct
+            }
+        }
+    }
+
+    for (const value of Object.values(candidate)) {
+        const nested = findImageUrlDeep(value, depth + 1)
+        if (nested) {
+            return nested
         }
     }
 

@@ -6,6 +6,7 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { isGelatoProduct } from '@/lib/product-provider'
 
 type LocaleProductsPageProps = {
     params: {
@@ -21,6 +22,8 @@ const sectionCopyByLocale: Record<
     {
         customizableTitle: string
         customizableSubtitle: string
+        printableTitle: string
+        printableSubtitle: string
         readyTitle: string
         readySubtitle: string
     }
@@ -28,26 +31,34 @@ const sectionCopyByLocale: Record<
     en: {
         customizableTitle: 'AI Customizable',
         customizableSubtitle: 'These products support AI design generation and live mockup previews.',
+        printableTitle: 'Printable Catalog',
+        printableSubtitle: 'These products are printable on demand via Gelato and are currently sold as catalog items.',
         readyTitle: 'Ready-to-Buy',
-        readySubtitle: 'These products are sold as standard catalog items (no AI design customization).',
+        readySubtitle: 'These products are sold as standard catalog items without AI customization.',
     },
     fr: {
         customizableTitle: 'Personnalisables avec IA',
         customizableSubtitle: 'Ces produits prennent en charge la generation IA et les apercus mockup en direct.',
+        printableTitle: 'Catalogue imprimable',
+        printableSubtitle: 'Ces produits sont imprimables a la demande via Gelato et vendus en mode catalogue.',
         readyTitle: 'Pret-a-acheter',
-        readySubtitle: 'Ces produits sont vendus en mode catalogue standard (sans personnalisation IA).',
+        readySubtitle: 'Ces produits sont vendus en mode catalogue standard sans personnalisation IA.',
     },
     de: {
         customizableTitle: 'Mit KI personalisierbar',
         customizableSubtitle: 'Diese Produkte unterstuetzen KI-Design und Live-Mockup-Vorschau.',
+        printableTitle: 'Druckbarer Katalog',
+        printableSubtitle: 'Diese Produkte sind via Gelato on-demand druckbar und werden derzeit als Katalogartikel verkauft.',
         readyTitle: 'Sofort kaufbar',
-        readySubtitle: 'Diese Produkte werden als Standard-Katalogartikel verkauft (ohne KI-Anpassung).',
+        readySubtitle: 'Diese Produkte werden als Standard-Katalogartikel ohne KI-Anpassung verkauft.',
     },
     es: {
         customizableTitle: 'Personalizable con IA',
         customizableSubtitle: 'Estos productos admiten generacion con IA y vista previa de mockup en vivo.',
+        printableTitle: 'Catalogo imprimible',
+        printableSubtitle: 'Estos productos son imprimibles bajo demanda con Gelato y se venden como articulos de catalogo.',
         readyTitle: 'Listo para comprar',
-        readySubtitle: 'Estos productos se venden como catalogo estandar (sin personalizacion con IA).',
+        readySubtitle: 'Estos productos se venden como catalogo estandar sin personalizacion con IA.',
     },
 }
 
@@ -89,8 +100,13 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
     const customizableProducts = products.filter((product) =>
         isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
     )
+    const printableCatalogProducts = products.filter((product) =>
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        isGelatoProduct(product.printfulId)
+    )
     const readyToBuyProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        !isGelatoProduct(product.printfulId)
     )
 
     const itemListSchema = {
@@ -134,6 +150,28 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {customizableProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                        href={`/${locale}/products/${product.id}`}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {printableCatalogProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">{sectionCopy.printableTitle}</h2>
+                                <p className="text-sm text-muted-foreground">{sectionCopy.printableSubtitle}</p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {printableCatalogProducts.map((product) => (
                                     <ProductCard
                                         key={product.id}
                                         id={product.id}

@@ -5,20 +5,12 @@ import { spawnSync } from 'node:child_process'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { isMockupEligibleProduct } from '../src/lib/mockup-eligibility'
+import { detectProductProvider, type ProductProvider } from '../src/lib/product-provider'
 
 type CatalogSummary = {
   total: number
   aiCustomizable: number
   readyToBuy: number
-}
-
-type Provider = 'printful' | 'gelato' | 'unknown'
-
-function detectProvider(printfulId: string): Provider {
-  const normalized = printfulId.trim().toLowerCase()
-  if (normalized.startsWith('gelato:')) return 'gelato'
-  if (/^\d+$/.test(normalized)) return 'printful'
-  return 'unknown'
 }
 
 function runSyncScript(scriptName: string) {
@@ -40,7 +32,7 @@ function hasEnv(name: string): boolean {
   return Boolean((process.env[name] || '').trim())
 }
 
-function buildSummaryBuckets(): Record<Provider, CatalogSummary> {
+function buildSummaryBuckets(): Record<ProductProvider, CatalogSummary> {
   return {
     printful: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
     gelato: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
@@ -68,7 +60,7 @@ async function printCatalogSummary() {
     let totalAiCustomizable = 0
 
     for (const product of products) {
-      const provider = detectProvider(product.printfulId)
+      const provider = detectProductProvider(product.printfulId)
       const aiCustomizable = isMockupEligibleProduct({
         name: product.name,
         printfulId: product.printfulId,

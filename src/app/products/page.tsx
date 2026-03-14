@@ -5,6 +5,7 @@ import { toAbsoluteUrl } from '@/lib/site'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { isGelatoProduct } from '@/lib/product-provider'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,8 +28,13 @@ export default async function ProductsPage() {
     const customizableProducts = products.filter((product) =>
         isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
     )
+    const printableCatalogProducts = products.filter((product) =>
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        isGelatoProduct(product.printfulId)
+    )
     const readyToBuyProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        !isGelatoProduct(product.printfulId)
     )
 
     const itemListSchema = {
@@ -87,12 +93,35 @@ export default async function ProductsPage() {
                         </section>
                     )}
 
+                    {printableCatalogProducts.length > 0 && (
+                        <section className="space-y-4">
+                            <div className="space-y-1">
+                                <h2 className="text-2xl font-semibold">Printable Catalog</h2>
+                                <p className="text-sm text-muted-foreground">
+                                    These products are printable on demand via Gelato and are currently sold as catalog items.
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {printableCatalogProducts.map((product) => (
+                                    <ProductCard
+                                        key={product.id}
+                                        id={product.id}
+                                        name={product.name}
+                                        sellPrice={product.sellPrice}
+                                        category={product.category}
+                                        imageUrl={product.imageUrl}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
                     {readyToBuyProducts.length > 0 && (
                         <section className="space-y-4">
                             <div className="space-y-1">
                                 <h2 className="text-2xl font-semibold">Ready-to-Buy</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    These products are sold as standard catalog items (no AI design customization).
+                                    These products are sold as standard catalog items without AI customization.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

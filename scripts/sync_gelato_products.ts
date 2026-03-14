@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import {
     GelatoClient,
+    extractGelatoColorName,
+    extractGelatoIsPrintable,
     extractGelatoMinUnitPrice,
     extractGelatoProductDescription,
     extractGelatoProductImageUrl,
@@ -17,7 +19,21 @@ type CatalogSyncStats = {
     synced: number
     skippedNoPrice: number
     skippedUnavailable: number
+    skippedUnprintable: number
     skippedNoProducts: number
+}
+
+const FALLBACK_IMAGE_HINTS: Record<string, RegExp[]> = {
+    't-shirts': [/t[- ]?shirt/i, /tee/i, /jersey/i],
+    hoodies: [/hoodie/i, /sweatshirt/i],
+    sweatshirts: [/sweatshirt/i, /crew[\s-]?neck/i],
+    mugs: [/mug/i, /cup/i],
+    posters: [/poster/i],
+    canvas: [/canvas/i, /rug/i, /pillow/i, /wall/i],
+    'tote-bags': [/tote/i, /bag/i, /backpack/i, /drawstring/i],
+    'phone-cases': [/phone/i, /case/i, /airpods/i],
+    'dad-hat': [/dad hat/i, /hat/i, /beanie/i],
+    polos: [/polo/i],
 }
 
 function classifyCategory(text: string): string {
@@ -54,6 +70,53 @@ function parseCatalogName(payload: unknown, fallback: string): string {
     }
 
     return fallback
+}
+
+function parseExistingPrintArea(value: unknown): Record<string, unknown> {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return {}
+    }
+    return value as Record<string, unknown>
+}
+
+function buildFallbackName(productUid: string, catalogName: string): string {
+    const normalizedCatalog = catalogName.trim() || 'Product'
+    const tail = productUid.split('_').slice(-2).join(' ').replace(/-/g, ' ').trim()
+    if (tail.length === 0) {
+        return `Gelato ${normalizedCatalog}`
+    }
+    return `Gelato ${normalizedCatalog} ${tail}`
+}
+
+async function buildCatalogFallbackImages(catalogUids: string[]): Promise<Record<string, string>> {
+    const productsWithImages = await prisma.product.findMany({
+        where: {
+            active: true,
+            imageUrl: { not: '' },
+        },
+        select: {
+            name: true,
+            imageUrl: true,
+            printfulId: true,
+        },
+    })
+
+    const printfulCandidates = productsWithImages.filter(
+        (product) => /^\d+$/.test(product.printfulId) && /^https?:\/\//i.test(product.imageUrl)
+    )
+    const defaultImage = printfulCandidates[0]?.imageUrl || ''
+
+    const fallbackByCatalog: Record<string, string> = {}
+    for (const catalogUid of catalogUids) {
+        const hints = FALLBACK_IMAGE_HINTS[catalogUid] || []
+        const match = printfulCandidates.find((candidate) =>
+            hints.some((pattern) => pattern.test(candidate.name))
+        )
+
+        fallbackByCatalog[catalogUid] = match?.imageUrl || defaultImage
+    }
+
+    return fallbackByCatalog
 }
 
 function isSkippableProductError(error: unknown): boolean {
@@ -96,7 +159,10 @@ const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
 const gelato = new GelatoClient(gelatoApiKey, process.env.GELATO_PRODUCTS_BASE_URL)
 
-async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
+async function syncCatalog(
+    catalogUid: string,
+    fallbackImageByCatalog: Record<string, string>
+): Promise<CatalogSyncStats> {
     const catalogPayload = await gelato.getCatalog(catalogUid)
     const catalogName = parseCatalogName(catalogPayload, `Gelato Catalog ${catalogUid}`)
 
@@ -108,12 +174,13 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
 
     if (productUids.length === 0) {
         console.log(`Catalog ${catalogUid}: no products returned.`)
-        return { synced: 0, skippedNoPrice: 0, skippedUnavailable: 0, skippedNoProducts: 1 }
+        return { synced: 0, skippedNoPrice: 0, skippedUnavailable: 0, skippedUnprintable: 0, skippedNoProducts: 1 }
     }
 
     let synced = 0
     let skippedNoPrice = 0
     let skippedUnavailable = 0
+    let skippedUnprintable = 0
 
     for (const productUid of productUids) {
         try {
@@ -125,6 +192,13 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
                 }),
             ])
 
+            const isPrintable = extractGelatoIsPrintable(productPayload)
+            if (!isPrintable) {
+                skippedUnprintable += 1
+                console.log(`Skip ${productUid}: product is not printable.`)
+                continue
+            }
+
             const basePrice = extractGelatoMinUnitPrice(pricesPayload)
             if (!basePrice || basePrice <= 0) {
                 skippedNoPrice += 1
@@ -132,15 +206,20 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
                 continue
             }
 
-            const productName = extractGelatoProductName(productPayload) || `Gelato Product ${productUid}`
+            const productName = extractGelatoProductName(productPayload) || buildFallbackName(productUid, catalogName)
             const description = extractGelatoProductDescription(productPayload) || productName
-            const imageUrl = extractGelatoProductImageUrl(productPayload) || ''
             const sizes = extractGelatoProductSizes(productPayload)
             const printfulId = `gelato:${productUid}`
             const category = classifyCategory(`${catalogName} ${productName}`)
+            const colorName = extractGelatoColorName(productPayload) || 'Default'
 
             const existing = await prisma.product.findUnique({ where: { printfulId } })
             const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
+            const imageUrl =
+                extractGelatoProductImageUrl(productPayload) ||
+                (typeof existing?.imageUrl === 'string' ? existing.imageUrl : '') ||
+                fallbackImageByCatalog[catalogUid] ||
+                ''
 
             const data = {
                 name: `${productName}`,
@@ -152,13 +231,22 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
                 sizes,
                 colors: [
                     {
-                        name: 'Default',
+                        name: colorName,
                         hex: '#FFFFFF',
                         printfulVariantId: 0,
                     },
                 ],
                 imageUrl,
-                printArea: existing?.printArea || { width: 4200, height: 4800, dpi: 300 },
+                printArea: {
+                    width: 4200,
+                    height: 4800,
+                    dpi: 300,
+                    ...parseExistingPrintArea(existing?.printArea),
+                    provider: 'gelato',
+                    providerCatalogUid: catalogUid,
+                    providerProductUid: productUid,
+                    printable: isPrintable,
+                },
                 active: true,
             }
 
@@ -185,7 +273,7 @@ async function syncCatalog(catalogUid: string): Promise<CatalogSyncStats> {
         }
     }
 
-    return { synced, skippedNoPrice, skippedUnavailable, skippedNoProducts: 0 }
+    return { synced, skippedNoPrice, skippedUnavailable, skippedUnprintable, skippedNoProducts: 0 }
 }
 
 async function main() {
@@ -198,18 +286,21 @@ async function main() {
     let totalSynced = 0
     let totalSkippedNoPrice = 0
     let totalSkippedUnavailable = 0
+    let totalSkippedUnprintable = 0
     let totalCatalogsWithoutProducts = 0
+    const fallbackImageByCatalog = await buildCatalogFallbackImages(rawCatalogUids)
 
     for (const catalogUid of rawCatalogUids) {
-        const stats = await syncCatalog(catalogUid)
+        const stats = await syncCatalog(catalogUid, fallbackImageByCatalog)
         totalSynced += stats.synced
         totalSkippedNoPrice += stats.skippedNoPrice
         totalSkippedUnavailable += stats.skippedUnavailable
+        totalSkippedUnprintable += stats.skippedUnprintable
         totalCatalogsWithoutProducts += stats.skippedNoProducts
     }
 
     console.log(
-        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} emptyCatalogs=${totalCatalogsWithoutProducts}`
+        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} skippedUnprintable=${totalSkippedUnprintable} emptyCatalogs=${totalCatalogsWithoutProducts}`
     )
 }
 
