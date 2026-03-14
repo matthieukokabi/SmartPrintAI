@@ -188,6 +188,20 @@ export function extractGelatoProductSizes(productPayload: unknown): string[] {
 }
 
 export function extractGelatoMinUnitPrice(pricePayload: unknown): number | null {
+    if (Array.isArray(pricePayload)) {
+        const unitPrices = pricePayload
+            .map((entry) => {
+                if (!isObject(entry)) return null
+                return asFiniteNumber(entry.unitPrice ?? entry.price ?? entry.amount)
+            })
+            .filter((price): price is number => typeof price === 'number' && price > 0)
+
+        if (unitPrices.length > 0) {
+            return Math.min(...unitPrices)
+        }
+        return null
+    }
+
     if (!isObject(pricePayload)) {
         return null
     }
@@ -313,4 +327,3 @@ export class GelatoClient {
 }
 
 export const gelato = new GelatoClient()
-
