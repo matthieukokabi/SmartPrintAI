@@ -20,7 +20,9 @@ type CatalogSyncStats = {
     skippedNoPrice: number
     skippedUnavailable: number
     skippedUnprintable: number
+    skippedDuplicates: number
     skippedNoProducts: number
+    syncedPrintfulIds: string[]
 }
 
 function classifyCategory(text: string): string {
@@ -88,6 +90,23 @@ function isSkippableProductError(error: unknown): boolean {
     )
 }
 
+function normalizeNameKey(value: string): string {
+    return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+
+function sanitizeGelatoImageUrl(value: string | null | undefined): string {
+    const normalized = (value || '').trim()
+    if (!normalized || !/^https?:\/\//i.test(normalized)) {
+        return ''
+    }
+
+    if (/printful/i.test(normalized)) {
+        return ''
+    }
+
+    return normalized
+}
+
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
     throw new Error('DATABASE_URL is required')
@@ -103,12 +122,15 @@ if (rawCatalogUids.length === 0) {
     throw new Error('GELATO_CATALOG_UIDS is required (comma-separated list)')
 }
 
-const GELATO_SYNC_LIMIT = Number(process.env.GELATO_SYNC_LIMIT || 20)
+const GELATO_SYNC_PAGE_LIMIT = Number(process.env.GELATO_SYNC_PAGE_LIMIT || process.env.GELATO_SYNC_LIMIT || 100)
 const GELATO_SYNC_OFFSET = Number(process.env.GELATO_SYNC_OFFSET || 0)
+const GELATO_SYNC_MAX_PRODUCTS = Number(process.env.GELATO_SYNC_MAX_PRODUCTS || 0)
 const GELATO_PRICE_COUNTRY = process.env.GELATO_PRICE_COUNTRY || 'US'
 const GELATO_PRICE_CURRENCY = process.env.GELATO_PRICE_CURRENCY || 'USD'
 const GELATO_SELL_PRICE_MULTIPLIER = Number(process.env.GELATO_SELL_PRICE_MULTIPLIER || 2.2)
 const GELATO_MIN_MARGIN = Number(process.env.GELATO_MIN_MARGIN || 8)
+const GELATO_SYNC_DEACTIVATE_MISSING = process.env.GELATO_SYNC_DEACTIVATE_MISSING !== '0'
+const GELATO_SYNC_DEDUPE_BY_NAME = process.env.GELATO_SYNC_DEDUPE_BY_NAME !== '0'
 const GELATO_SYNC_DRY_RUN = parseBooleanEnv(process.env.GELATO_SYNC_DRY_RUN)
 
 const adapter = new PrismaPg({ connectionString: databaseUrl })
@@ -121,21 +143,63 @@ async function syncCatalog(
     const catalogPayload = await gelato.getCatalog(catalogUid)
     const catalogName = parseCatalogName(catalogPayload, `Gelato Catalog ${catalogUid}`)
 
-    const catalogSearchPayload = await gelato.searchCatalogProducts(catalogUid, {
-        limit: GELATO_SYNC_LIMIT,
-        offset: GELATO_SYNC_OFFSET,
-    })
-    const productUids = extractGelatoProductUids(catalogSearchPayload)
+    const productUids: string[] = []
+    const seenProductUids = new Set<string>()
+    let offset = Math.max(0, GELATO_SYNC_OFFSET)
+
+    while (true) {
+        const catalogSearchPayload = await gelato.searchCatalogProducts(catalogUid, {
+            limit: GELATO_SYNC_PAGE_LIMIT,
+            offset,
+        })
+        const batch = extractGelatoProductUids(catalogSearchPayload)
+
+        if (batch.length === 0) {
+            break
+        }
+
+        let newCount = 0
+        for (const uid of batch) {
+            if (seenProductUids.has(uid)) {
+                continue
+            }
+            seenProductUids.add(uid)
+            productUids.push(uid)
+            newCount += 1
+        }
+
+        if (GELATO_SYNC_MAX_PRODUCTS > 0 && productUids.length >= GELATO_SYNC_MAX_PRODUCTS) {
+            productUids.length = GELATO_SYNC_MAX_PRODUCTS
+            break
+        }
+
+        if (batch.length < GELATO_SYNC_PAGE_LIMIT || newCount === 0) {
+            break
+        }
+
+        offset += batch.length
+    }
 
     if (productUids.length === 0) {
         console.log(`Catalog ${catalogUid}: no products returned.`)
-        return { synced: 0, skippedNoPrice: 0, skippedUnavailable: 0, skippedUnprintable: 0, skippedNoProducts: 1 }
+        return {
+            synced: 0,
+            skippedNoPrice: 0,
+            skippedUnavailable: 0,
+            skippedUnprintable: 0,
+            skippedDuplicates: 0,
+            skippedNoProducts: 1,
+            syncedPrintfulIds: [],
+        }
     }
 
     let synced = 0
     let skippedNoPrice = 0
     let skippedUnavailable = 0
     let skippedUnprintable = 0
+    let skippedDuplicates = 0
+    const seenNameKeys = new Set<string>()
+    const syncedPrintfulIds: string[] = []
 
     for (const productUid of productUids) {
         try {
@@ -167,10 +231,17 @@ async function syncCatalog(
             const printfulId = `gelato:${productUid}`
             const category = classifyCategory(`${catalogName} ${productName}`)
             const colorName = extractGelatoColorName(productPayload) || 'Default'
+            const dedupeKey = `${catalogUid}:${category}:${normalizeNameKey(productName)}`
+
+            if (GELATO_SYNC_DEDUPE_BY_NAME && seenNameKeys.has(dedupeKey)) {
+                skippedDuplicates += 1
+                continue
+            }
+            seenNameKeys.add(dedupeKey)
 
             const existing = await prisma.product.findUnique({ where: { printfulId } })
             const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
-            const imageUrl = extractGelatoProductImageUrl(productPayload) || ''
+            const imageUrl = sanitizeGelatoImageUrl(extractGelatoProductImageUrl(productPayload))
 
             const data = {
                 name: `${productName}`,
@@ -212,6 +283,7 @@ async function syncCatalog(
                 create: data,
             })
             synced += 1
+            syncedPrintfulIds.push(printfulId)
             console.log(`Synced ${printfulId} (${productName})`)
         } catch (error) {
             if (isSkippableProductError(error)) {
@@ -224,21 +296,31 @@ async function syncCatalog(
         }
     }
 
-    return { synced, skippedNoPrice, skippedUnavailable, skippedUnprintable, skippedNoProducts: 0 }
+    return {
+        synced,
+        skippedNoPrice,
+        skippedUnavailable,
+        skippedUnprintable,
+        skippedDuplicates,
+        skippedNoProducts: 0,
+        syncedPrintfulIds,
+    }
 }
 
 async function main() {
     console.log('Starting Gelato product sync...')
     console.log(`Catalogs: ${rawCatalogUids.join(', ')}`)
     console.log(
-        `Config: limit=${GELATO_SYNC_LIMIT} offset=${GELATO_SYNC_OFFSET} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dryRun=${GELATO_SYNC_DRY_RUN}`
+        `Config: pageLimit=${GELATO_SYNC_PAGE_LIMIT} offset=${GELATO_SYNC_OFFSET} maxProducts=${GELATO_SYNC_MAX_PRODUCTS || 'all'} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dedupeByName=${GELATO_SYNC_DEDUPE_BY_NAME} deactivateMissing=${GELATO_SYNC_DEACTIVATE_MISSING} dryRun=${GELATO_SYNC_DRY_RUN}`
     )
 
     let totalSynced = 0
     let totalSkippedNoPrice = 0
     let totalSkippedUnavailable = 0
     let totalSkippedUnprintable = 0
+    let totalSkippedDuplicates = 0
     let totalCatalogsWithoutProducts = 0
+    const syncedPrintfulIds = new Set<string>()
 
     for (const catalogUid of rawCatalogUids) {
         const stats = await syncCatalog(catalogUid)
@@ -246,11 +328,32 @@ async function main() {
         totalSkippedNoPrice += stats.skippedNoPrice
         totalSkippedUnavailable += stats.skippedUnavailable
         totalSkippedUnprintable += stats.skippedUnprintable
+        totalSkippedDuplicates += stats.skippedDuplicates
         totalCatalogsWithoutProducts += stats.skippedNoProducts
+        for (const printfulId of stats.syncedPrintfulIds) {
+            syncedPrintfulIds.add(printfulId)
+        }
+    }
+
+    let deactivated = 0
+    if (!GELATO_SYNC_DRY_RUN && GELATO_SYNC_DEACTIVATE_MISSING && syncedPrintfulIds.size > 0) {
+        const result = await prisma.product.updateMany({
+            where: {
+                active: true,
+                printfulId: {
+                    startsWith: 'gelato:',
+                    notIn: Array.from(syncedPrintfulIds),
+                },
+            },
+            data: {
+                active: false,
+            },
+        })
+        deactivated = result.count
     }
 
     console.log(
-        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} skippedUnprintable=${totalSkippedUnprintable} emptyCatalogs=${totalCatalogsWithoutProducts}`
+        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} skippedUnprintable=${totalSkippedUnprintable} skippedDuplicates=${totalSkippedDuplicates} emptyCatalogs=${totalCatalogsWithoutProducts} deactivated=${deactivated}`
     )
 }
 
