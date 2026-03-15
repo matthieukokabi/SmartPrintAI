@@ -101,7 +101,7 @@ function collectStrings(values: unknown[]): string[] {
     return out
 }
 
-function extractGelatoAttributesMap(productPayload: unknown): Record<string, string> {
+export function extractGelatoAttributesMap(productPayload: unknown): Record<string, string> {
     if (!isObject(productPayload)) {
         return {}
     }
@@ -134,6 +134,38 @@ function extractGelatoAttributesMap(productPayload: unknown): Record<string, str
     }
 
     return out
+}
+
+export function extractGelatoCatalogUids(catalogsPayload: unknown): string[] {
+    if (!isObject(catalogsPayload)) {
+        return []
+    }
+
+    const listCandidates = [
+        catalogsPayload.catalogs,
+        catalogsPayload.items,
+        catalogsPayload.results,
+        catalogsPayload.data,
+    ]
+
+    for (const candidate of listCandidates) {
+        if (!Array.isArray(candidate)) {
+            continue
+        }
+
+        const uids = candidate
+            .map((entry) => {
+                if (!isObject(entry)) return null
+                return pickString(entry, ['catalogUid', 'uid', 'id'])
+            })
+            .filter((value): value is string => Boolean(value))
+
+        if (uids.length > 0) {
+            return collectStrings(uids)
+        }
+    }
+
+    return []
 }
 
 export function extractGelatoProductUids(searchPayload: unknown): string[] {
@@ -828,6 +860,14 @@ export class GelatoClient {
         }
 
         return this.request<unknown>(`/v3/catalogs/${encodeURIComponent(uid)}`)
+    }
+
+    async listCatalogs(params: { limit?: number; offset?: number } = {}) {
+        const searchParams = new URLSearchParams()
+        searchParams.set('limit', String(params.limit ?? 100))
+        searchParams.set('offset', String(params.offset ?? 0))
+
+        return this.request<unknown>(`/v3/catalogs?${searchParams.toString()}`)
     }
 
     async getProduct(productUid: string) {

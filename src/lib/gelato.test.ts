@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+    extractGelatoAttributesMap,
+    extractGelatoCatalogUids,
     extractGelatoCreatedStoreProductUid,
     extractGelatoColorName,
     extractGelatoMinUnitPrice,
@@ -59,6 +61,28 @@ describe('Gelato payload extraction', () => {
 
     it('extracts color names from object-based attributes payloads', () => {
         expect(extractGelatoColorName(apparelPayload)).toBe('Black Heather')
+    })
+
+    it('extracts normalized attribute map from product payload', () => {
+        expect(extractGelatoAttributesMap(apparelPayload)).toMatchObject({
+            garmentcategory: 't-shirt',
+            garmentcut: 'mens',
+            garmentcolor: 'black-heather',
+        })
+    })
+})
+
+describe('extractGelatoCatalogUids', () => {
+    it('extracts catalog uids from list payload', () => {
+        const payload = {
+            catalogs: [
+                { catalogUid: 'catalog_a' },
+                { catalogUid: 'catalog_b' },
+                { uid: 'catalog_b' },
+            ],
+        }
+
+        expect(extractGelatoCatalogUids(payload)).toEqual(['catalog_a', 'catalog_b'])
     })
 })
 

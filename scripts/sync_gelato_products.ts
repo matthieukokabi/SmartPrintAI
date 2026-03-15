@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import {
     GelatoClient,
+    extractGelatoAttributesMap,
+    extractGelatoCatalogUids,
     extractGelatoColorName,
     extractGelatoIsPrintable,
     extractGelatoMinUnitPrice,
@@ -35,6 +37,7 @@ type SyncStats = {
     skippedUnavailable: number
     skippedUnprintable: number
     skippedDuplicates: number
+    skippedFiltered: number
     skippedNoProducts: number
     syncedPrintfulIds: string[]
 }
@@ -73,6 +76,20 @@ function calcSellPrice(basePrice: number, multiplier: number, minMargin: number)
 
 function parseBooleanEnv(value: string | undefined): boolean {
     return value === '1' || value?.toLowerCase() === 'true'
+}
+
+function normalizeToken(value: string): string {
+    return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+function normalizeGarmentCut(value: string): string {
+    const normalized = normalizeToken(value)
+
+    if (['male', 'man', 'men', 'mens', 'm'].includes(normalized)) return 'mens'
+    if (['female', 'woman', 'women', 'womens', 'ladies', 'lady', 'w'].includes(normalized)) return 'womens'
+    if (['unisex', 'none', 'all', 'neutral'].includes(normalized)) return 'unisex'
+
+    return normalized
 }
 
 function parseCatalogName(payload: unknown, fallback: string): string {
@@ -171,6 +188,17 @@ if (!gelatoApiKey) {
 
 const GELATO_SYNC_MODE = (process.env.GELATO_SYNC_MODE || 'catalog').trim().toLowerCase()
 const rawCatalogUids = (process.env.GELATO_CATALOG_UIDS || '').split(',').map((v) => v.trim()).filter(Boolean)
+const GELATO_SYNC_CATALOG_AUTO_DISCOVER = parseBooleanEnv(
+    process.env.GELATO_SYNC_CATALOG_AUTO_DISCOVER ?? (GELATO_SYNC_MODE === 'hybrid' ? '1' : '0')
+)
+const GELATO_CATALOG_DISCOVERY_LIMIT = Number(process.env.GELATO_CATALOG_DISCOVERY_LIMIT || 100)
+const GELATO_CATALOG_DISCOVERY_MAX = Number(process.env.GELATO_CATALOG_DISCOVERY_MAX || 300)
+const GELATO_SYNC_APPAREL_ONLY = process.env.GELATO_SYNC_APPAREL_ONLY !== '0'
+const GELATO_SYNC_GARMENT_CUTS = (process.env.GELATO_SYNC_GARMENT_CUTS || 'mens,womens,unisex')
+    .split(',')
+    .map((value) => normalizeGarmentCut(value))
+    .filter(Boolean)
+const GELATO_SYNC_GARMENT_CUTS_SET = new Set(GELATO_SYNC_GARMENT_CUTS)
 
 const GELATO_SYNC_PAGE_LIMIT = Number(process.env.GELATO_SYNC_PAGE_LIMIT || process.env.GELATO_SYNC_LIMIT || 100)
 const GELATO_SYNC_OFFSET = Number(process.env.GELATO_SYNC_OFFSET || 0)
@@ -190,6 +218,79 @@ const gelato = new GelatoClient(
     process.env.GELATO_PRODUCTS_BASE_URL,
     process.env.GELATO_ECOMMERCE_BASE_URL
 )
+
+function isApparelCatalogProduct(catalogName: string, productName: string, attributesMap: Record<string, string>): boolean {
+    if (attributesMap.garmentcategory || attributesMap.garmentsubcategory || attributesMap.garmentcut) {
+        return true
+    }
+
+    const inferredCategory = classifyCategory(`${catalogName} ${productName}`)
+    return inferredCategory === 'apparel'
+}
+
+function shouldIncludeCatalogProduct(
+    catalogName: string,
+    productName: string,
+    productPayload: unknown
+): { include: boolean; reason?: string } {
+    const attributesMap = extractGelatoAttributesMap(productPayload)
+    const isApparel = isApparelCatalogProduct(catalogName, productName, attributesMap)
+
+    if (GELATO_SYNC_APPAREL_ONLY && !isApparel) {
+        return { include: false, reason: 'non-apparel' }
+    }
+
+    if (isApparel && GELATO_SYNC_GARMENT_CUTS_SET.size > 0) {
+        const cutSource = attributesMap.garmentcut || attributesMap.garmentgender || ''
+        const normalizedCut = cutSource ? normalizeGarmentCut(cutSource) : ''
+
+        if (normalizedCut && !GELATO_SYNC_GARMENT_CUTS_SET.has(normalizedCut)) {
+            return { include: false, reason: `garment-cut:${normalizedCut}` }
+        }
+    }
+
+    return { include: true }
+}
+
+async function discoverCatalogUids(): Promise<string[]> {
+    const catalogUids: string[] = []
+    const seen = new Set<string>()
+    let offset = 0
+
+    while (catalogUids.length < GELATO_CATALOG_DISCOVERY_MAX) {
+        const payload = await gelato.listCatalogs({
+            limit: GELATO_CATALOG_DISCOVERY_LIMIT,
+            offset,
+        })
+        const batch = extractGelatoCatalogUids(payload)
+
+        if (batch.length === 0) {
+            break
+        }
+
+        let newCount = 0
+        for (const uid of batch) {
+            if (seen.has(uid)) {
+                continue
+            }
+            seen.add(uid)
+            catalogUids.push(uid)
+            newCount += 1
+
+            if (catalogUids.length >= GELATO_CATALOG_DISCOVERY_MAX) {
+                break
+            }
+        }
+
+        if (batch.length < GELATO_CATALOG_DISCOVERY_LIMIT || newCount === 0) {
+            break
+        }
+
+        offset += batch.length
+    }
+
+    return catalogUids
+}
 
 async function syncCatalog(catalogUid: string): Promise<SyncStats> {
     const catalogPayload = await gelato.getCatalog(catalogUid)
@@ -240,6 +341,7 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
             skippedUnavailable: 0,
             skippedUnprintable: 0,
             skippedDuplicates: 0,
+            skippedFiltered: 0,
             skippedNoProducts: 1,
             syncedPrintfulIds: [],
         }
@@ -250,18 +352,25 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
     let skippedUnavailable = 0
     let skippedUnprintable = 0
     let skippedDuplicates = 0
+    let skippedFiltered = 0
     const seenNameKeys = new Set<string>()
     const syncedPrintfulIds: string[] = []
 
     for (const productUid of productUids) {
         try {
-            const [productPayload, pricesPayload] = await Promise.all([
-                gelato.getProduct(productUid),
-                gelato.getProductPrices(productUid, {
-                    country: GELATO_PRICE_COUNTRY,
-                    currency: GELATO_PRICE_CURRENCY,
-                }),
-            ])
+            const productPayload = await gelato.getProduct(productUid)
+            const productName = extractGelatoProductName(productPayload) || buildFallbackName(productUid, catalogName)
+            const includeDecision = shouldIncludeCatalogProduct(catalogName, productName, productPayload)
+            if (!includeDecision.include) {
+                skippedFiltered += 1
+                console.log(`Skip ${productUid}: filtered (${includeDecision.reason || 'not-matching'}).`)
+                continue
+            }
+
+            const pricesPayload = await gelato.getProductPrices(productUid, {
+                country: GELATO_PRICE_COUNTRY,
+                currency: GELATO_PRICE_CURRENCY,
+            })
 
             const isPrintable = extractGelatoIsPrintable(productPayload)
             if (!isPrintable) {
@@ -277,7 +386,6 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
                 continue
             }
 
-            const productName = extractGelatoProductName(productPayload) || buildFallbackName(productUid, catalogName)
             const description = extractGelatoProductDescription(productPayload) || productName
             const sizes = extractGelatoProductSizes(productPayload)
             const printfulId = `gelato:${productUid}`
@@ -349,6 +457,7 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
         skippedUnavailable,
         skippedUnprintable,
         skippedDuplicates,
+        skippedFiltered,
         skippedNoProducts: 0,
         syncedPrintfulIds,
     }
@@ -477,6 +586,7 @@ async function syncStoreTemplates(
             skippedUnavailable: 0,
             skippedUnprintable: 0,
             skippedDuplicates: 0,
+            skippedFiltered: 0,
             skippedNoProducts: 1,
             syncedPrintfulIds: [],
         }
@@ -608,6 +718,7 @@ async function syncStoreTemplates(
         skippedUnavailable,
         skippedUnprintable: 0,
         skippedDuplicates,
+        skippedFiltered: 0,
         skippedNoProducts: 0,
         syncedPrintfulIds,
     }
@@ -637,7 +748,7 @@ async function deactivateMissingSyncedProducts(syncedPrintfulIds: Set<string>): 
 async function main() {
     console.log('Starting Gelato product sync...')
     console.log(
-        `Config: mode=${GELATO_SYNC_MODE} pageLimit=${GELATO_SYNC_PAGE_LIMIT} offset=${GELATO_SYNC_OFFSET} maxProducts=${GELATO_SYNC_MAX_PRODUCTS || 'all'} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dedupeByName=${GELATO_SYNC_DEDUPE_BY_NAME} deactivateMissing=${GELATO_SYNC_DEACTIVATE_MISSING} dryRun=${GELATO_SYNC_DRY_RUN}`
+        `Config: mode=${GELATO_SYNC_MODE} pageLimit=${GELATO_SYNC_PAGE_LIMIT} offset=${GELATO_SYNC_OFFSET} maxProducts=${GELATO_SYNC_MAX_PRODUCTS || 'all'} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dedupeByName=${GELATO_SYNC_DEDUPE_BY_NAME} deactivateMissing=${GELATO_SYNC_DEACTIVATE_MISSING} dryRun=${GELATO_SYNC_DRY_RUN} apparelOnly=${GELATO_SYNC_APPAREL_ONLY} cuts=${GELATO_SYNC_GARMENT_CUTS.join('|') || 'all'} autoDiscoverCatalogs=${GELATO_SYNC_CATALOG_AUTO_DISCOVER}`
     )
 
     let totalSynced = 0
@@ -645,48 +756,65 @@ async function main() {
     let totalSkippedUnavailable = 0
     let totalSkippedUnprintable = 0
     let totalSkippedDuplicates = 0
+    let totalSkippedFiltered = 0
     let totalCatalogsWithoutProducts = 0
     const syncedPrintfulIds = new Set<string>()
 
-    if (GELATO_SYNC_MODE === 'store-templates') {
-        const storeId = resolveGelatoStoreId()
-        const templateMappings = resolveGelatoTemplateMappings()
-        console.log(`Store mode: storeId=${storeId} templates=${templateMappings.length}`)
-
-        const stats = await syncStoreTemplates(storeId, templateMappings)
+    const mergeStats = (stats: SyncStats) => {
         totalSynced += stats.synced
         totalSkippedNoPrice += stats.skippedNoPrice
         totalSkippedUnavailable += stats.skippedUnavailable
         totalSkippedUnprintable += stats.skippedUnprintable
         totalSkippedDuplicates += stats.skippedDuplicates
+        totalSkippedFiltered += stats.skippedFiltered
         totalCatalogsWithoutProducts += stats.skippedNoProducts
         for (const printfulId of stats.syncedPrintfulIds) {
             syncedPrintfulIds.add(printfulId)
         }
-    } else {
-        if (rawCatalogUids.length === 0) {
-            throw new Error('GELATO_CATALOG_UIDS is required (comma-separated list) when GELATO_SYNC_MODE=catalog')
+    }
+
+    const shouldRunStoreTemplates = GELATO_SYNC_MODE === 'store-templates' || GELATO_SYNC_MODE === 'hybrid'
+    const shouldRunCatalogs = GELATO_SYNC_MODE === 'catalog' || GELATO_SYNC_MODE === 'hybrid'
+
+    if (!shouldRunStoreTemplates && !shouldRunCatalogs) {
+        throw new Error(`Unsupported GELATO_SYNC_MODE: ${GELATO_SYNC_MODE}`)
+    }
+
+    if (shouldRunStoreTemplates) {
+        const storeId = resolveGelatoStoreId()
+        const templateMappings = resolveGelatoTemplateMappings()
+        console.log(`Store mode: storeId=${storeId} templates=${templateMappings.length}`)
+
+        const stats = await syncStoreTemplates(storeId, templateMappings)
+        mergeStats(stats)
+    }
+
+    if (shouldRunCatalogs) {
+        let catalogUids = rawCatalogUids
+        if (catalogUids.length === 0 && GELATO_SYNC_CATALOG_AUTO_DISCOVER) {
+            console.log(
+                `Catalog mode: auto-discovering catalog UIDs (limit=${GELATO_CATALOG_DISCOVERY_LIMIT}, max=${GELATO_CATALOG_DISCOVERY_MAX})`
+            )
+            catalogUids = await discoverCatalogUids()
         }
 
-        console.log(`Catalog mode: ${rawCatalogUids.join(', ')}`)
-        for (const catalogUid of rawCatalogUids) {
+        if (catalogUids.length === 0) {
+            throw new Error(
+                'GELATO_CATALOG_UIDS is required when no catalogs are auto-discovered. Set GELATO_CATALOG_UIDS or enable GELATO_SYNC_CATALOG_AUTO_DISCOVER=1.'
+            )
+        }
+
+        console.log(`Catalog mode: ${catalogUids.join(', ')}`)
+        for (const catalogUid of catalogUids) {
             const stats = await syncCatalog(catalogUid)
-            totalSynced += stats.synced
-            totalSkippedNoPrice += stats.skippedNoPrice
-            totalSkippedUnavailable += stats.skippedUnavailable
-            totalSkippedUnprintable += stats.skippedUnprintable
-            totalSkippedDuplicates += stats.skippedDuplicates
-            totalCatalogsWithoutProducts += stats.skippedNoProducts
-            for (const printfulId of stats.syncedPrintfulIds) {
-                syncedPrintfulIds.add(printfulId)
-            }
+            mergeStats(stats)
         }
     }
 
     const deactivated = await deactivateMissingSyncedProducts(syncedPrintfulIds)
 
     console.log(
-        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} skippedUnprintable=${totalSkippedUnprintable} skippedDuplicates=${totalSkippedDuplicates} emptyCatalogs=${totalCatalogsWithoutProducts} deactivated=${deactivated}`
+        `Gelato sync completed. synced=${totalSynced} skippedNoPrice=${totalSkippedNoPrice} skippedUnavailable=${totalSkippedUnavailable} skippedUnprintable=${totalSkippedUnprintable} skippedDuplicates=${totalSkippedDuplicates} skippedFiltered=${totalSkippedFiltered} emptyCatalogs=${totalCatalogsWithoutProducts} deactivated=${deactivated}`
     )
 }
 
