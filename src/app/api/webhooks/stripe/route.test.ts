@@ -25,6 +25,9 @@ const mocks = vi.hoisted(() => ({
   printful: {
     createOrder: vi.fn(),
   },
+  gelato: {
+    createOrder: vi.fn(),
+  },
   sendOrderConfirmation: vi.fn(),
   sendMakeOrderAlert: vi.fn(),
 }))
@@ -39,6 +42,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/printful', () => ({
   printful: mocks.printful,
+}))
+
+vi.mock('@/lib/gelato', () => ({
+  gelato: mocks.gelato,
 }))
 
 vi.mock('@/lib/resend', () => ({
@@ -144,6 +151,7 @@ describe('/api/webhooks/stripe POST', () => {
       })
     )
     expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gelato.createOrder).not.toHaveBeenCalled()
     expect(mocks.sendMakeOrderAlert).not.toHaveBeenCalled()
   })
 
@@ -227,5 +235,89 @@ describe('/api/webhooks/stripe POST', () => {
       status: 'processing',
       printfulOrderId: 'pf_12345',
     })
+  })
+
+  it('creates Gelato order with required currency and order reference', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-gelato',
+        designId: 'design-1',
+        size: 'M',
+        color: 'White',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_gelato',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 4210,
+          amount_subtotal: 3611,
+          shipping_cost: { amount_total: 599 },
+          currency: 'chf',
+          customer_email: 'gelato@example.com',
+          customer_details: { email: 'gelato@example.com' },
+          shipping_details: {
+            name: 'Gelato Buyer',
+            address: {
+              line1: 'Lake St 9',
+              city: 'Geneva',
+              country: 'CH',
+              postal_code: '1201',
+              state: null,
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-gelato',
+        printfulId: 'gelato:template:abc',
+        sellPrice: 36.11,
+        colors: [],
+        printArea: {
+          variantMapping: {
+            'm:white': 'gelato_uid_white_m',
+          },
+        },
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design-gelato.png',
+      },
+    ])
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_gelato_1', total: 42.1 })
+    mocks.gelato.createOrder.mockResolvedValue({ id: 'gel_order_123' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-gelato-ok' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+
+    expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gelato.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderReferenceId: 'order_gelato_1',
+        currency: 'CHF',
+        customerEmail: 'gelato@example.com',
+      })
+    )
+
+    expect(mocks.sendMakeOrderAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-gelato-ok',
+        orderId: 'order_gelato_1',
+        printfulOrderId: 'gel_order_123',
+      })
+    )
   })
 })

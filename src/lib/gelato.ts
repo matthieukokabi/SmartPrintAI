@@ -920,7 +920,8 @@ export class GelatoClient {
     }
 
     async createOrder(params: {
-        orderReferenceId?: string
+        orderReferenceId: string
+        currency: string
         customerEmail: string
         shippingAddress: {
             firstName: string
@@ -942,13 +943,16 @@ export class GelatoClient {
             fileUrl?: string
         }>
     }) {
+        if (!params.orderReferenceId?.trim()) throw new Error('orderReferenceId is required')
+        if (!params.currency?.trim()) throw new Error('currency is required')
         if (!params.customerEmail) throw new Error('customerEmail is required')
         if (!params.items?.length) throw new Error('items are required')
 
         return this.request<unknown>(`/v3/orders`, {
             method: 'POST',
             body: {
-                orderReferenceId: params.orderReferenceId,
+                orderReferenceId: params.orderReferenceId.trim(),
+                currency: params.currency.trim().toUpperCase(),
                 customerEmail: params.customerEmail,
                 shippingAddress: params.shippingAddress,
                 items: params.items,

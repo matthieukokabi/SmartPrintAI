@@ -363,8 +363,12 @@ export async function POST(req: NextRequest) {
             }
 
             if (gelatoItems.length > 0) {
+                const orderCurrency = isNonEmptyString(session.currency, 10)
+                    ? session.currency.trim().toUpperCase()
+                    : 'USD'
                 const gelatoOrder = (await gelato.createOrder({
                     orderReferenceId: order.id,
+                    currency: orderCurrency,
                     customerEmail,
                     shippingAddress: {
                         firstName: shippingDetails?.name?.split(' ')[0] || customerEmail,
