@@ -756,6 +756,69 @@ export class GelatoClient {
 
         return this.ecommerceRequest<unknown>(`/v1/templates/${encodeURIComponent(uid)}`)
     }
+
+    async createProductFromTemplate(
+        storeId: string,
+        templateId: string,
+        params: {
+            productName?: string
+            description?: string
+            placeholders: Array<{ name: string; fileUrl: string }>
+            publish?: boolean
+        }
+    ) {
+        if (!storeId.trim()) throw new Error('storeId is required')
+        if (!templateId.trim()) throw new Error('templateId is required')
+        if (!params.placeholders?.length) throw new Error('placeholders are required')
+
+        return this.ecommerceRequest<unknown>(`/v1/stores/${encodeURIComponent(storeId)}/products:create-from-template`, {
+            method: 'POST',
+            body: {
+                templateId: templateId.trim(),
+                productName: params.productName,
+                description: params.description,
+                placeholders: params.placeholders,
+                publish: params.publish ?? true,
+            },
+        })
+    }
+
+    async createOrder(params: {
+        orderReferenceId?: string
+        customerEmail: string
+        shippingAddress: {
+            firstName: string
+            lastName: string
+            companyName?: string
+            addressLine1: string
+            addressLine2?: string
+            city: string
+            postcode: string
+            stateCode?: string
+            countryCode: string
+            email: string
+            phone?: string
+        }
+        items: Array<{
+            itemReferenceId?: string
+            productUid: string
+            quantity: number
+            fileUrl?: string
+        }>
+    }) {
+        if (!params.customerEmail) throw new Error('customerEmail is required')
+        if (!params.items?.length) throw new Error('items are required')
+
+        return this.request<unknown>(`/v3/orders`, {
+            method: 'POST',
+            body: {
+                orderReferenceId: params.orderReferenceId,
+                customerEmail: params.customerEmail,
+                shippingAddress: params.shippingAddress,
+                items: params.items,
+            },
+        })
+    }
 }
 
 export const gelato = new GelatoClient()
