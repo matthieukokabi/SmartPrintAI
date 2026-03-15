@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+    extractGelatoCreatedStoreProductUid,
     extractGelatoColorName,
     extractGelatoMinUnitPrice,
     extractGelatoProductName,
@@ -8,6 +9,7 @@ import {
     extractGelatoStoreProductSizes,
     extractGelatoStoreProducts,
     extractGelatoStoreProductVariantUids,
+    extractGelatoTemplatePlaceholderName,
     extractGelatoTemplateProductUids,
 } from './gelato'
 
@@ -110,5 +112,27 @@ describe('Gelato ecommerce payload extraction', () => {
         }
 
         expect(extractGelatoTemplateProductUids(payload)).toEqual(['uid_1', 'uid_2'])
+    })
+
+    it('extracts template placeholder by print area and falls back to first placeholder', () => {
+        const payload = {
+            variants: [
+                {
+                    imagePlaceholders: [
+                        { name: 'FrontImage.png', printArea: 'front' },
+                        { name: 'BackImage.png', printArea: 'back' },
+                    ],
+                },
+            ],
+        }
+
+        expect(extractGelatoTemplatePlaceholderName(payload, 'front')).toBe('FrontImage.png')
+        expect(extractGelatoTemplatePlaceholderName(payload, 'sleeve')).toBe('FrontImage.png')
+    })
+
+    it('extracts created store product uid from create-from-template payload', () => {
+        expect(extractGelatoCreatedStoreProductUid({ id: 'store_prod_1' })).toBe('store_prod_1')
+        expect(extractGelatoCreatedStoreProductUid({ product: { id: 'store_prod_2' } })).toBe('store_prod_2')
+        expect(extractGelatoCreatedStoreProductUid({})).toBeNull()
     })
 })

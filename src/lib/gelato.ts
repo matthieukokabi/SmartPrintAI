@@ -396,6 +396,81 @@ export function extractGelatoTemplateProductUids(templatePayload: unknown): stri
     return collectStrings(productUids)
 }
 
+export function extractGelatoTemplatePlaceholderName(
+    templatePayload: unknown,
+    preferredPrintArea?: string
+): string | null {
+    if (!isObject(templatePayload)) {
+        return null
+    }
+
+    const normalizedPreferredArea = asNonEmptyString(preferredPrintArea)?.toLowerCase() || null
+    const variants = templatePayload.variants
+    if (!Array.isArray(variants)) {
+        return null
+    }
+
+    let fallbackPlaceholderName: string | null = null
+
+    for (const variant of variants) {
+        if (!isObject(variant)) {
+            continue
+        }
+
+        const rawPlaceholders = variant.imagePlaceholders
+        if (!Array.isArray(rawPlaceholders)) {
+            continue
+        }
+
+        for (const placeholder of rawPlaceholders) {
+            if (!isObject(placeholder)) {
+                continue
+            }
+
+            const placeholderName = pickString(placeholder, ['name', 'placeholderName', 'id'])
+            if (!placeholderName) {
+                continue
+            }
+
+            if (!fallbackPlaceholderName) {
+                fallbackPlaceholderName = placeholderName
+            }
+
+            if (!normalizedPreferredArea) {
+                continue
+            }
+
+            const placeholderArea = pickString(placeholder, ['printArea', 'area'])?.toLowerCase()
+            if (placeholderArea === normalizedPreferredArea) {
+                return placeholderName
+            }
+        }
+    }
+
+    return fallbackPlaceholderName
+}
+
+export function extractGelatoCreatedStoreProductUid(payload: unknown): string | null {
+    if (!isObject(payload)) {
+        return null
+    }
+
+    const directUid = pickString(payload, ['id', 'uid', 'storeProductUid', 'productUid'])
+    if (directUid) {
+        return directUid
+    }
+
+    const nestedProduct = payload.product
+    if (isObject(nestedProduct)) {
+        const nestedUid = pickString(nestedProduct, ['id', 'uid', 'storeProductUid', 'productUid'])
+        if (nestedUid) {
+            return nestedUid
+        }
+    }
+
+    return null
+}
+
 export function extractGelatoProductName(productPayload: unknown): string | null {
     if (!isObject(productPayload)) {
         return null
@@ -791,6 +866,21 @@ export class GelatoClient {
 
         return this.ecommerceRequest<unknown>(
             `/v1/stores/${encodeURIComponent(uid)}/products?${searchParams.toString()}`
+        )
+    }
+
+    async getStoreProduct(storeId: string, storeProductUid: string) {
+        const uid = storeId.trim()
+        const productUid = storeProductUid.trim()
+        if (!uid) {
+            throw new Error('storeId is required')
+        }
+        if (!productUid) {
+            throw new Error('storeProductUid is required')
+        }
+
+        return this.ecommerceRequest<unknown>(
+            `/v1/stores/${encodeURIComponent(uid)}/products/${encodeURIComponent(productUid)}`
         )
     }
 

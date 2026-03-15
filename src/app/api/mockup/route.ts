@@ -5,7 +5,13 @@ import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } 
 import { rateLimitRequest } from '@/lib/rate-limit'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { detectProductProvider } from '@/lib/product-provider'
-import { gelato, extractGelatoProductImageUrl } from '@/lib/gelato'
+import {
+    extractGelatoCreatedStoreProductUid,
+    extractGelatoProductImageUrl,
+    extractGelatoStoreProductImageUrl,
+    extractGelatoTemplatePlaceholderName,
+    gelato,
+} from '@/lib/gelato'
 
 type MockupPayload = {
     designId: string
@@ -84,6 +90,42 @@ function parsePrintfulRateLimit(error: unknown): { retryAfterSec: number } | nul
         return { retryAfterSec: 30 }
     }
     return { retryAfterSec }
+}
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms)
+    })
+}
+
+async function resolveGelatoPreviewUrl(storeId: string, createPayload: unknown): Promise<string | null> {
+    const immediate = extractGelatoProductImageUrl(createPayload)
+    if (immediate) {
+        return immediate
+    }
+
+    const storeProductUid = extractGelatoCreatedStoreProductUid(createPayload)
+    if (!storeProductUid) {
+        return null
+    }
+
+    const maxAttempts = 8
+    const waitMs = 1500
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        if (attempt > 0) {
+            await sleep(waitMs)
+        }
+
+        const storeProductPayload = await gelato.getStoreProduct(storeId, storeProductUid)
+        const fromStorePayload =
+            extractGelatoStoreProductImageUrl(storeProductPayload) || extractGelatoProductImageUrl(storeProductPayload)
+        if (fromStorePayload) {
+            return fromStorePayload
+        }
+    }
+
+    return null
 }
 
 export async function POST(req: NextRequest) {
@@ -166,25 +208,54 @@ export async function POST(req: NextRequest) {
             const printArea = (product.printArea || {}) as Record<string, unknown>
             const storeId = printArea.providerStoreId as string
             const templateId = printArea.providerTemplateId as string
-            const placeholder = (printArea.providerPrintAreaPlaceholder as string) || 'front'
+            const printAreaPlaceholder = (printArea.providerPrintAreaPlaceholder as string) || 'front'
+            const mappedPlaceholderName =
+                typeof printArea.providerTemplatePlaceholderName === 'string'
+                    ? printArea.providerTemplatePlaceholderName.trim()
+                    : ''
 
             if (!storeId || !templateId) {
                 logApiWarn(route, requestId, 'gelato_mapping_incomplete', { productId })
                 return respond({ error: 'Gelato product mapping incomplete' }, { status: 400 })
             }
 
-            logApiInfo(route, requestId, 'generating_gelato_mockup', { storeId, templateId })
+            let resolvedPlaceholderName = mappedPlaceholderName
+            if (!resolvedPlaceholderName) {
+                const templatePayload = await gelato.getTemplate(templateId)
+                resolvedPlaceholderName =
+                    extractGelatoTemplatePlaceholderName(templatePayload, printAreaPlaceholder) || printAreaPlaceholder
+            }
+
+            if (!resolvedPlaceholderName) {
+                logApiWarn(route, requestId, 'gelato_placeholder_missing', { productId, templateId })
+                return respond({ error: 'Gelato template placeholder is missing' }, { status: 400 })
+            }
+
+            logApiInfo(route, requestId, 'generating_gelato_mockup', {
+                storeId,
+                templateId,
+                placeholderName: resolvedPlaceholderName,
+            })
 
             const gelatoResult = await gelato.createProductFromTemplate(storeId, templateId, {
                 productName: `Preview: ${product.name} (${designId})`,
-                placeholders: [{ name: placeholder, fileUrl: design.imageUrl }],
+                placeholders: [{ name: resolvedPlaceholderName, fileUrl: design.imageUrl }],
                 publish: false,
             })
 
-            mockupUrl = extractGelatoProductImageUrl(gelatoResult)
+            mockupUrl = await resolveGelatoPreviewUrl(storeId, gelatoResult)
             if (!mockupUrl) {
-                logApiWarn(route, requestId, 'gelato_no_mockup_returned')
-                throw new Error('No Gelato mockup URL returned')
+                const retryAfterSec = 8
+                logApiWarn(route, requestId, 'gelato_no_mockup_returned', { retryAfterSec })
+                const response = respond(
+                    {
+                        error: 'Mockup provider is temporarily busy. Retrying shortly.',
+                        retryAfterSec,
+                    },
+                    { status: 429 }
+                )
+                response.headers.set('retry-after', String(retryAfterSec))
+                return response
             }
         } else {
             const printfulProductId = Number(product.printfulId)
