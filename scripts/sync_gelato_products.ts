@@ -22,6 +22,8 @@ import {
     extractGelatoStoreProductUid,
     extractGelatoStoreProductVariantUids,
     extractGelatoTemplateProductUids,
+    extractGelatoStoreVariantMapping,
+    extractGelatoVariantMapping,
 } from '../src/lib/gelato'
 import { type GelatoTemplateMappingEntry, resolveGelatoStoreId, resolveGelatoTemplateMappings } from '../src/lib/gelato-template-mapping'
 
@@ -306,6 +308,7 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
                     providerCatalogUid: catalogUid,
                     providerProductUid: productUid,
                     printable: isPrintable,
+                    variantMapping: extractGelatoVariantMapping(productPayload),
                 },
                 active: true,
             }
@@ -521,6 +524,7 @@ async function syncStoreTemplates(
                 providerTemplateProductType: templateMapping.productType,
                 providerPrintAreaPlaceholder: templateMapping.printAreaPlaceholder,
                 printable: true,
+                variantMapping: extractGelatoStoreVariantMapping(storeProduct),
             },
             active: true,
         }

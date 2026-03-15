@@ -261,6 +261,52 @@ export function extractGelatoStoreProductVariantUids(storeProductPayload: unknow
     return collectStrings(productUids)
 }
 
+export function extractGelatoStoreVariantMapping(payload: unknown): Record<string, string> {
+    const variants = (payload as { variants?: Array<Record<string, unknown>> })?.variants || []
+    const mapping: Record<string, string> = {}
+
+    for (const v of variants) {
+        if (!v || typeof v !== 'object' || !v.productUid || typeof v.productUid !== 'string') continue
+
+        const attributes = (v.attributes as Record<string, string | undefined>) || {}
+        const size = (attributes.GarmentSize || attributes.Size || '').trim().toLowerCase()
+        const color = (attributes.GarmentColor || attributes.Color || '').trim().toLowerCase()
+
+        if (size && color) {
+            mapping[`${size}:${color}`] = v.productUid
+        } else if (size) {
+            mapping[size] = v.productUid
+        } else if (color) {
+            mapping[color] = v.productUid
+        }
+    }
+
+    return mapping
+}
+
+export function extractGelatoVariantMapping(payload: unknown): Record<string, string> {
+    const variants = (payload as { variants?: Array<Record<string, unknown>> })?.variants || []
+    const mapping: Record<string, string> = {}
+
+    for (const v of variants) {
+        if (!v || typeof v !== 'object' || !v.productUid || typeof v.productUid !== 'string') continue
+
+        const attributes = (v.attributes as Record<string, string | undefined>) || {}
+        const size = (attributes.GarmentSize || attributes.Size || '').trim().toLowerCase()
+        const color = (attributes.GarmentColor || attributes.Color || '').trim().toLowerCase()
+
+        if (size && color) {
+            mapping[`${size}:${color}`] = v.productUid
+        } else if (size) {
+            mapping[size] = v.productUid
+        } else if (color) {
+            mapping[color] = v.productUid
+        }
+    }
+
+    return mapping
+}
+
 function extractGelatoStoreProductOptionValues(
     storeProductPayload: unknown,
     optionNamePattern: RegExp
