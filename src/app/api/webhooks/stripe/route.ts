@@ -7,6 +7,8 @@ import { sendOrderConfirmation } from '@/lib/resend'
 import { sendMakeOrderAlert } from '@/lib/make'
 import Stripe from 'stripe'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
+import { detectProductProvider } from '@/lib/product-provider'
+import { gelato } from '@/lib/gelato'
 
 type CheckoutItem = {
     productId: string
@@ -155,7 +157,9 @@ export async function POST(req: NextRequest) {
             item: CheckoutItem
             product: (typeof products)[number]
             design: (typeof designs)[number]
-            variantId: number
+            provider: string
+            variantId?: number
+            gelatoProductUid?: string
         }> = []
 
         for (const item of items) {
@@ -166,21 +170,47 @@ export async function POST(req: NextRequest) {
                 return respond({ ok: true })
             }
 
-            const colorData = parseProductColors(product.colors).find(
-                (c) => c.name.toLowerCase() === item.color.toLowerCase()
-            )
+            const provider = detectProductProvider(product.printfulId)
 
-            if (!colorData || typeof colorData.printfulVariantId !== 'number' || colorData.printfulVariantId <= 0) {
-                logApiWarn(route, requestId, 'invalid_variant_mapping')
-                return respond({ ok: true })
+            if (provider === 'gelato') {
+                const printArea = (product.printArea || {}) as Record<string, unknown>
+                const mapping = (printArea.variantMapping || {}) as Record<string, string>
+                const sizeKey = item.size.toLowerCase()
+                const colorKey = item.color.toLowerCase()
+                const fullKey = `${sizeKey}:${colorKey}`
+
+                const gelatoProductUid = mapping[fullKey] || mapping[colorKey] || mapping[sizeKey] || (printArea.providerProductUid as string)
+
+                if (!gelatoProductUid) {
+                    logApiWarn(route, requestId, 'gelato_variant_mapping_missing', { productId: product.id, sizeKey, colorKey })
+                    return respond({ ok: true })
+                }
+
+                mappedItems.push({
+                    item,
+                    product,
+                    design,
+                    provider,
+                    gelatoProductUid,
+                })
+            } else {
+                const colorData = parseProductColors(product.colors).find(
+                    (c) => c.name.toLowerCase() === item.color.toLowerCase()
+                )
+
+                if (!colorData || typeof colorData.printfulVariantId !== 'number' || colorData.printfulVariantId <= 0) {
+                    logApiWarn(route, requestId, 'invalid_variant_mapping', { productId: product.id })
+                    return respond({ ok: true })
+                }
+
+                mappedItems.push({
+                    item,
+                    product,
+                    design,
+                    provider: 'printful',
+                    variantId: colorData.printfulVariantId,
+                })
             }
-
-            mappedItems.push({
-                item,
-                product,
-                design,
-                variantId: colorData.printfulVariantId,
-            })
         }
 
         const customerEmail =
@@ -306,27 +336,61 @@ export async function POST(req: NextRequest) {
         }
 
         try {
-            const printfulOrder = (await printful.createOrder({
-                email: customerEmail,
-                shippingAddress: {
-                    name: shippingDetails?.name || customerEmail,
-                    address1: address.line1!,
-                    city: address.city!,
-                    state_code: address.state || '',
-                    country_code: address.country!,
-                    zip: address.postal_code!,
-                },
-                items: mappedItems.map(({ item, design, variantId }) => ({
-                    variantId,
-                    quantity: item.quantity,
-                    imageUrl: design.imageUrl,
-                })),
-            })) as PrintfulOrderResponse
+            const printfulItems = mappedItems.filter((i) => i.provider === 'printful')
+            const gelatoItems = mappedItems.filter((i) => i.provider === 'gelato')
+
+            let printfulOrderId: string | null = null
+            let gelatoOrderId: string | null = null
+
+            if (printfulItems.length > 0) {
+                const printfulOrder = (await printful.createOrder({
+                    email: customerEmail,
+                    shippingAddress: {
+                        name: shippingDetails?.name || customerEmail,
+                        address1: address.line1!,
+                        city: address.city!,
+                        state_code: address.state || '',
+                        country_code: address.country!,
+                        zip: address.postal_code!,
+                    },
+                    items: printfulItems.map(({ item, design, variantId }) => ({
+                        variantId: variantId!,
+                        quantity: item.quantity,
+                        imageUrl: design.imageUrl,
+                    })),
+                })) as PrintfulOrderResponse
+                printfulOrderId = String(printfulOrder.id)
+            }
+
+            if (gelatoItems.length > 0) {
+                const gelatoOrder = (await gelato.createOrder({
+                    orderReferenceId: order.id,
+                    customerEmail,
+                    shippingAddress: {
+                        firstName: shippingDetails?.name?.split(' ')[0] || customerEmail,
+                        lastName: shippingDetails?.name?.split(' ').slice(1).join(' ') || 'Customer',
+                        addressLine1: address.line1!,
+                        addressLine2: address.line2 || '',
+                        city: address.city!,
+                        postcode: address.postal_code!,
+                        stateCode: address.state || '',
+                        countryCode: address.country!,
+                        email: customerEmail,
+                    },
+                    items: gelatoItems.map(({ item, design, gelatoProductUid }) => ({
+                        itemReferenceId: `${order.id}-${item.productId}`,
+                        productUid: gelatoProductUid!,
+                        quantity: item.quantity,
+                        fileUrl: design.imageUrl,
+                    })),
+                })) as { id: string }
+                gelatoOrderId = gelatoOrder.id
+            }
 
             await prisma.order.update({
                 where: { id: order.id },
                 data: {
-                    printfulOrderId: String(printfulOrder.id),
+                    printfulOrderId: gelatoOrderId || printfulOrderId,
                     status: 'processing',
                 },
             })
@@ -346,7 +410,7 @@ export async function POST(req: NextRequest) {
                 total: order.total,
                 itemsCount: items.length,
                 status: 'processing',
-                printfulOrderId: String(printfulOrder.id),
+                printfulOrderId: gelatoOrderId || printfulOrderId || '',
             })
 
             logApiInfo(route, requestId, 'request_succeeded', { orderId: order.id })
