@@ -44,6 +44,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Fixed production key-rotation script bug that wrote blank keys (hidden prompt newlines no longer pollute captured values) (2026-03-11)
 
 ### P1 - Product and Revenue Readiness
+- [x] Enable AI-mockup eligibility for Gelato products (2026-03-15)
 - [x] Confirm prompt -> generation -> mockup -> checkout flow with production-grade QA pass (2026-03-11: VPS sanity chain `generate=200`, `mockup=200`, `checkout=200`)
 - [x] Gemini paid quota/billing enabled and validated by live generation request (`/api/generate` returning 200 on 2026-03-11)
 - [x] Verify generated design image URLs open publicly after storage proxy/policy fix (2026-03-11 automated live check: `/api/generate` `200`, returned `imageUrl`, direct `HEAD` to image `200`)

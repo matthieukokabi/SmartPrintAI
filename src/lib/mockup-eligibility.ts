@@ -20,7 +20,12 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
         return false
     }
 
-    // Only Printful-backed numeric product ids are eligible for current AI mockup flow.
+    // Gelato products are eligible for AI mockup flow.
+    if (printfulId.startsWith('gelato:')) {
+        return true
+    }
+
+    // Only Printful-backed numeric product ids are eligible for default AI mockup flow.
     if (!/^\d+$/.test(printfulId)) {
         return false
     }
