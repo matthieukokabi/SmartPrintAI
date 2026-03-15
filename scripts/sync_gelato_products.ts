@@ -22,6 +22,7 @@ import {
     extractGelatoStoreProducts,
     extractGelatoStoreProductUid,
     extractGelatoStoreProductVariantUids,
+    extractGelatoTemplatePlaceholderName,
     extractGelatoTemplateProductUids,
     extractGelatoStoreVariantMapping,
     extractGelatoVariantMapping,
@@ -43,6 +44,8 @@ type TemplateIndex = {
     byVariantUid: Map<string, GelatoTemplateMappingEntry>
     byTemplateName: Map<string, GelatoTemplateMappingEntry>
     validatedTemplateIds: Set<string>
+    templatePlaceholderNames: Map<string, string>
+    templateHasPlaceholders: Set<string>
 }
 
 const STORE_PRODUCTS_PAGE_LIMIT = Number(process.env.GELATO_STORE_PRODUCTS_PAGE_LIMIT || 50)
@@ -356,6 +359,8 @@ async function buildTemplateIndex(templateMappings: GelatoTemplateMappingEntry[]
     const byVariantUid = new Map<string, GelatoTemplateMappingEntry>()
     const byTemplateName = new Map<string, GelatoTemplateMappingEntry>()
     const validatedTemplateIds = new Set<string>()
+    const templatePlaceholderNames = new Map<string, string>()
+    const templateHasPlaceholders = new Set<string>()
 
     for (const mapping of templateMappings) {
         byTemplateId.set(mapping.templateId, mapping)
@@ -368,6 +373,14 @@ async function buildTemplateIndex(templateMappings: GelatoTemplateMappingEntry[]
             const templatePayload = await gelato.getTemplate(mapping.templateId)
             const variantUids = extractGelatoTemplateProductUids(templatePayload)
             validatedTemplateIds.add(mapping.templateId)
+            const placeholderName = extractGelatoTemplatePlaceholderName(
+                templatePayload,
+                mapping.printAreaPlaceholder
+            )
+            if (placeholderName) {
+                templateHasPlaceholders.add(mapping.templateId)
+                templatePlaceholderNames.set(mapping.templateId, placeholderName)
+            }
             if (variantUids.length === 0) {
                 console.log(`Template ${mapping.templateId}: no variant product UIDs returned.`)
                 continue
@@ -387,7 +400,14 @@ async function buildTemplateIndex(templateMappings: GelatoTemplateMappingEntry[]
         }
     }
 
-    return { byTemplateId, byVariantUid, byTemplateName, validatedTemplateIds }
+    return {
+        byTemplateId,
+        byVariantUid,
+        byTemplateName,
+        validatedTemplateIds,
+        templatePlaceholderNames,
+        templateHasPlaceholders,
+    }
 }
 
 async function fetchStoreProducts(storeId: string): Promise<unknown[]> {
@@ -516,11 +536,16 @@ async function syncStoreTemplates(
         const storeTemplateId = extractGelatoStoreProductTemplateId(storeProduct)
         const resolvedTemplateId = storeTemplateId || templateMapping.templateId
         const templateValidated = templateIndex.validatedTemplateIds.has(resolvedTemplateId)
+        const templateHasPlaceholders = templateIndex.templateHasPlaceholders.has(resolvedTemplateId)
+        const templatePlaceholderName = templateIndex.templatePlaceholderNames.get(resolvedTemplateId) || null
 
         if (!templateValidated) {
             console.log(
                 `Template ${resolvedTemplateId}: not validated by /v1/templates lookup; store-product title fallback used for ${productName}.`
             )
+        }
+        if (templateValidated && !templateHasPlaceholders) {
+            console.log(`Template ${resolvedTemplateId}: validated but has no image placeholders.`)
         }
 
         const data = {
@@ -546,6 +571,8 @@ async function syncStoreTemplates(
                 providerTemplateProductType: templateMapping.productType,
                 providerPrintAreaPlaceholder: templateMapping.printAreaPlaceholder,
                 providerTemplateValidated: templateValidated,
+                providerTemplateHasPlaceholders: templateHasPlaceholders,
+                providerTemplatePlaceholderName: templatePlaceholderName,
                 printable: true,
                 variantMapping: extractGelatoStoreVariantMapping(storeProduct),
             },

@@ -30,12 +30,19 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
         const templateId =
             typeof printArea?.providerTemplateId === 'string' ? printArea.providerTemplateId.trim() : ''
         const validated = printArea?.providerTemplateValidated
+        const hasPlaceholders = printArea?.providerTemplateHasPlaceholders
 
         if (typeof validated === 'boolean') {
+            if (typeof hasPlaceholders === 'boolean') {
+                return validated && hasPlaceholders && templateId.length > 0
+            }
             return validated && templateId.length > 0
         }
 
         if (printArea) {
+            if (typeof hasPlaceholders === 'boolean') {
+                return hasPlaceholders && templateId.length > 0
+            }
             return templateId.length > 0
         }
 

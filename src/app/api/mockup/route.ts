@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
             const printArea = (product.printArea || {}) as Record<string, unknown>
             const storeId = printArea.providerStoreId as string
             const templateId = printArea.providerTemplateId as string
+            const templateHasPlaceholders = printArea.providerTemplateHasPlaceholders as boolean | undefined
             const printAreaPlaceholder = (printArea.providerPrintAreaPlaceholder as string) || 'front'
             const mappedPlaceholderName =
                 typeof printArea.providerTemplatePlaceholderName === 'string'
@@ -217,6 +218,15 @@ export async function POST(req: NextRequest) {
             if (!storeId || !templateId) {
                 logApiWarn(route, requestId, 'gelato_mapping_incomplete', { productId })
                 return respond({ error: 'Gelato product mapping incomplete' }, { status: 400 })
+            }
+            if (templateHasPlaceholders === false) {
+                logApiWarn(route, requestId, 'gelato_template_missing_placeholder', { productId, templateId })
+                return respond(
+                    {
+                        error: 'Gelato template has no image placeholder configured. Update the template in Gelato before generating mockups.',
+                    },
+                    { status: 400 }
+                )
             }
 
             let resolvedPlaceholderName = mappedPlaceholderName

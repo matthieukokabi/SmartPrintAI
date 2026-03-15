@@ -22,6 +22,7 @@ describe('isMockupEligibleProduct', () => {
                 printArea: {
                     providerTemplateId: 'template_1',
                     providerTemplateValidated: true,
+                    providerTemplateHasPlaceholders: true,
                 },
             })
         ).toBe(true)
@@ -35,6 +36,21 @@ describe('isMockupEligibleProduct', () => {
                 printArea: {
                     providerTemplateId: 'template_1',
                     providerTemplateValidated: false,
+                    providerTemplateHasPlaceholders: true,
+                },
+            })
+        ).toBe(false)
+    })
+
+    it('returns false for Gelato-prefixed IDs when template has no placeholders', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Gelato T-shirt',
+                printfulId: 'gelato:uid_123',
+                printArea: {
+                    providerTemplateId: 'template_1',
+                    providerTemplateValidated: true,
+                    providerTemplateHasPlaceholders: false,
                 },
             })
         ).toBe(false)
