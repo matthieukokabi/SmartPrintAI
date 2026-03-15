@@ -205,6 +205,14 @@ export function extractGelatoStoreProductName(storeProductPayload: unknown): str
     return pickString(storeProductPayload, ['title', 'name', 'productName', 'displayName'])
 }
 
+export function extractGelatoStoreProductTemplateId(storeProductPayload: unknown): string | null {
+    if (!isObject(storeProductPayload)) {
+        return null
+    }
+
+    return pickString(storeProductPayload, ['parentTemplateId', 'templateId', 'productTemplateId'])
+}
+
 export function extractGelatoStoreProductDescription(storeProductPayload: unknown): string | null {
     if (!isObject(storeProductPayload)) {
         return null

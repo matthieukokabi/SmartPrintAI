@@ -18,6 +18,7 @@ import {
     extractGelatoStoreProductImageUrl,
     extractGelatoStoreProductName,
     extractGelatoStoreProductSizes,
+    extractGelatoStoreProductTemplateId,
     extractGelatoStoreProducts,
     extractGelatoStoreProductUid,
     extractGelatoStoreProductVariantUids,
@@ -40,6 +41,8 @@ type SyncStats = {
 type TemplateIndex = {
     byTemplateId: Map<string, GelatoTemplateMappingEntry>
     byVariantUid: Map<string, GelatoTemplateMappingEntry>
+    byTemplateName: Map<string, GelatoTemplateMappingEntry>
+    validatedTemplateIds: Set<string>
 }
 
 const STORE_PRODUCTS_PAGE_LIMIT = Number(process.env.GELATO_STORE_PRODUCTS_PAGE_LIMIT || 50)
@@ -351,13 +354,20 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
 async function buildTemplateIndex(templateMappings: GelatoTemplateMappingEntry[]): Promise<TemplateIndex> {
     const byTemplateId = new Map<string, GelatoTemplateMappingEntry>()
     const byVariantUid = new Map<string, GelatoTemplateMappingEntry>()
+    const byTemplateName = new Map<string, GelatoTemplateMappingEntry>()
+    const validatedTemplateIds = new Set<string>()
 
     for (const mapping of templateMappings) {
         byTemplateId.set(mapping.templateId, mapping)
+        const templateNameKey = normalizeNameKey(mapping.templateName)
+        if (templateNameKey && !byTemplateName.has(templateNameKey)) {
+            byTemplateName.set(templateNameKey, mapping)
+        }
 
         try {
             const templatePayload = await gelato.getTemplate(mapping.templateId)
             const variantUids = extractGelatoTemplateProductUids(templatePayload)
+            validatedTemplateIds.add(mapping.templateId)
             if (variantUids.length === 0) {
                 console.log(`Template ${mapping.templateId}: no variant product UIDs returned.`)
                 continue
@@ -377,7 +387,7 @@ async function buildTemplateIndex(templateMappings: GelatoTemplateMappingEntry[]
         }
     }
 
-    return { byTemplateId, byVariantUid }
+    return { byTemplateId, byVariantUid, byTemplateName, validatedTemplateIds }
 }
 
 async function fetchStoreProducts(storeId: string): Promise<unknown[]> {
@@ -461,11 +471,14 @@ async function syncStoreTemplates(
 
     for (const storeProduct of storeProducts) {
         const variantUids = extractGelatoStoreProductVariantUids(storeProduct)
+        const storeProductName = extractGelatoStoreProductName(storeProduct) || ''
+        const storeProductNameKey = normalizeNameKey(storeProductName)
         const matchedMappings = variantUids
             .map((uid) => templateIndex.byVariantUid.get(uid))
             .filter((mapping): mapping is GelatoTemplateMappingEntry => Boolean(mapping))
 
-        const templateMapping = matchedMappings[0]
+        const templateMapping =
+            matchedMappings[0] || (storeProductNameKey ? templateIndex.byTemplateName.get(storeProductNameKey) : undefined)
         if (!templateMapping) {
             continue
         }
@@ -477,7 +490,7 @@ async function syncStoreTemplates(
 
         const printfulId = buildTemplatePrintfulId(templateMapping.templateId)
         const productName =
-            extractGelatoStoreProductName(storeProduct) ||
+            storeProductName ||
             templateMapping.templateName ||
             `Gelato Template ${templateMapping.templateId}`
         const description = extractGelatoStoreProductDescription(storeProduct) || productName
@@ -500,6 +513,15 @@ async function syncStoreTemplates(
         const sellPrice =
             existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
         const storeProductUid = extractGelatoStoreProductUid(storeProduct) || templateMapping.templateId
+        const storeTemplateId = extractGelatoStoreProductTemplateId(storeProduct)
+        const resolvedTemplateId = storeTemplateId || templateMapping.templateId
+        const templateValidated = templateIndex.validatedTemplateIds.has(resolvedTemplateId)
+
+        if (!templateValidated) {
+            console.log(
+                `Template ${resolvedTemplateId}: not validated by /v1/templates lookup; store-product title fallback used for ${productName}.`
+            )
+        }
 
         const data = {
             name: productName,
@@ -519,10 +541,11 @@ async function syncStoreTemplates(
                 provider: 'gelato',
                 providerStoreId: storeId,
                 providerStoreProductUid: storeProductUid,
-                providerTemplateId: templateMapping.templateId,
+                providerTemplateId: resolvedTemplateId,
                 providerTemplateName: templateMapping.templateName,
                 providerTemplateProductType: templateMapping.productType,
                 providerPrintAreaPlaceholder: templateMapping.printAreaPlaceholder,
+                providerTemplateValidated: templateValidated,
                 printable: true,
                 variantMapping: extractGelatoStoreVariantMapping(storeProduct),
             },

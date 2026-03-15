@@ -6,6 +6,7 @@ import {
     extractGelatoProductName,
     extractGelatoProductSizes,
     extractGelatoStoreProductColorNames,
+    extractGelatoStoreProductTemplateId,
     extractGelatoStoreProductSizes,
     extractGelatoStoreProducts,
     extractGelatoStoreProductVariantUids,
@@ -101,6 +102,20 @@ describe('Gelato ecommerce payload extraction', () => {
         const [storeProduct] = extractGelatoStoreProducts(storeProductPayload)
         expect(extractGelatoStoreProductSizes(storeProduct)).toEqual(['S', '2XL'])
         expect(extractGelatoStoreProductColorNames(storeProduct)).toEqual(['White', 'Black'])
+    })
+
+    it('extracts template id from store product payload', () => {
+        const [storeProduct] = extractGelatoStoreProducts({
+            products: [
+                {
+                    id: 'store-product-1',
+                    title: 'SPAI T-Shirt Template',
+                    parentTemplateId: 'template_parent_1',
+                },
+            ],
+        })
+        expect(extractGelatoStoreProductTemplateId(storeProduct)).toBe('template_parent_1')
+        expect(extractGelatoStoreProductTemplateId({})).toBeNull()
     })
 
     it('extracts template product uids from template payload', () => {
