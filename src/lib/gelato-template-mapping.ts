@@ -48,6 +48,13 @@ function toTrimmedString(value: unknown): string | null {
     return normalized.length > 0 ? normalized : null
 }
 
+function normalizeProductType(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/[_\s]+/g, '-')
+}
+
 function coerceTemplateEntry(value: unknown): GelatoTemplateMappingEntry | null {
     if (typeof value !== 'object' || value === null) {
         return null
@@ -56,7 +63,8 @@ function coerceTemplateEntry(value: unknown): GelatoTemplateMappingEntry | null 
     const record = value as Record<string, unknown>
     const templateName = toTrimmedString(record.templateName)
     const templateId = toTrimmedString(record.templateId)
-    const productType = toTrimmedString(record.productType)
+    const rawProductType = toTrimmedString(record.productType)
+    const productType = rawProductType ? normalizeProductType(rawProductType) : null
     const printAreaPlaceholder = toTrimmedString(record.printAreaPlaceholder) || 'front'
 
     if (!templateName || !templateId || !productType) {
@@ -77,6 +85,7 @@ function parseTemplateEntries(value: unknown): GelatoTemplateMappingEntry[] {
     }
 
     const seenTemplateIds = new Set<string>()
+    const seenProductTypes = new Set<string>()
     const parsed: GelatoTemplateMappingEntry[] = []
 
     for (const entry of value) {
@@ -90,7 +99,12 @@ function parseTemplateEntries(value: unknown): GelatoTemplateMappingEntry[] {
             continue
         }
 
+        if (seenProductTypes.has(normalized.productType)) {
+            continue
+        }
+
         seenTemplateIds.add(dedupeKey)
+        seenProductTypes.add(normalized.productType)
         parsed.push(normalized)
     }
 

@@ -63,4 +63,45 @@ describe('gelato template mapping env override', () => {
         process.env.GELATO_TEMPLATE_MAP_JSON = '{not-json}'
         expect(() => resolveGelatoTemplateMappings()).toThrowError(/invalid gelato_template_map_json/i)
     })
+
+    it('dedupes duplicate product types and normalizes productType formatting', () => {
+        process.env.GELATO_TEMPLATE_MAP_JSON = JSON.stringify({
+            templates: [
+                {
+                    templateName: 'Primary tee',
+                    templateId: 'template-1',
+                    productType: 'T Shirt',
+                    printAreaPlaceholder: 'front',
+                },
+                {
+                    templateName: 'Duplicate tee',
+                    templateId: 'template-2',
+                    productType: 't-shirt',
+                    printAreaPlaceholder: 'front',
+                },
+                {
+                    templateName: 'Primary mug',
+                    templateId: 'template-3',
+                    productType: 'MUG',
+                    printAreaPlaceholder: 'front',
+                },
+            ],
+        })
+
+        const entries = resolveGelatoTemplateMappings()
+        expect(entries).toEqual([
+            {
+                templateName: 'Primary tee',
+                templateId: 'template-1',
+                productType: 't-shirt',
+                printAreaPlaceholder: 'front',
+            },
+            {
+                templateName: 'Primary mug',
+                templateId: 'template-3',
+                productType: 'mug',
+                printAreaPlaceholder: 'front',
+            },
+        ])
+    })
 })
