@@ -31,7 +31,7 @@ describe('gelato template mapping defaults', () => {
         const entries = resolveGelatoTemplateMappings()
 
         expect(entries).toHaveLength(5)
-        expect(entries.map((entry) => entry.templateId)).toContain('069fcba0-4c7f-4785-bf23-ecaa1c57c683')
+        expect(entries.map((entry) => entry.templateId)).toContain('d6c1754e-a328-4900-954b-5b2a2f0fd494')
     })
 })
 

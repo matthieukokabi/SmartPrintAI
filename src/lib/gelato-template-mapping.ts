@@ -10,31 +10,31 @@ const DEFAULT_GELATO_STORE_ID = '25a81457-8265-4597-9d9c-21cb5bf276fb'
 const DEFAULT_GELATO_TEMPLATE_MAPPINGS: GelatoTemplateMappingEntry[] = [
     {
         templateName: 'SPAI T-Shirt Template',
-        templateId: '069fcba0-4c7f-4785-bf23-ecaa1c57c683',
+        templateId: 'd6c1754e-a328-4900-954b-5b2a2f0fd494',
         productType: 't-shirt',
         printAreaPlaceholder: 'front',
     },
     {
         templateName: 'SPAI_MUG_FRONT',
-        templateId: '79e78f8d-b038-4ebf-8a1a-3c0074a002f2',
+        templateId: '1b880000-a97b-4101-abbd-560a694bc098',
         productType: 'mug',
         printAreaPlaceholder: 'front',
     },
     {
         templateName: 'SPAI_HOODIE_FRONT',
-        templateId: '345bc6f2-44d9-431e-ab99-6f3ebd5cd379',
+        templateId: '9b4c98c6-7a3b-462f-8ba3-a3812f0c9a35',
         productType: 'hoodie',
         printAreaPlaceholder: 'front',
     },
     {
         templateName: 'SPAI_POSTER_FRONT',
-        templateId: 'ac3c2a1e-7076-48a2-b256-9e950a0c246b',
+        templateId: 'cce62d84-241c-418f-a2e3-83ee5fcd4ae9',
         productType: 'poster',
         printAreaPlaceholder: 'front',
     },
     {
         templateName: 'SPAI_CANVAS_FRONT',
-        templateId: '01bc3462-9b65-4c11-ac37-b3d62e8b61da',
+        templateId: '7b9536e2-6fdd-42f3-92bb-df3ef272f161',
         productType: 'canvas',
         printAreaPlaceholder: 'front',
     },
