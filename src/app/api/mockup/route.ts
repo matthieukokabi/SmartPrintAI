@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
             return respond({ error: 'Design or product not found' }, { status: 404 })
         }
 
-        if (!isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })) {
+        if (!isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })) {
             logApiWarn(route, requestId, 'product_not_mockup_eligible', { productId, printfulId: product.printfulId })
             return respond(
                 { error: 'This product is currently sold without AI custom mockup preview.' },

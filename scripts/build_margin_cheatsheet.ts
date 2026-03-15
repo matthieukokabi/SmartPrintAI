@@ -11,6 +11,7 @@ type ProductRow = {
     id: string
     name: string
     printfulId: string
+    printArea: unknown
     category: string
     basePrice: number
     sellPrice: number
@@ -66,8 +67,8 @@ function estimateStripeFee(sellPrice: number, stripePercent: number, stripeFixed
     return round2(sellPrice * stripePercent + stripeFixed)
 }
 
-function toCatalogType(name: string, printfulId: string): MarginRow['catalogType'] {
-    return isMockupEligibleProduct({ name, printfulId }) ? 'ai_customizable' : 'ready_to_buy'
+function toCatalogType(name: string, printfulId: string, printArea: unknown): MarginRow['catalogType'] {
+    return isMockupEligibleProduct({ name, printfulId, printArea }) ? 'ai_customizable' : 'ready_to_buy'
 }
 
 function toMarginRow(product: ProductRow, stripePercent: number, stripeFixed: number): MarginRow {
@@ -80,7 +81,7 @@ function toMarginRow(product: ProductRow, stripePercent: number, stripeFixed: nu
         id: product.id,
         name: product.name,
         provider: detectProvider(product.printfulId),
-        catalogType: toCatalogType(product.name, product.printfulId),
+        catalogType: toCatalogType(product.name, product.printfulId, product.printArea),
         category: product.category,
         basePrice: round2(product.basePrice),
         sellPrice: round2(product.sellPrice),
@@ -248,6 +249,7 @@ async function main() {
                 id: true,
                 name: true,
                 printfulId: true,
+                printArea: true,
                 category: true,
                 basePrice: true,
                 sellPrice: true,

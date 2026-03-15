@@ -26,14 +26,14 @@ export default async function ProductsPage() {
         orderBy: { name: 'asc' },
     })
     const customizableProducts = products.filter((product) =>
-        isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+        isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
     )
     const printableCatalogProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea }) &&
         isGelatoProduct(product.printfulId)
     )
     const readyToBuyProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId }) &&
+        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea }) &&
         !isGelatoProduct(product.printfulId)
     )
 

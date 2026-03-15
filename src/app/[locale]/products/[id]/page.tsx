@@ -148,7 +148,11 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         imageUrl: product.imageUrl,
         colors,
     }
-    const canDesignWithAI = isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId })
+    const canDesignWithAI = isMockupEligibleProduct({
+        name: product.name,
+        printfulId: product.printfulId,
+        printArea: product.printArea,
+    })
 
     const productSchema = {
         '@context': 'https://schema.org',

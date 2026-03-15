@@ -1,6 +1,7 @@
 type MockupEligibilityProduct = {
     name?: string | null
     printfulId?: string | null
+    printArea?: unknown
 }
 
 const MOCKUP_UNSUPPORTED_PRINTFUL_IDS = new Set([
@@ -15,6 +16,10 @@ const MOCKUP_UNSUPPORTED_NAME_PATTERNS = [
 export function isMockupEligibleProduct(product: MockupEligibilityProduct): boolean {
     const name = (product.name || '').trim()
     const printfulId = (product.printfulId || '').trim()
+    const printArea =
+        typeof product.printArea === 'object' && product.printArea !== null
+            ? (product.printArea as Record<string, unknown>)
+            : null
 
     if (!name || !printfulId) {
         return false
@@ -22,6 +27,18 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
 
     // Gelato products are eligible for AI mockup flow.
     if (printfulId.startsWith('gelato:')) {
+        const templateId =
+            typeof printArea?.providerTemplateId === 'string' ? printArea.providerTemplateId.trim() : ''
+        const validated = printArea?.providerTemplateValidated
+
+        if (typeof validated === 'boolean') {
+            return validated && templateId.length > 0
+        }
+
+        if (printArea) {
+            return templateId.length > 0
+        }
+
         return true
     }
 

@@ -14,7 +14,33 @@ describe('isMockupEligibleProduct', () => {
         expect(isMockupEligibleProduct({ name: 'Adidas T-shirt', printfulId: '123' })).toBe(false)
     })
 
-    it('returns true for Gelato-prefixed IDs', () => {
+    it('returns true for Gelato-prefixed IDs with validated template mapping', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Gelato T-shirt',
+                printfulId: 'gelato:uid_123',
+                printArea: {
+                    providerTemplateId: 'template_1',
+                    providerTemplateValidated: true,
+                },
+            })
+        ).toBe(true)
+    })
+
+    it('returns false for Gelato-prefixed IDs without a validated template mapping', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Gelato T-shirt',
+                printfulId: 'gelato:uid_123',
+                printArea: {
+                    providerTemplateId: 'template_1',
+                    providerTemplateValidated: false,
+                },
+            })
+        ).toBe(false)
+    })
+
+    it('returns true for Gelato-prefixed IDs when print area is not provided', () => {
         expect(isMockupEligibleProduct({ name: 'Gelato T-shirt', printfulId: 'gelato:uid_123' })).toBe(true)
     })
 

@@ -148,7 +148,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     }, [])
 
     const mockupEligibleProducts = products.filter((p) =>
-        isMockupEligibleProduct({ name: p.name, printfulId: p.printfulId })
+        isMockupEligibleProduct({ name: p.name, printfulId: p.printfulId, printArea: p.printArea })
     )
 
     useEffect(() => {

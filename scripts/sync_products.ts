@@ -53,7 +53,7 @@ async function printCatalogSummary() {
   try {
     const products = await prisma.product.findMany({
       where: { active: true },
-      select: { name: true, printfulId: true },
+      select: { name: true, printfulId: true, printArea: true },
     })
 
     const buckets = buildSummaryBuckets()
@@ -64,6 +64,7 @@ async function printCatalogSummary() {
       const aiCustomizable = isMockupEligibleProduct({
         name: product.name,
         printfulId: product.printfulId,
+        printArea: product.printArea,
       })
 
       buckets[provider].total += 1
