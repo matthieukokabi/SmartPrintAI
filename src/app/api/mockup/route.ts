@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { detectProductProvider } from '@/lib/product-provider'
+import { gelato, extractGelatoProductImageUrl } from '@/lib/gelato'
 
 type MockupPayload = {
     designId: string
@@ -158,21 +160,50 @@ export async function POST(req: NextRequest) {
             return respond({ error: 'Color not found' }, { status: 400 })
         }
 
-        const printfulProductId = Number(product.printfulId)
-        if (!Number.isFinite(printfulProductId) || printfulProductId <= 0) {
-            logApiWarn(route, requestId, 'invalid_printful_product_id')
-            return respond({ error: 'Product mapping unavailable' }, { status: 400 })
+        let mockupUrl: string | null = null
+
+        if (detectProductProvider(product.printfulId) === 'gelato') {
+            const printArea = (product.printArea || {}) as Record<string, unknown>
+            const storeId = printArea.providerStoreId as string
+            const templateId = printArea.providerTemplateId as string
+            const placeholder = (printArea.providerPrintAreaPlaceholder as string) || 'front'
+
+            if (!storeId || !templateId) {
+                logApiWarn(route, requestId, 'gelato_mapping_incomplete', { productId })
+                return respond({ error: 'Gelato product mapping incomplete' }, { status: 400 })
+            }
+
+            logApiInfo(route, requestId, 'generating_gelato_mockup', { storeId, templateId })
+
+            const gelatoResult = await gelato.createProductFromTemplate(storeId, templateId, {
+                productName: `Preview: ${product.name} (${designId})`,
+                placeholders: [{ name: placeholder, fileUrl: design.imageUrl }],
+                publish: false,
+            })
+
+            mockupUrl = extractGelatoProductImageUrl(gelatoResult)
+            if (!mockupUrl) {
+                logApiWarn(route, requestId, 'gelato_no_mockup_returned')
+                throw new Error('No Gelato mockup URL returned')
+            }
+        } else {
+            const printfulProductId = Number(product.printfulId)
+            if (!Number.isFinite(printfulProductId) || printfulProductId <= 0) {
+                logApiWarn(route, requestId, 'invalid_printful_product_id')
+                return respond({ error: 'Product mapping unavailable' }, { status: 400 })
+            }
+
+            const result = await printful.generateMockup({
+                productId: printfulProductId,
+                productVariantId: colorData.printfulVariantId,
+                imageUrl: design.imageUrl,
+            })
+
+            mockupUrl = result.mockups[0]?.mockup_url || null
         }
 
-        const result = await printful.generateMockup({
-            productId: printfulProductId,
-            productVariantId: colorData.printfulVariantId,
-            imageUrl: design.imageUrl,
-        })
-
-        const mockupUrl = result.mockups[0]?.mockup_url
         if (!mockupUrl) {
-            throw new Error('No mockup URL returned')
+            throw new Error('No mockup URL returned from provider')
         }
 
         await prisma.mockup.create({
