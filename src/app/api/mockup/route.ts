@@ -433,9 +433,18 @@ export async function POST(req: NextRequest) {
                     }
 
                     const spaceAttemptErrors = previewErrors.slice(previousErrorCount)
-                    const discoveredLayerIds = uniqueStrings(
+                    let discoveredLayerIds = uniqueStrings(
                         spaceAttemptErrors.flatMap((error) => extractGootenLayerIdOptionsFromError(error))
                     )
+
+                    if (discoveredLayerIds.length === 0) {
+                        const probeErrorCount = previewErrors.length
+                        await tryPreview({ spaceId, layerId: '00000' })
+                        const probeErrors = previewErrors.slice(probeErrorCount)
+                        discoveredLayerIds = uniqueStrings(
+                            probeErrors.flatMap((error) => extractGootenLayerIdOptionsFromError(error))
+                        )
+                    }
 
                     for (const layerId of discoveredLayerIds) {
                         previewPayload = await tryPreview({ spaceId, layerId })
