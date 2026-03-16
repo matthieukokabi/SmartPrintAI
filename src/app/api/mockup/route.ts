@@ -115,6 +115,29 @@ function uniqueStrings(values: string[]): string[] {
     return output
 }
 
+function withGootenSpaceId(payload: Record<string, unknown>, spaceId?: string): Record<string, unknown> {
+    if (!spaceId || !spaceId.trim()) {
+        return payload
+    }
+
+    const normalizedSpaceId = spaceId.trim().toUpperCase()
+    const nextPayload: Record<string, unknown> = { ...payload, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }
+
+    const uppercaseImages = Array.isArray(nextPayload.Images) ? nextPayload.Images : null
+    if (uppercaseImages && uppercaseImages.length > 0 && isObject(uppercaseImages[0])) {
+        const [firstImage, ...rest] = uppercaseImages
+        nextPayload.Images = [{ ...firstImage, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }, ...rest]
+    }
+
+    const lowercaseImages = Array.isArray(nextPayload.images) ? nextPayload.images : null
+    if (lowercaseImages && lowercaseImages.length > 0 && isObject(lowercaseImages[0])) {
+        const [firstImage, ...rest] = lowercaseImages
+        nextPayload.images = [{ ...firstImage, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }, ...rest]
+    }
+
+    return nextPayload
+}
+
 async function resolveGelatoPreviewUrl(storeId: string, createPayload: unknown): Promise<string | null> {
     const immediate = extractGelatoProductImageUrl(createPayload)
     if (immediate) {
@@ -336,8 +359,7 @@ export async function POST(req: NextRequest) {
 
             const tryPreview = async (spaceId?: string): Promise<unknown | null> => {
                 for (const payload of payloadCandidates) {
-                    const withSpaceId =
-                        spaceId && spaceId.length > 0 ? { ...payload, SpaceId: spaceId, spaceId } : payload
+                    const withSpaceId = withGootenSpaceId(payload, spaceId)
                     try {
                         return await gooten.createProductPreview(withSpaceId)
                     } catch (error) {
