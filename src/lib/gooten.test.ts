@@ -21,6 +21,33 @@ describe('Gooten payload extraction', () => {
         expect(extractGootenProducts(payload)).toHaveLength(2)
     })
 
+    it('extracts products from gooten catalog feed payload', () => {
+        const payload = {
+            'product-catalog': [
+                {
+                    name: 'Bestsellers',
+                    items: [
+                        {
+                            product_id: 352,
+                            name: 'Woven Pillows',
+                            url: 'https://cdn.example.com/woven-pillow.png',
+                            cheapest_price: '$22.40',
+                        },
+                    ],
+                },
+            ],
+        }
+
+        expect(extractGootenProducts(payload)).toEqual([
+            expect.objectContaining({
+                ProductId: '352',
+                name: 'Woven Pillows',
+                ImageUrl: 'https://cdn.example.com/woven-pillow.png',
+                MinPrice: 22.4,
+            }),
+        ])
+    })
+
     it('extracts core product identity fields', () => {
         const productPayload = {
             ProductId: 'TSHIRT_001',
@@ -64,6 +91,15 @@ describe('Gooten payload extraction', () => {
         }
 
         expect(extractGootenMinPrice(productPayload)).toBe(21.5)
+    })
+
+    it('parses minimum price from currency string fields', () => {
+        const productPayload = {
+            cheapest_price: '$19.95',
+            Price: '$24.10',
+        }
+
+        expect(extractGootenMinPrice(productPayload)).toBe(19.95)
     })
 
     it('extracts variants from product variant payload arrays', () => {

@@ -1,4 +1,5 @@
 const DEFAULT_GOOTEN_BASE_URL = 'https://api.print.io/api'
+const GOOTEN_CATALOG_URL = 'https://gtnadminassets.blob.core.windows.net/productdatav3/catalog.json'
 
 type RequestOptions = {
     method?: 'GET' | 'POST'
@@ -29,7 +30,8 @@ function asNumber(value: unknown): number | null {
         return value
     }
     if (typeof value === 'string') {
-        const parsed = Number(value)
+        const normalized = value.replace(/[^0-9.,-]/g, '').replace(/,/g, '')
+        const parsed = Number(normalized)
         if (Number.isFinite(parsed)) {
             return parsed
         }
@@ -127,7 +129,17 @@ export class GootenClient {
     }
 
     async listProducts(): Promise<unknown> {
-        return this.request('/v/201608/products/')
+        try {
+            return await this.request('/v/201608/products/')
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            // Some partner accounts receive 405/500 on legacy /products listing.
+            // Fall back to Gooten's public catalog feed and keep variant/preview calls on API.
+            if (!/Gooten API error (405|500)/.test(message)) {
+                throw error
+            }
+            return this.requestCatalogFeed()
+        }
     }
 
     async createProductPreview(payload: unknown): Promise<unknown> {
@@ -156,6 +168,65 @@ export class GootenClient {
             body: payload,
         })
     }
+
+    private async requestCatalogFeed(): Promise<unknown> {
+        const response = await fetch(GOOTEN_CATALOG_URL)
+        const raw = await response.text()
+        let parsed: unknown
+        try {
+            parsed = JSON.parse(raw)
+        } catch {
+            throw new Error('Gooten catalog feed returned invalid JSON')
+        }
+        if (!response.ok) {
+            throw new Error(`Gooten catalog feed error ${response.status}`)
+        }
+        return parsed
+    }
+}
+
+function flattenCatalogTree(items: unknown[], categoryHint: string | null = null): unknown[] {
+    const out: unknown[] = []
+
+    for (const item of items) {
+        if (!isObject(item)) continue
+
+        const itemCategory = pickString(item, ['Category', 'category', 'name']) || categoryHint
+        const productId =
+            pickString(item, ['product_id', 'ProductId', 'productId', 'id', 'Id']) ||
+            (() => {
+                const parsed = asNumber(item.product_id)
+                return parsed !== null ? String(parsed) : null
+            })()
+
+        const childCollections = [item.items, item.Items]
+        for (const child of childCollections) {
+            if (Array.isArray(child)) {
+                out.push(...flattenCatalogTree(child, itemCategory))
+            }
+        }
+
+        if (!productId) {
+            continue
+        }
+
+        const normalized = {
+            ...item,
+            ProductId: productId,
+            Category: pickString(item, ['Category', 'category']) || itemCategory || 'catalog',
+            ImageUrl:
+                pickString(item, ['ImageUrl', 'imageUrl', 'ThumbnailUrl', 'thumbnailUrl', 'url', 'Url']) || null,
+            MinPrice:
+                asNumber(item.cheapest_price) ??
+                asNumber(item.MinPrice) ??
+                asNumber(item.minPrice) ??
+                asNumber(item.Price) ??
+                asNumber(item.price),
+        }
+        out.push(normalized)
+    }
+
+    return out
 }
 
 export function extractGootenProducts(payload: unknown): unknown[] {
@@ -178,6 +249,10 @@ export function extractGootenProducts(payload: unknown): unknown[] {
                 return candidate
             }
         }
+    }
+
+    if (Array.isArray(payload['product-catalog'])) {
+        return flattenCatalogTree(payload['product-catalog'])
     }
 
     return []
@@ -226,7 +301,7 @@ export function extractGootenVariants(payload: unknown): unknown[] {
 
 export function extractGootenProductId(productPayload: unknown): string | null {
     if (!isObject(productPayload)) return null
-    return pickString(productPayload, ['Sku', 'SKU', 'ProductId', 'productId', 'Id', 'id'])
+    return pickString(productPayload, ['Sku', 'SKU', 'ProductId', 'productId', 'product_id', 'Id', 'id'])
 }
 
 function extractGootenVariantSku(variantPayload: unknown): string | null {
@@ -352,7 +427,7 @@ export function extractGootenProductDescription(productPayload: unknown): string
 
 export function extractGootenProductCategory(productPayload: unknown): string | null {
     if (!isObject(productPayload)) return null
-    return pickString(productPayload, ['Category', 'category', 'ProductCategory', 'Department'])
+    return pickString(productPayload, ['Category', 'category', 'ProductCategory', 'Department', 'type'])
 }
 
 export function extractGootenProductImageUrl(productPayload: unknown): string | null {
@@ -365,6 +440,7 @@ export function extractGootenProductImageUrl(productPayload: unknown): string | 
         'thumbnailUrl',
         'PreviewUrl',
         'previewUrl',
+        'url',
     ])
     if (isHttpUrl(direct)) {
         return direct
@@ -503,6 +579,8 @@ export function extractGootenMinPrice(productPayload: unknown): number | null {
         'price',
         'UnitPrice',
         'unitPrice',
+        'cheapest_price',
+        'cheapestPrice',
     ]
 
     const prices: number[] = []
