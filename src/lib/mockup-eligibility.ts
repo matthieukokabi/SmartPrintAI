@@ -25,6 +25,19 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
         return false
     }
 
+    if (printfulId.startsWith('gooten:')) {
+        const providerProductId =
+            typeof printArea?.providerProductId === 'string' ? printArea.providerProductId.trim() : ''
+        const defaultSku = typeof printArea?.providerDefaultSku === 'string' ? printArea.providerDefaultSku.trim() : ''
+        const mapping =
+            typeof printArea?.variantMapping === 'object' && printArea.variantMapping !== null
+                ? (printArea.variantMapping as Record<string, unknown>)
+                : null
+        const hasMappedSku = !!mapping && Object.values(mapping).some((value) => typeof value === 'string' && value.trim().length > 0)
+
+        return providerProductId.length > 0 && (defaultSku.length > 0 || hasMappedSku)
+    }
+
     // Gelato products are eligible for AI mockup flow.
     if (printfulId.startsWith('gelato:')) {
         const templateId =

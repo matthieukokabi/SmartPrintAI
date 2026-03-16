@@ -5,6 +5,13 @@ type RequestOptions = {
     body?: unknown
 }
 
+type GootenVariantMapping = {
+    defaultSku: string | null
+    variantMapping: Record<string, string>
+    colors: string[]
+    sizes: string[]
+}
+
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
 }
@@ -38,6 +45,10 @@ function pickString(record: Record<string, unknown>, keys: string[]): string | n
         }
     }
     return null
+}
+
+function normalizeMatchKey(value: string): string {
+    return value.trim().toLowerCase()
 }
 
 function uniqueStrings(values: Array<string | null | undefined>): string[] {
@@ -126,6 +137,19 @@ export class GootenClient {
         })
     }
 
+    async listProductVariants(productId: string, countryCode = 'US', currencyCode = 'USD'): Promise<unknown> {
+        const normalizedProductId = productId.trim()
+        if (!normalizedProductId) {
+            throw new Error('Gooten productId is required for variant lookup')
+        }
+        const normalizedCountryCode = countryCode.trim().toUpperCase() || 'US'
+        const normalizedCurrencyCode = currencyCode.trim().toUpperCase() || 'USD'
+
+        return this.request(
+            `/v/201608/productvariants/?productId=${encodeURIComponent(normalizedProductId)}&countryCode=${encodeURIComponent(normalizedCountryCode)}&currencyCode=${encodeURIComponent(normalizedCurrencyCode)}`
+        )
+    }
+
     async createOrder(payload: unknown): Promise<unknown> {
         return this.request('/v/201608/orders/', {
             method: 'POST',
@@ -159,9 +183,161 @@ export function extractGootenProducts(payload: unknown): unknown[] {
     return []
 }
 
+export function extractGootenVariants(payload: unknown): unknown[] {
+    if (!isObject(payload)) {
+        return []
+    }
+
+    const directCandidates = [
+        payload.ProductVariants,
+        payload.productVariants,
+        payload.Variants,
+        payload.variants,
+        payload.Items,
+        payload.items,
+        payload.data,
+    ]
+    for (const candidate of directCandidates) {
+        if (Array.isArray(candidate)) {
+            return candidate
+        }
+    }
+
+    if (isObject(payload.Result)) {
+        const nested = payload.Result
+        const nestedCandidates = [
+            nested.ProductVariants,
+            nested.productVariants,
+            nested.Variants,
+            nested.variants,
+            nested.Items,
+            nested.items,
+            nested.data,
+        ]
+        for (const candidate of nestedCandidates) {
+            if (Array.isArray(candidate)) {
+                return candidate
+            }
+        }
+    }
+
+    return []
+}
+
 export function extractGootenProductId(productPayload: unknown): string | null {
     if (!isObject(productPayload)) return null
     return pickString(productPayload, ['Sku', 'SKU', 'ProductId', 'productId', 'Id', 'id'])
+}
+
+function extractGootenVariantSku(variantPayload: unknown): string | null {
+    if (!isObject(variantPayload)) return null
+    return pickString(variantPayload, [
+        'Sku',
+        'SKU',
+        'ProductId',
+        'productId',
+        'ProductVariantId',
+        'productVariantId',
+        'Id',
+        'id',
+    ])
+}
+
+function extractOptionValueByKeyword(variantPayload: unknown, keyword: string): string | null {
+    if (!isObject(variantPayload)) {
+        return null
+    }
+
+    const optionCandidates = [
+        variantPayload.Options,
+        variantPayload.options,
+        variantPayload.Attributes,
+        variantPayload.attributes,
+    ]
+
+    for (const candidate of optionCandidates) {
+        if (!Array.isArray(candidate)) continue
+        for (const option of candidate) {
+            if (!isObject(option)) continue
+            const optionName = pickString(option, ['Name', 'name', 'OptionName', 'optionName', 'Attribute']) || ''
+            if (!optionName.toLowerCase().includes(keyword)) continue
+            const optionValue = pickString(option, ['Value', 'value', 'Code', 'code', 'Name', 'name'])
+            if (optionValue) {
+                return optionValue
+            }
+        }
+    }
+
+    return null
+}
+
+function extractGootenVariantColor(variantPayload: unknown): string | null {
+    if (!isObject(variantPayload)) return null
+    return (
+        pickString(variantPayload, ['Color', 'color', 'ColorName', 'colorName', 'Colour', 'colour']) ||
+        extractOptionValueByKeyword(variantPayload, 'color')
+    )
+}
+
+function extractGootenVariantSize(variantPayload: unknown): string | null {
+    if (!isObject(variantPayload)) return null
+    return (
+        pickString(variantPayload, ['Size', 'size', 'SizeName', 'sizeName']) ||
+        extractOptionValueByKeyword(variantPayload, 'size')
+    )
+}
+
+function mapUniqueRecordKey(mapping: Record<string, string>, key: string, sku: string): void {
+    const normalizedKey = normalizeMatchKey(key)
+    if (!normalizedKey) return
+    if (!mapping[normalizedKey]) {
+        mapping[normalizedKey] = sku
+    }
+}
+
+export function extractGootenVariantMapping(payload: unknown): GootenVariantMapping {
+    const variants = extractGootenVariants(payload)
+    const mapping: Record<string, string> = {}
+    const colors: string[] = []
+    const sizes: string[] = []
+    let defaultSku: string | null = null
+
+    for (const variant of variants) {
+        const sku = extractGootenVariantSku(variant)
+        if (!sku) continue
+
+        if (!defaultSku) {
+            defaultSku = sku
+        }
+
+        const color = extractGootenVariantColor(variant)
+        const size = extractGootenVariantSize(variant)
+
+        if (color) {
+            mapUniqueRecordKey(mapping, color, sku)
+            if (!colors.some((value) => normalizeMatchKey(value) === normalizeMatchKey(color))) {
+                colors.push(color)
+            }
+        }
+
+        if (size) {
+            mapUniqueRecordKey(mapping, size, sku)
+            if (!sizes.some((value) => normalizeMatchKey(value) === normalizeMatchKey(size))) {
+                sizes.push(size)
+            }
+        }
+
+        if (color && size) {
+            mapUniqueRecordKey(mapping, `${size}:${color}`, sku)
+        }
+    }
+
+    return {
+        defaultSku,
+        variantMapping: mapping,
+        colors,
+        sizes,
+    }
 }
 
 export function extractGootenProductName(productPayload: unknown): string | null {
@@ -207,6 +383,57 @@ export function extractGootenProductImageUrl(productPayload: unknown): string | 
     }
 
     return null
+}
+
+export function extractGootenPreviewUrl(payload: unknown): string | null {
+    if (!isObject(payload)) {
+        return null
+    }
+
+    const direct = pickString(payload, ['Url', 'url', 'ImageUrl', 'imageUrl', 'PreviewUrl', 'previewUrl'])
+    if (isHttpUrl(direct)) {
+        return direct
+    }
+
+    const imageCandidates = [payload.Images, payload.images]
+    for (const candidate of imageCandidates) {
+        if (!Array.isArray(candidate)) continue
+        for (const image of candidate) {
+            if (!isObject(image)) continue
+            const imageUrl = pickString(image, ['Url', 'url', 'ImageUrl', 'imageUrl'])
+            if (isHttpUrl(imageUrl)) {
+                return imageUrl
+            }
+        }
+    }
+
+    if (isObject(payload.Result)) {
+        return extractGootenPreviewUrl(payload.Result)
+    }
+
+    return null
+}
+
+let cachedClient: GootenClient | null = null
+let cachedClientKey = ''
+
+export function getGootenClient(): GootenClient {
+    const recipeId = (process.env.GOOTEN_RECIPE_ID || '').trim()
+    if (!recipeId) {
+        throw new Error('GOOTEN_RECIPE_ID is required')
+    }
+
+    const partnerBillingKey = (process.env.GOOTEN_PARTNER_BILLING_KEY || '').trim() || undefined
+    const apiBaseUrl = (process.env.GOOTEN_API_BASE_URL || DEFAULT_GOOTEN_BASE_URL).trim()
+    const cacheKey = `${recipeId}::${partnerBillingKey || ''}::${apiBaseUrl}`
+
+    if (cachedClient && cachedClientKey === cacheKey) {
+        return cachedClient
+    }
+
+    cachedClient = new GootenClient(recipeId, partnerBillingKey, apiBaseUrl)
+    cachedClientKey = cacheKey
+    return cachedClient
 }
 
 function collectOptionValuesByName(productPayload: unknown, keyword: string): string[] {

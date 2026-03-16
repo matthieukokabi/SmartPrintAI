@@ -14,6 +14,7 @@ import {
     extractGootenProductName,
     extractGootenProductSizes,
     extractGootenProducts,
+    extractGootenVariantMapping,
 } from '../src/lib/gooten'
 
 function parseKeywordEnv(value: string | undefined): string[] {
@@ -75,6 +76,8 @@ const GOOTEN_MIN_MARGIN = Number(process.env.GOOTEN_MIN_MARGIN || 8)
 const GOOTEN_SYNC_DEACTIVATE_MISSING = process.env.GOOTEN_SYNC_DEACTIVATE_MISSING === '1'
 const GOOTEN_SYNC_DRY_RUN = process.env.GOOTEN_SYNC_DRY_RUN === '1'
 const GOOTEN_SYNC_ACTIVE_DEFAULT = process.env.GOOTEN_SYNC_ACTIVE_DEFAULT === '1'
+const GOOTEN_SYNC_COUNTRY_CODE = (process.env.GOOTEN_SYNC_COUNTRY_CODE || 'US').trim().toUpperCase()
+const GOOTEN_SYNC_CURRENCY_CODE = (process.env.GOOTEN_SYNC_CURRENCY_CODE || 'USD').trim().toUpperCase()
 const GOOTEN_SYNC_INCLUDE_KEYWORDS = parseKeywordEnv(
     process.env.GOOTEN_SYNC_INCLUDE_KEYWORDS ||
         't-shirt,tee,hoodie,sweatshirt,tank,polo,mug,airpod,airpods,case,hat,cap'
@@ -88,7 +91,7 @@ const gooten = new GootenClient(gootenRecipeId, GOOTEN_PARTNER_BILLING_KEY, GOOT
 async function main() {
     console.log('Starting Gooten product sync...')
     console.log(
-        `Config: maxProducts=${GOOTEN_SYNC_MAX_PRODUCTS} minBasePrice=${GOOTEN_SYNC_MIN_BASE_PRICE} dryRun=${GOOTEN_SYNC_DRY_RUN} activeDefault=${GOOTEN_SYNC_ACTIVE_DEFAULT} includeKeywords=${GOOTEN_SYNC_INCLUDE_KEYWORDS.join('|') || 'none'} excludeKeywords=${GOOTEN_SYNC_EXCLUDE_KEYWORDS.join('|') || 'none'}`
+        `Config: maxProducts=${GOOTEN_SYNC_MAX_PRODUCTS} minBasePrice=${GOOTEN_SYNC_MIN_BASE_PRICE} dryRun=${GOOTEN_SYNC_DRY_RUN} activeDefault=${GOOTEN_SYNC_ACTIVE_DEFAULT} country=${GOOTEN_SYNC_COUNTRY_CODE} currency=${GOOTEN_SYNC_CURRENCY_CODE} includeKeywords=${GOOTEN_SYNC_INCLUDE_KEYWORDS.join('|') || 'none'} excludeKeywords=${GOOTEN_SYNC_EXCLUDE_KEYWORDS.join('|') || 'none'}`
     )
 
     const productsPayload = await gooten.listProducts()
@@ -103,6 +106,8 @@ async function main() {
     let skippedFiltered = 0
     let skippedNoPrice = 0
     let skippedNoImage = 0
+    let skippedNoSkuMapping = 0
+    let skippedVariantLookupFailed = 0
     const syncedPrintfulIds: string[] = []
     const seenNames = new Set<string>()
 
@@ -155,11 +160,34 @@ async function main() {
         }
 
         const printfulId = `gooten:${productId}`
+        let variantsPayload: unknown
+        try {
+            variantsPayload = await gooten.listProductVariants(
+                productId,
+                GOOTEN_SYNC_COUNTRY_CODE,
+                GOOTEN_SYNC_CURRENCY_CODE
+            )
+        } catch (error) {
+            skippedVariantLookupFailed += 1
+            console.warn(`Skipping ${printfulId} due to variant lookup failure:`, error)
+            continue
+        }
+        const variantMapping = extractGootenVariantMapping(variantsPayload)
+        if (!variantMapping.defaultSku) {
+            skippedNoSkuMapping += 1
+            continue
+        }
+
         const existing = await prisma.product.findUnique({ where: { printfulId } })
         const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GOOTEN_SELL_PRICE_MULTIPLIER, GOOTEN_MIN_MARGIN)
         const category = classifyCategory(`${productName} ${extractGootenProductCategory(productPayload) || ''}`)
-        const sizes = extractGootenProductSizes(productPayload)
-        const colors = toColorPayloads(extractGootenProductColorNames(productPayload))
+        const sizes =
+            variantMapping.sizes.length > 0 ? variantMapping.sizes : extractGootenProductSizes(productPayload)
+        const colors = toColorPayloads(
+            variantMapping.colors.length > 0
+                ? variantMapping.colors
+                : extractGootenProductColorNames(productPayload)
+        )
         const description = extractGootenProductDescription(productPayload) || productName
 
         const data = {
@@ -178,7 +206,11 @@ async function main() {
                 dpi: 300,
                 provider: 'gooten',
                 providerProductId: productId,
+                providerDefaultSku: variantMapping.defaultSku,
+                providerCountryCode: GOOTEN_SYNC_COUNTRY_CODE,
+                providerCurrencyCode: GOOTEN_SYNC_CURRENCY_CODE,
                 providerRecipeId: gootenRecipeId,
+                variantMapping: variantMapping.variantMapping,
             },
             active: GOOTEN_SYNC_ACTIVE_DEFAULT,
         }
@@ -218,7 +250,7 @@ async function main() {
     }
 
     console.log(
-        `Gooten sync completed. synced=${synced} skippedFiltered=${skippedFiltered} skippedNoPrice=${skippedNoPrice} skippedNoImage=${skippedNoImage} deactivated=${deactivated}`
+        `Gooten sync completed. synced=${synced} skippedFiltered=${skippedFiltered} skippedNoPrice=${skippedNoPrice} skippedNoImage=${skippedNoImage} skippedNoSkuMapping=${skippedNoSkuMapping} skippedVariantLookupFailed=${skippedVariantLookupFailed} deactivated=${deactivated}`
     )
 }
 

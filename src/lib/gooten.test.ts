@@ -7,6 +7,9 @@ import {
     extractGootenProductName,
     extractGootenProductSizes,
     extractGootenProducts,
+    extractGootenPreviewUrl,
+    extractGootenVariantMapping,
+    extractGootenVariants,
 } from './gooten'
 
 describe('Gooten payload extraction', () => {
@@ -61,5 +64,54 @@ describe('Gooten payload extraction', () => {
         }
 
         expect(extractGootenMinPrice(productPayload)).toBe(21.5)
+    })
+
+    it('extracts variants from product variant payload arrays', () => {
+        const payload = {
+            ProductVariants: [{ SKU: 'sku_1' }, { SKU: 'sku_2' }],
+        }
+
+        expect(extractGootenVariants(payload)).toHaveLength(2)
+    })
+
+    it('builds size/color variant mapping for gooten preview requests', () => {
+        const payload = {
+            ProductVariants: [
+                {
+                    SKU: 'sku_black_m',
+                    ColorName: 'Black',
+                    Size: 'M',
+                },
+                {
+                    SKU: 'sku_white_l',
+                    ColorName: 'White',
+                    Size: 'L',
+                },
+            ],
+        }
+
+        expect(extractGootenVariantMapping(payload)).toEqual({
+            defaultSku: 'sku_black_m',
+            variantMapping: {
+                black: 'sku_black_m',
+                m: 'sku_black_m',
+                'm:black': 'sku_black_m',
+                white: 'sku_white_l',
+                l: 'sku_white_l',
+                'l:white': 'sku_white_l',
+            },
+            colors: ['Black', 'White'],
+            sizes: ['M', 'L'],
+        })
+    })
+
+    it('extracts preview URL from nested image payload', () => {
+        const payload = {
+            Result: {
+                Images: [{ Url: 'https://cdn.example.com/preview.jpg' }],
+            },
+        }
+
+        expect(extractGootenPreviewUrl(payload)).toBe('https://cdn.example.com/preview.jpg')
     })
 })

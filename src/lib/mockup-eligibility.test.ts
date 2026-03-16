@@ -60,6 +60,34 @@ describe('isMockupEligibleProduct', () => {
         expect(isMockupEligibleProduct({ name: 'Gelato T-shirt', printfulId: 'gelato:uid_123' })).toBe(true)
     })
 
+    it('returns true for Gooten-prefixed IDs with product + SKU mapping metadata', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Gooten Hoodie',
+                printfulId: 'gooten:hoodie_1',
+                printArea: {
+                    providerProductId: 'hoodie_1',
+                    providerDefaultSku: 'sku_white_m',
+                    variantMapping: {
+                        white: 'sku_white_m',
+                    },
+                },
+            })
+        ).toBe(true)
+    })
+
+    it('returns false for Gooten-prefixed IDs when provider SKU mapping metadata is missing', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Gooten Hoodie',
+                printfulId: 'gooten:hoodie_1',
+                printArea: {
+                    providerProductId: 'hoodie_1',
+                },
+            })
+        ).toBe(false)
+    })
+
     it('returns false for empty name or ID', () => {
         expect(isMockupEligibleProduct({ name: '', printfulId: '123' })).toBe(false)
         expect(isMockupEligibleProduct({ name: 'T-shirt', printfulId: '' })).toBe(false)

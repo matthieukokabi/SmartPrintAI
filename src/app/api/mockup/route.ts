@@ -12,6 +12,7 @@ import {
     extractGelatoTemplatePlaceholderName,
     gelato,
 } from '@/lib/gelato'
+import { extractGootenPreviewUrl, getGootenClient } from '@/lib/gooten'
 
 type MockupPayload = {
     designId: string
@@ -80,9 +81,9 @@ function parseProductColors(colors: unknown): ProductColor[] {
         }))
 }
 
-function parsePrintfulRateLimit(error: unknown): { retryAfterSec: number } | null {
+function parseProviderRateLimit(error: unknown): { retryAfterSec: number } | null {
     if (!(error instanceof Error)) return null
-    if (!error.message.includes('Printful API error: 429')) return null
+    if (!error.message.includes('429')) return null
 
     const fromMessage = /after\s+(\d+)\s+seconds/i.exec(error.message)
     const retryAfterSec = fromMessage ? Number(fromMessage[1]) : 30
@@ -202,9 +203,10 @@ export async function POST(req: NextRequest) {
             return respond({ error: 'Color not found' }, { status: 400 })
         }
 
+        const provider = detectProductProvider(product.printfulId)
         let mockupUrl: string | null = null
 
-        if (detectProductProvider(product.printfulId) === 'gelato') {
+        if (provider === 'gelato') {
             const printArea = (product.printArea || {}) as Record<string, unknown>
             const storeId = printArea.providerStoreId as string
             const templateId = printArea.providerTemplateId as string
@@ -267,6 +269,56 @@ export async function POST(req: NextRequest) {
                 response.headers.set('retry-after', String(retryAfterSec))
                 return response
             }
+        } else if (provider === 'gooten') {
+            const gooten = getGootenClient()
+            const printArea = (product.printArea || {}) as Record<string, unknown>
+            const providerProductId =
+                typeof printArea.providerProductId === 'string' ? printArea.providerProductId.trim() : ''
+            const defaultSku =
+                typeof printArea.providerDefaultSku === 'string' ? printArea.providerDefaultSku.trim() : ''
+            const providerCountryCode =
+                typeof printArea.providerCountryCode === 'string' ? printArea.providerCountryCode.trim().toUpperCase() : 'US'
+            const providerCurrencyCode =
+                typeof printArea.providerCurrencyCode === 'string' ? printArea.providerCurrencyCode.trim().toUpperCase() : 'USD'
+            const variantMapping =
+                typeof printArea.variantMapping === 'object' && printArea.variantMapping !== null
+                    ? (printArea.variantMapping as Record<string, unknown>)
+                    : {}
+            const colorKey = color.toLowerCase()
+            const mappedSku = typeof variantMapping[colorKey] === 'string' ? String(variantMapping[colorKey]).trim() : ''
+            const resolvedSku = mappedSku || defaultSku
+
+            if (!providerProductId || !resolvedSku) {
+                logApiWarn(route, requestId, 'gooten_mapping_incomplete', { productId })
+                return respond({ error: 'Gooten product mapping incomplete' }, { status: 400 })
+            }
+
+            logApiInfo(route, requestId, 'generating_gooten_mockup', {
+                providerProductId,
+                resolvedSku,
+                color: colorData.name,
+            })
+
+            let previewPayload: unknown
+            try {
+                previewPayload = await gooten.createProductPreview({
+                    SKU: resolvedSku,
+                    ProductId: providerProductId,
+                    CountryCode: providerCountryCode,
+                    CurrencyCode: providerCurrencyCode,
+                    Images: [{ Url: design.imageUrl }],
+                })
+            } catch {
+                previewPayload = await gooten.createProductPreview({
+                    sku: resolvedSku,
+                    productId: providerProductId,
+                    countryCode: providerCountryCode,
+                    currencyCode: providerCurrencyCode,
+                    images: [{ url: design.imageUrl, image: { url: design.imageUrl } }],
+                })
+            }
+
+            mockupUrl = extractGootenPreviewUrl(previewPayload)
         } else {
             const printfulProductId = Number(product.printfulId)
             if (!Number.isFinite(printfulProductId) || printfulProductId <= 0) {
@@ -299,7 +351,7 @@ export async function POST(req: NextRequest) {
         logApiInfo(route, requestId, 'request_succeeded')
         return respond({ mockupUrl })
     } catch (error) {
-        const rateLimit = parsePrintfulRateLimit(error)
+        const rateLimit = parseProviderRateLimit(error)
         if (rateLimit) {
             logApiWarn(route, requestId, 'provider_rate_limited', { retryAfterSec: rateLimit.retryAfterSec })
             const response = respond(
