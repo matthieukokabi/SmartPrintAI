@@ -36,6 +36,7 @@ function buildSummaryBuckets(): Record<ProductProvider, CatalogSummary> {
   return {
     printful: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
     gelato: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
+    gooten: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
     unknown: { total: 0, aiCustomizable: 0, readyToBuy: 0 },
   }
 }
@@ -88,6 +89,9 @@ async function printCatalogSummary() {
     console.log(
       `- gelato: total=${buckets.gelato.total} aiCustomizable=${buckets.gelato.aiCustomizable} readyToBuy=${buckets.gelato.readyToBuy}`
     )
+    console.log(
+      `- gooten: total=${buckets.gooten.total} aiCustomizable=${buckets.gooten.aiCustomizable} readyToBuy=${buckets.gooten.readyToBuy}`
+    )
     if (buckets.unknown.total > 0) {
       console.log(
         `- unknown: total=${buckets.unknown.total} aiCustomizable=${buckets.unknown.aiCustomizable} readyToBuy=${buckets.unknown.readyToBuy}`
@@ -117,6 +121,12 @@ async function main() {
     } else {
       console.log('Skipping Gelato sync: GELATO_API_KEY or GELATO_CATALOG_UIDS is not configured.')
     }
+  }
+
+  if (process.env.GOOTEN_SYNC_ENABLED === '1' && hasEnv('GOOTEN_RECIPE_ID')) {
+    runSyncScript('sync:products:gooten')
+  } else if (process.env.GOOTEN_SYNC_ENABLED === '1') {
+    console.log('Skipping Gooten sync: GOOTEN_RECIPE_ID is not configured.')
   }
 
   await printCatalogSummary()

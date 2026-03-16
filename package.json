@@ -18,6 +18,7 @@
     "sync:products": "tsx scripts/sync_products.ts",
     "sync:products:printful": "tsx scripts/sync_printful_products.ts",
     "sync:products:gelato": "tsx scripts/sync_gelato_products.ts",
+    "sync:products:gooten": "tsx scripts/sync_gooten_products.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
