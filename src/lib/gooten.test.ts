@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+    extractGootenLayerIdOptionsFromError,
     extractGootenMinPrice,
     extractGootenProductColorNames,
     extractGootenProductId,
@@ -158,5 +159,22 @@ describe('Gooten payload extraction', () => {
         )
 
         expect(extractGootenSpaceIdOptionsFromError(error)).toEqual(['3B9A7', 'FC3DB', '89946', '9A317'])
+    })
+
+    it('extracts LayerId options from Gooten API validation errors', () => {
+        const error = new Error(
+            'Gooten API error 400 for /v/201608/productpreview/: {"Errors":[{"PropertyName":"Images[0].LayerId","ErrorMessage":"Invalid LayerId. Valid options are DF149,AB12C"}],"HadError":true}'
+        )
+
+        expect(extractGootenLayerIdOptionsFromError(error)).toEqual(['DF149', 'AB12C'])
+    })
+
+    it('does not mix LayerId options into SpaceId extraction', () => {
+        const error = new Error(
+            'Gooten API error 400 for /v/201608/productpreview/: {"Errors":[{"PropertyName":"Images[0].SpaceId","ErrorMessage":"Must not be null or empty. Valid options are 3B9A7,FC3DB"},{"PropertyName":"Images[0].LayerId","ErrorMessage":"Invalid LayerId. Valid options are DF149"}],"HadError":true}'
+        )
+
+        expect(extractGootenSpaceIdOptionsFromError(error)).toEqual(['3B9A7', 'FC3DB'])
+        expect(extractGootenLayerIdOptionsFromError(error)).toEqual(['DF149'])
     })
 })

@@ -12,7 +12,12 @@ import {
     extractGelatoTemplatePlaceholderName,
     gelato,
 } from '@/lib/gelato'
-import { extractGootenPreviewUrl, extractGootenSpaceIdOptionsFromError, getGootenClient } from '@/lib/gooten'
+import {
+    extractGootenLayerIdOptionsFromError,
+    extractGootenPreviewUrl,
+    extractGootenSpaceIdOptionsFromError,
+    getGootenClient,
+} from '@/lib/gooten'
 
 type MockupPayload = {
     designId: string
@@ -115,24 +120,64 @@ function uniqueStrings(values: string[]): string[] {
     return output
 }
 
-function withGootenSpaceId(payload: Record<string, unknown>, spaceId?: string): Record<string, unknown> {
-    if (!spaceId || !spaceId.trim()) {
+function withGootenPlacement(
+    payload: Record<string, unknown>,
+    placement: { spaceId?: string; layerId?: string }
+): Record<string, unknown> {
+    const normalizedSpaceId = placement.spaceId?.trim().toUpperCase() || ''
+    const normalizedLayerId = placement.layerId?.trim().toUpperCase() || ''
+    if (!normalizedSpaceId && !normalizedLayerId) {
         return payload
     }
 
-    const normalizedSpaceId = spaceId.trim().toUpperCase()
-    const nextPayload: Record<string, unknown> = { ...payload, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }
+    const nextPayload: Record<string, unknown> = { ...payload }
+    if (normalizedSpaceId) {
+        nextPayload.SpaceId = normalizedSpaceId
+        nextPayload.spaceId = normalizedSpaceId
+    }
+    if (normalizedLayerId) {
+        nextPayload.LayerId = normalizedLayerId
+        nextPayload.layerId = normalizedLayerId
+    }
 
     const uppercaseImages = Array.isArray(nextPayload.Images) ? nextPayload.Images : null
     if (uppercaseImages && uppercaseImages.length > 0 && isObject(uppercaseImages[0])) {
         const [firstImage, ...rest] = uppercaseImages
-        nextPayload.Images = [{ ...firstImage, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }, ...rest]
+        const imageUrl =
+            (typeof firstImage.Url === 'string' && firstImage.Url.trim()) ||
+            (typeof firstImage.url === 'string' && firstImage.url.trim()) ||
+            (isObject(firstImage.Image) && typeof firstImage.Image.Url === 'string' && firstImage.Image.Url.trim()) ||
+            (isObject(firstImage.image) && typeof firstImage.image.url === 'string' && firstImage.image.url.trim()) ||
+            ''
+        nextPayload.Images = [
+            {
+                ...firstImage,
+                ...(normalizedSpaceId ? { SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId } : {}),
+                ...(normalizedLayerId ? { LayerId: normalizedLayerId, layerId: normalizedLayerId } : {}),
+                ...(imageUrl ? { Image: { Url: imageUrl } } : {}),
+            },
+            ...rest,
+        ]
     }
 
     const lowercaseImages = Array.isArray(nextPayload.images) ? nextPayload.images : null
     if (lowercaseImages && lowercaseImages.length > 0 && isObject(lowercaseImages[0])) {
         const [firstImage, ...rest] = lowercaseImages
-        nextPayload.images = [{ ...firstImage, SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId }, ...rest]
+        const imageUrl =
+            (typeof firstImage.url === 'string' && firstImage.url.trim()) ||
+            (typeof firstImage.Url === 'string' && firstImage.Url.trim()) ||
+            (isObject(firstImage.image) && typeof firstImage.image.url === 'string' && firstImage.image.url.trim()) ||
+            (isObject(firstImage.Image) && typeof firstImage.Image.Url === 'string' && firstImage.Image.Url.trim()) ||
+            ''
+        nextPayload.images = [
+            {
+                ...firstImage,
+                ...(normalizedSpaceId ? { SpaceId: normalizedSpaceId, spaceId: normalizedSpaceId } : {}),
+                ...(normalizedLayerId ? { LayerId: normalizedLayerId, layerId: normalizedLayerId } : {}),
+                ...(imageUrl ? { image: { url: imageUrl } } : {}),
+            },
+            ...rest,
+        ]
     }
 
     return nextPayload
@@ -344,7 +389,7 @@ export async function POST(req: NextRequest) {
                     ProductId: providerProductId,
                     CountryCode: providerCountryCode,
                     CurrencyCode: providerCurrencyCode,
-                    Images: [{ Url: design.imageUrl }],
+                    Images: [{ Image: { Url: design.imageUrl } }],
                 },
                 {
                     sku: resolvedSku,
@@ -357,11 +402,11 @@ export async function POST(req: NextRequest) {
 
             const previewErrors: unknown[] = []
 
-            const tryPreview = async (spaceId?: string): Promise<unknown | null> => {
+            const tryPreview = async (placement: { spaceId?: string; layerId?: string } = {}): Promise<unknown | null> => {
                 for (const payload of payloadCandidates) {
-                    const withSpaceId = withGootenSpaceId(payload, spaceId)
+                    const withPlacement = withGootenPlacement(payload, placement)
                     try {
-                        return await gooten.createProductPreview(withSpaceId)
+                        return await gooten.createProductPreview(withPlacement)
                     } catch (error) {
                         previewErrors.push(error)
                     }
@@ -377,12 +422,34 @@ export async function POST(req: NextRequest) {
                 )
 
                 for (const spaceId of discoveredSpaceIds) {
-                    previewPayload = await tryPreview(spaceId)
+                    const previousErrorCount = previewErrors.length
+                    previewPayload = await tryPreview({ spaceId })
                     if (previewPayload) {
                         logApiInfo(route, requestId, 'gooten_mockup_spaceid_resolved', {
                             providerProductId,
                             spaceId,
                         })
+                        break
+                    }
+
+                    const spaceAttemptErrors = previewErrors.slice(previousErrorCount)
+                    const discoveredLayerIds = uniqueStrings(
+                        spaceAttemptErrors.flatMap((error) => extractGootenLayerIdOptionsFromError(error))
+                    )
+
+                    for (const layerId of discoveredLayerIds) {
+                        previewPayload = await tryPreview({ spaceId, layerId })
+                        if (previewPayload) {
+                            logApiInfo(route, requestId, 'gooten_mockup_layerid_resolved', {
+                                providerProductId,
+                                spaceId,
+                                layerId,
+                            })
+                            break
+                        }
+                    }
+
+                    if (previewPayload) {
                         break
                     }
                 }

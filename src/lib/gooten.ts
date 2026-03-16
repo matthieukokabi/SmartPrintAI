@@ -505,17 +505,84 @@ export function extractGootenSpaceIdOptionsFromError(error: unknown): string[] {
     }
 
     const options = new Set<string>()
-    const pattern = /Valid options are\s+([A-Za-z0-9\s,]+)/gi
-    let match = pattern.exec(message)
-    while (match) {
-        const group = match[1] || ''
-        for (const raw of group.split(',')) {
-            const candidate = raw.trim().toUpperCase()
-            if (/^[A-Z0-9]{3,}$/.test(candidate)) {
-                options.add(candidate)
+    const validOptionPattern = /Valid options are\s+([A-Za-z0-9\s,]+)/gi
+    const errorEntryPattern = /"PropertyName":"([^"]+)","ErrorMessage":"([^"]+)"/g
+
+    const collectOptions = (source: string) => {
+        let match = validOptionPattern.exec(source)
+        while (match) {
+            const group = match[1] || ''
+            for (const raw of group.split(',')) {
+                const candidate = raw.trim().toUpperCase()
+                if (/^[A-Z0-9]{3,}$/.test(candidate)) {
+                    options.add(candidate)
+                }
             }
+            match = validOptionPattern.exec(source)
         }
-        match = pattern.exec(message)
+    }
+
+    let entryMatch = errorEntryPattern.exec(message)
+    while (entryMatch) {
+        const propertyName = (entryMatch[1] || '').trim()
+        const errorMessage = entryMatch[2] || ''
+        if (/spaceid/i.test(propertyName)) {
+            collectOptions(errorMessage)
+        }
+        entryMatch = errorEntryPattern.exec(message)
+    }
+
+    if (options.size === 0 && /spaceid/i.test(message)) {
+        collectOptions(message)
+    }
+
+    return Array.from(options)
+}
+
+export function extractGootenLayerIdOptionsFromError(error: unknown): string[] {
+    const message =
+        error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+                ? error
+                : isObject(error)
+                    ? JSON.stringify(error)
+                    : ''
+
+    if (!message) {
+        return []
+    }
+
+    const options = new Set<string>()
+    const validOptionPattern = /Valid options are\s+([A-Za-z0-9\s,]+)/gi
+    const errorEntryPattern = /"PropertyName":"([^"]+)","ErrorMessage":"([^"]+)"/g
+
+    const collectOptions = (source: string) => {
+        let match = validOptionPattern.exec(source)
+        while (match) {
+            const group = match[1] || ''
+            for (const raw of group.split(',')) {
+                const candidate = raw.trim().toUpperCase()
+                if (/^[A-Z0-9]{3,}$/.test(candidate)) {
+                    options.add(candidate)
+                }
+            }
+            match = validOptionPattern.exec(source)
+        }
+    }
+
+    let entryMatch = errorEntryPattern.exec(message)
+    while (entryMatch) {
+        const propertyName = (entryMatch[1] || '').trim()
+        const errorMessage = entryMatch[2] || ''
+        if (/layerid/i.test(propertyName)) {
+            collectOptions(errorMessage)
+        }
+        entryMatch = errorEntryPattern.exec(message)
+    }
+
+    if (options.size === 0 && /layerid/i.test(message)) {
+        collectOptions(message)
     }
 
     return Array.from(options)
