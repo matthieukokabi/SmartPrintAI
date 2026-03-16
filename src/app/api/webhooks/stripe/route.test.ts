@@ -28,6 +28,9 @@ const mocks = vi.hoisted(() => ({
   gelato: {
     createOrder: vi.fn(),
   },
+  gooten: {
+    createOrder: vi.fn(),
+  },
   sendOrderConfirmation: vi.fn(),
   sendMakeOrderAlert: vi.fn(),
 }))
@@ -46,6 +49,10 @@ vi.mock('@/lib/printful', () => ({
 
 vi.mock('@/lib/gelato', () => ({
   gelato: mocks.gelato,
+}))
+
+vi.mock('@/lib/gooten', () => ({
+  getGootenClient: vi.fn(() => mocks.gooten),
 }))
 
 vi.mock('@/lib/resend', () => ({
@@ -152,6 +159,7 @@ describe('/api/webhooks/stripe POST', () => {
     )
     expect(mocks.printful.createOrder).not.toHaveBeenCalled()
     expect(mocks.gelato.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gooten.createOrder).not.toHaveBeenCalled()
     expect(mocks.sendMakeOrderAlert).not.toHaveBeenCalled()
   })
 
@@ -304,6 +312,7 @@ describe('/api/webhooks/stripe POST', () => {
     await expect(res.json()).resolves.toEqual({ ok: true })
 
     expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gooten.createOrder).not.toHaveBeenCalled()
     expect(mocks.gelato.createOrder).toHaveBeenCalledWith(
       expect.objectContaining({
         orderReferenceId: 'order_gelato_1',
@@ -317,6 +326,100 @@ describe('/api/webhooks/stripe POST', () => {
         requestId: 'req-gelato-ok',
         orderId: 'order_gelato_1',
         printfulOrderId: 'gel_order_123',
+      })
+    )
+  })
+
+  it('creates Gooten order with SKU mapping for gooten products', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-gooten',
+        designId: 'design-1',
+        size: 'M',
+        color: 'White',
+        quantity: 2,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_gooten',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 6798,
+          amount_subtotal: 6199,
+          shipping_cost: { amount_total: 599 },
+          currency: 'usd',
+          customer_email: 'gooten@example.com',
+          customer_details: { email: 'gooten@example.com' },
+          shipping_details: {
+            name: 'Gooten Buyer',
+            address: {
+              line1: 'Main St 7',
+              city: 'Austin',
+              country: 'US',
+              postal_code: '73301',
+              state: 'TX',
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-gooten',
+        printfulId: 'gooten:hoodie_001',
+        sellPrice: 30.99,
+        colors: [{ name: 'White', printfulVariantId: 0 }],
+        printArea: {
+          providerProductId: 'hoodie_001',
+          providerDefaultSku: 'sku_white_m',
+          variantMapping: {
+            'm:white': 'sku_white_m',
+            white: 'sku_white_m',
+          },
+        },
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design-gooten.png',
+      },
+    ])
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_gooten_1', total: 67.98 })
+    mocks.gooten.createOrder.mockResolvedValue({ OrderId: 'gt_order_123' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-gooten-ok' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+
+    expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gelato.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gooten.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        SourceId: 'order_gooten_1',
+        ExternalId: 'order_gooten_1',
+        Items: [
+          expect.objectContaining({
+            SKU: 'sku_white_m',
+            ProductId: 'hoodie_001',
+            Quantity: 2,
+          }),
+        ],
+      })
+    )
+
+    expect(mocks.sendMakeOrderAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestId: 'req-gooten-ok',
+        orderId: 'order_gooten_1',
+        printfulOrderId: 'gt_order_123',
       })
     )
   })

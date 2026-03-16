@@ -9,6 +9,7 @@ import Stripe from 'stripe'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { detectProductProvider } from '@/lib/product-provider'
 import { gelato } from '@/lib/gelato'
+import { getGootenClient } from '@/lib/gooten'
 
 type CheckoutItem = {
     productId: string
@@ -95,6 +96,25 @@ function parseProductColors(value: unknown): ProductColor[] {
         .map((item) => item)
 }
 
+function parseGootenOrderId(payload: unknown): string | null {
+    if (!isObject(payload)) {
+        return null
+    }
+
+    const directCandidates = [payload.OrderId, payload.orderId, payload.Id, payload.id]
+    for (const candidate of directCandidates) {
+        if (isNonEmptyString(candidate, 255)) {
+            return candidate.trim()
+        }
+    }
+
+    if (isObject(payload.Result)) {
+        return parseGootenOrderId(payload.Result)
+    }
+
+    return null
+}
+
 export async function POST(req: NextRequest) {
     const route = '/api/webhooks/stripe'
     const requestId = getRequestId(req)
@@ -160,6 +180,8 @@ export async function POST(req: NextRequest) {
             provider: string
             variantId?: number
             gelatoProductUid?: string
+            gootenSku?: string
+            gootenProductId?: string
         }> = []
 
         for (const item of items) {
@@ -192,6 +214,33 @@ export async function POST(req: NextRequest) {
                     design,
                     provider,
                     gelatoProductUid,
+                })
+            } else if (provider === 'gooten') {
+                const printArea = (product.printArea || {}) as Record<string, unknown>
+                const mapping = (printArea.variantMapping || {}) as Record<string, string>
+                const sizeKey = item.size.toLowerCase()
+                const colorKey = item.color.toLowerCase()
+                const fullKey = `${sizeKey}:${colorKey}`
+
+                const gootenSku =
+                    mapping[fullKey] ||
+                    mapping[colorKey] ||
+                    mapping[sizeKey] ||
+                    (printArea.providerDefaultSku as string)
+                const gootenProductId = printArea.providerProductId as string
+
+                if (!gootenSku || !gootenProductId) {
+                    logApiWarn(route, requestId, 'gooten_variant_mapping_missing', { productId: product.id, sizeKey, colorKey })
+                    return respond({ ok: true })
+                }
+
+                mappedItems.push({
+                    item,
+                    product,
+                    design,
+                    provider,
+                    gootenSku,
+                    gootenProductId,
                 })
             } else {
                 const colorData = parseProductColors(product.colors).find(
@@ -338,9 +387,11 @@ export async function POST(req: NextRequest) {
         try {
             const printfulItems = mappedItems.filter((i) => i.provider === 'printful')
             const gelatoItems = mappedItems.filter((i) => i.provider === 'gelato')
+            const gootenItems = mappedItems.filter((i) => i.provider === 'gooten')
 
             let printfulOrderId: string | null = null
             let gelatoOrderId: string | null = null
+            let gootenOrderId: string | null = null
 
             if (printfulItems.length > 0) {
                 const printfulOrder = (await printful.createOrder({
@@ -391,10 +442,67 @@ export async function POST(req: NextRequest) {
                 gelatoOrderId = gelatoOrder.id
             }
 
+            if (gootenItems.length > 0) {
+                const gooten = getGootenClient()
+                const firstName = shippingDetails?.name?.split(' ')[0] || customerEmail
+                const lastName = shippingDetails?.name?.split(' ').slice(1).join(' ') || 'Customer'
+                const countryCode = address.country!
+
+                const primaryPayload = {
+                    SourceId: order.id,
+                    ExternalId: order.id,
+                    ShipToAddress: {
+                        FirstName: firstName,
+                        LastName: lastName,
+                        Line1: address.line1!,
+                        Line2: address.line2 || '',
+                        City: address.city!,
+                        State: address.state || '',
+                        PostalCode: address.postal_code!,
+                        CountryCode: countryCode,
+                        Email: customerEmail,
+                    },
+                    Items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
+                        SKU: gootenSku!,
+                        ProductId: gootenProductId!,
+                        Quantity: item.quantity,
+                        Images: [{ Url: design.imageUrl }],
+                    })),
+                }
+
+                let gootenResponse: unknown
+                try {
+                    gootenResponse = await gooten.createOrder(primaryPayload)
+                } catch {
+                    gootenResponse = await gooten.createOrder({
+                        sourceId: order.id,
+                        externalId: order.id,
+                        shipToAddress: {
+                            firstName,
+                            lastName,
+                            line1: address.line1!,
+                            line2: address.line2 || '',
+                            city: address.city!,
+                            state: address.state || '',
+                            postalCode: address.postal_code!,
+                            countryCode,
+                            email: customerEmail,
+                        },
+                        items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
+                            sku: gootenSku!,
+                            productId: gootenProductId!,
+                            quantity: item.quantity,
+                            images: [{ url: design.imageUrl }],
+                        })),
+                    })
+                }
+                gootenOrderId = parseGootenOrderId(gootenResponse) || order.id
+            }
+
             await prisma.order.update({
                 where: { id: order.id },
                 data: {
-                    printfulOrderId: gelatoOrderId || printfulOrderId,
+                    printfulOrderId: gootenOrderId || gelatoOrderId || printfulOrderId,
                     status: 'processing',
                 },
             })
@@ -414,7 +522,7 @@ export async function POST(req: NextRequest) {
                 total: order.total,
                 itemsCount: items.length,
                 status: 'processing',
-                printfulOrderId: gelatoOrderId || printfulOrderId || '',
+                printfulOrderId: gootenOrderId || gelatoOrderId || printfulOrderId || '',
             })
 
             logApiInfo(route, requestId, 'request_succeeded', { orderId: order.id })
