@@ -490,6 +490,37 @@ export function extractGootenPreviewUrl(payload: unknown): string | null {
     return null
 }
 
+export function extractGootenSpaceIdOptionsFromError(error: unknown): string[] {
+    const message =
+        error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+                ? error
+                : isObject(error)
+                    ? JSON.stringify(error)
+                    : ''
+
+    if (!message) {
+        return []
+    }
+
+    const options = new Set<string>()
+    const pattern = /Valid options are\s+([A-Za-z0-9\s,]+)/gi
+    let match = pattern.exec(message)
+    while (match) {
+        const group = match[1] || ''
+        for (const raw of group.split(',')) {
+            const candidate = raw.trim().toUpperCase()
+            if (/^[A-Z0-9]{3,}$/.test(candidate)) {
+                options.add(candidate)
+            }
+        }
+        match = pattern.exec(message)
+    }
+
+    return Array.from(options)
+}
+
 let cachedClient: GootenClient | null = null
 let cachedClientKey = ''
 

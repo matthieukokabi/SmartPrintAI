@@ -5,6 +5,7 @@ import {
     extractGootenProductId,
     extractGootenProductImageUrl,
     extractGootenProductName,
+    extractGootenSpaceIdOptionsFromError,
     extractGootenProductSizes,
     extractGootenProducts,
     extractGootenPreviewUrl,
@@ -149,5 +150,13 @@ describe('Gooten payload extraction', () => {
         }
 
         expect(extractGootenPreviewUrl(payload)).toBe('https://cdn.example.com/preview.jpg')
+    })
+
+    it('extracts SpaceId options from Gooten API validation errors', () => {
+        const error = new Error(
+            'Gooten API error 400 for /v/201608/productpreview/: {"Errors":[{"PropertyName":"Images[0].SpaceId","ErrorMessage":"Must not be null or empty. Valid options are 3B9A7,FC3DB,89946,9A317"}],"HadError":true}'
+        )
+
+        expect(extractGootenSpaceIdOptionsFromError(error)).toEqual(['3B9A7', 'FC3DB', '89946', '9A317'])
     })
 })

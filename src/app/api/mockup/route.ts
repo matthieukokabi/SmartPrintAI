@@ -12,7 +12,7 @@ import {
     extractGelatoTemplatePlaceholderName,
     gelato,
 } from '@/lib/gelato'
-import { extractGootenPreviewUrl, getGootenClient } from '@/lib/gooten'
+import { extractGootenPreviewUrl, extractGootenSpaceIdOptionsFromError, getGootenClient } from '@/lib/gooten'
 
 type MockupPayload = {
     designId: string
@@ -97,6 +97,22 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, ms)
     })
+}
+
+function uniqueStrings(values: string[]): string[] {
+    const seen = new Set<string>()
+    const output: string[] = []
+
+    for (const value of values) {
+        const normalized = value.trim().toUpperCase()
+        if (!normalized || seen.has(normalized)) {
+            continue
+        }
+        seen.add(normalized)
+        output.push(normalized)
+    }
+
+    return output
 }
 
 async function resolveGelatoPreviewUrl(storeId: string, createPayload: unknown): Promise<string | null> {
@@ -299,23 +315,59 @@ export async function POST(req: NextRequest) {
                 color: colorData.name,
             })
 
-            let previewPayload: unknown
-            try {
-                previewPayload = await gooten.createProductPreview({
+            const payloadCandidates: Array<Record<string, unknown>> = [
+                {
                     SKU: resolvedSku,
                     ProductId: providerProductId,
                     CountryCode: providerCountryCode,
                     CurrencyCode: providerCurrencyCode,
                     Images: [{ Url: design.imageUrl }],
-                })
-            } catch {
-                previewPayload = await gooten.createProductPreview({
+                },
+                {
                     sku: resolvedSku,
                     productId: providerProductId,
                     countryCode: providerCountryCode,
                     currencyCode: providerCurrencyCode,
                     images: [{ url: design.imageUrl, image: { url: design.imageUrl } }],
-                })
+                },
+            ]
+
+            const previewErrors: unknown[] = []
+
+            const tryPreview = async (spaceId?: string): Promise<unknown | null> => {
+                for (const payload of payloadCandidates) {
+                    const withSpaceId =
+                        spaceId && spaceId.length > 0 ? { ...payload, SpaceId: spaceId, spaceId } : payload
+                    try {
+                        return await gooten.createProductPreview(withSpaceId)
+                    } catch (error) {
+                        previewErrors.push(error)
+                    }
+                }
+                return null
+            }
+
+            let previewPayload = await tryPreview()
+
+            if (!previewPayload) {
+                const discoveredSpaceIds = uniqueStrings(
+                    previewErrors.flatMap((error) => extractGootenSpaceIdOptionsFromError(error))
+                )
+
+                for (const spaceId of discoveredSpaceIds) {
+                    previewPayload = await tryPreview(spaceId)
+                    if (previewPayload) {
+                        logApiInfo(route, requestId, 'gooten_mockup_spaceid_resolved', {
+                            providerProductId,
+                            spaceId,
+                        })
+                        break
+                    }
+                }
+            }
+
+            if (!previewPayload) {
+                throw previewErrors.at(-1) || new Error('Gooten product preview failed')
             }
 
             mockupUrl = extractGootenPreviewUrl(previewPayload)
