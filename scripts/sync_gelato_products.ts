@@ -92,6 +92,26 @@ function normalizeGarmentCut(value: string): string {
     return normalized
 }
 
+function parseKeywordEnv(value: string | undefined): string[] {
+    if (!value) {
+        return []
+    }
+
+    return value
+        .split(',')
+        .map((keyword) => keyword.trim().toLowerCase())
+        .filter(Boolean)
+}
+
+function containsAnyKeyword(sourceText: string, keywords: string[]): boolean {
+    if (keywords.length === 0) {
+        return false
+    }
+
+    const haystack = sourceText.toLowerCase()
+    return keywords.some((keyword) => haystack.includes(keyword))
+}
+
 function parseCatalogName(payload: unknown, fallback: string): string {
     if (typeof payload !== 'object' || payload === null) {
         return fallback
@@ -210,6 +230,10 @@ const GELATO_MIN_MARGIN = Number(process.env.GELATO_MIN_MARGIN || 8)
 const GELATO_SYNC_DEACTIVATE_MISSING = process.env.GELATO_SYNC_DEACTIVATE_MISSING !== '0'
 const GELATO_SYNC_DEDUPE_BY_NAME = process.env.GELATO_SYNC_DEDUPE_BY_NAME !== '0'
 const GELATO_SYNC_DRY_RUN = parseBooleanEnv(process.env.GELATO_SYNC_DRY_RUN)
+const GELATO_SYNC_REQUIRE_IMAGE = process.env.GELATO_SYNC_REQUIRE_IMAGE !== '0'
+const GELATO_SYNC_MIN_BASE_PRICE = Number(process.env.GELATO_SYNC_MIN_BASE_PRICE || 0)
+const GELATO_SYNC_INCLUDE_KEYWORDS = parseKeywordEnv(process.env.GELATO_SYNC_INCLUDE_KEYWORDS)
+const GELATO_SYNC_EXCLUDE_KEYWORDS = parseKeywordEnv(process.env.GELATO_SYNC_EXCLUDE_KEYWORDS)
 
 const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
@@ -234,6 +258,16 @@ function shouldIncludeCatalogProduct(
     productPayload: unknown
 ): { include: boolean; reason?: string } {
     const attributesMap = extractGelatoAttributesMap(productPayload)
+    const searchableText = `${catalogName} ${productName} ${Object.values(attributesMap).join(' ')}`.toLowerCase()
+
+    if (GELATO_SYNC_INCLUDE_KEYWORDS.length > 0 && !containsAnyKeyword(searchableText, GELATO_SYNC_INCLUDE_KEYWORDS)) {
+        return { include: false, reason: 'keyword-miss' }
+    }
+
+    if (GELATO_SYNC_EXCLUDE_KEYWORDS.length > 0 && containsAnyKeyword(searchableText, GELATO_SYNC_EXCLUDE_KEYWORDS)) {
+        return { include: false, reason: 'keyword-excluded' }
+    }
+
     const isApparel = isApparelCatalogProduct(catalogName, productName, attributesMap)
 
     if (GELATO_SYNC_APPAREL_ONLY && !isApparel) {
@@ -386,6 +420,14 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
                 continue
             }
 
+            if (GELATO_SYNC_MIN_BASE_PRICE > 0 && basePrice < GELATO_SYNC_MIN_BASE_PRICE) {
+                skippedFiltered += 1
+                console.log(
+                    `Skip ${productUid}: base price ${basePrice.toFixed(2)} below minimum ${GELATO_SYNC_MIN_BASE_PRICE.toFixed(2)}.`
+                )
+                continue
+            }
+
             const description = extractGelatoProductDescription(productPayload) || productName
             const sizes = extractGelatoProductSizes(productPayload)
             const printfulId = `gelato:${productUid}`
@@ -402,6 +444,12 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
             const existing = await prisma.product.findUnique({ where: { printfulId } })
             const sellPrice = existing?.sellPrice ?? calcSellPrice(basePrice, GELATO_SELL_PRICE_MULTIPLIER, GELATO_MIN_MARGIN)
             const imageUrl = sanitizeGelatoImageUrl(extractGelatoProductImageUrl(productPayload))
+
+            if (GELATO_SYNC_REQUIRE_IMAGE && !imageUrl) {
+                skippedFiltered += 1
+                console.log(`Skip ${productUid}: missing product image URL.`)
+                continue
+            }
 
             const data = {
                 name: `${productName}`,
@@ -748,7 +796,7 @@ async function deactivateMissingSyncedProducts(syncedPrintfulIds: Set<string>): 
 async function main() {
     console.log('Starting Gelato product sync...')
     console.log(
-        `Config: mode=${GELATO_SYNC_MODE} pageLimit=${GELATO_SYNC_PAGE_LIMIT} offset=${GELATO_SYNC_OFFSET} maxProducts=${GELATO_SYNC_MAX_PRODUCTS || 'all'} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dedupeByName=${GELATO_SYNC_DEDUPE_BY_NAME} deactivateMissing=${GELATO_SYNC_DEACTIVATE_MISSING} dryRun=${GELATO_SYNC_DRY_RUN} apparelOnly=${GELATO_SYNC_APPAREL_ONLY} cuts=${GELATO_SYNC_GARMENT_CUTS.join('|') || 'all'} autoDiscoverCatalogs=${GELATO_SYNC_CATALOG_AUTO_DISCOVER}`
+        `Config: mode=${GELATO_SYNC_MODE} pageLimit=${GELATO_SYNC_PAGE_LIMIT} offset=${GELATO_SYNC_OFFSET} maxProducts=${GELATO_SYNC_MAX_PRODUCTS || 'all'} country=${GELATO_PRICE_COUNTRY} currency=${GELATO_PRICE_CURRENCY} dedupeByName=${GELATO_SYNC_DEDUPE_BY_NAME} deactivateMissing=${GELATO_SYNC_DEACTIVATE_MISSING} dryRun=${GELATO_SYNC_DRY_RUN} apparelOnly=${GELATO_SYNC_APPAREL_ONLY} cuts=${GELATO_SYNC_GARMENT_CUTS.join('|') || 'all'} autoDiscoverCatalogs=${GELATO_SYNC_CATALOG_AUTO_DISCOVER} requireImage=${GELATO_SYNC_REQUIRE_IMAGE} minBasePrice=${GELATO_SYNC_MIN_BASE_PRICE} includeKeywords=${GELATO_SYNC_INCLUDE_KEYWORDS.join('|') || 'none'} excludeKeywords=${GELATO_SYNC_EXCLUDE_KEYWORDS.join('|') || 'none'}`
     )
 
     let totalSynced = 0
