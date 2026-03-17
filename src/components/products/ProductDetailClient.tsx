@@ -43,6 +43,67 @@ const defaultCopy = {
     readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
 }
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+    const normalized = hex.trim().toLowerCase()
+    if (!/^#[0-9a-f]{6}$/i.test(normalized)) {
+        return null
+    }
+    const value = normalized.slice(1)
+    const r = Number.parseInt(value.slice(0, 2), 16)
+    const g = Number.parseInt(value.slice(2, 4), 16)
+    const b = Number.parseInt(value.slice(4, 6), 16)
+    return { r, g, b }
+}
+
+function rgbToHsl({ r, g, b }: { r: number; g: number; b: number }): { h: number; s: number; l: number } {
+    const rn = r / 255
+    const gn = g / 255
+    const bn = b / 255
+    const max = Math.max(rn, gn, bn)
+    const min = Math.min(rn, gn, bn)
+    const delta = max - min
+
+    let h = 0
+    if (delta !== 0) {
+        if (max === rn) {
+            h = ((gn - bn) / delta + (gn < bn ? 6 : 0)) * 60
+        } else if (max === gn) {
+            h = ((bn - rn) / delta + 2) * 60
+        } else {
+            h = ((rn - gn) / delta + 4) * 60
+        }
+    }
+
+    const l = (max + min) / 2
+    const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1))
+    return { h, s, l }
+}
+
+function buildFallbackImageFilter(selectedColorHex: string): string {
+    const rgb = hexToRgb(selectedColorHex)
+    if (!rgb) {
+        return 'none'
+    }
+
+    const { h, s, l } = rgbToHsl(rgb)
+    const normalizedLightness = l
+    const normalizedSaturation = s
+
+    if (normalizedLightness >= 0.92) {
+        return 'grayscale(1) brightness(1.22) contrast(0.92)'
+    }
+
+    if (normalizedLightness <= 0.12) {
+        return 'grayscale(1) brightness(0.45) contrast(1.2)'
+    }
+
+    const saturateFactor = Math.max(2.8, Math.min(6.5, 2.6 + normalizedSaturation * 5))
+    const brightnessFactor = Math.max(0.75, Math.min(1.06, 0.72 + normalizedLightness * 0.5))
+    const contrastFactor = Math.max(0.96, Math.min(1.16, 0.96 + normalizedSaturation * 0.22))
+
+    return `grayscale(1) sepia(1) saturate(${saturateFactor.toFixed(2)}) hue-rotate(${Math.round(h)}deg) brightness(${brightnessFactor.toFixed(2)}) contrast(${contrastFactor.toFixed(2)})`
+}
+
 function colorDotStyle(name: string, hex: string) {
     const hasValidHex = /^#[0-9a-f]{6}$/i.test(hex)
     const safeHex = hasValidHex && hex.toLowerCase() !== '#ffffff' ? hex : resolveColorHexFromName(name)
@@ -75,6 +136,7 @@ export default function ProductDetailClient({
         : '#ffffff'
     const imageUrl = selectedColorData?.previewImageUrl || product.imageUrl
     const isFallbackColorPreview = Boolean(!selectedColorData?.previewImageUrl && product.imageUrl)
+    const fallbackImageFilter = isFallbackColorPreview ? buildFallbackImageFilter(selectedColorHex) : 'none'
     const createHref =
         `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
@@ -91,6 +153,7 @@ export default function ProductDetailClient({
                             fill
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover"
+                            style={isFallbackColorPreview ? { filter: fallbackImageFilter } : undefined}
                             unoptimized
                             priority
                         />
@@ -99,8 +162,8 @@ export default function ProductDetailClient({
                                 className="absolute inset-0 pointer-events-none"
                                 style={{
                                     backgroundColor: selectedColorHex,
-                                    opacity: 0.14,
-                                    mixBlendMode: 'multiply',
+                                    opacity: 0.08,
+                                    mixBlendMode: 'soft-light',
                                 }}
                                 aria-hidden="true"
                             />
