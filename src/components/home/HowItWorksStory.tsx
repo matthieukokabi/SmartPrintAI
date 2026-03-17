@@ -124,7 +124,6 @@ export default function HowItWorksStory({ copy, media }: HowItWorksStoryProps) {
                                                     fill
                                                     sizes="100vw"
                                                     className="object-cover"
-                                                    unoptimized
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
                                             </>
@@ -284,7 +283,6 @@ function StagePreview({ step }: StagePreviewProps) {
                         fill
                         sizes="(max-width: 1536px) 46vw, 680px"
                         className="object-cover"
-                        unoptimized
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,hsl(var(--premium-spot)/0.2),transparent_24%),radial-gradient(circle_at_70%_30%,hsl(var(--premium-spot-alt)/0.18),transparent_26%),linear-gradient(180deg,hsl(var(--premium-surface-soft))_0%,transparent_100%)]">

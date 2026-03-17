@@ -76,7 +76,6 @@ export default async function FeaturedProducts({ copy = defaultCopy }: FeaturedP
                                                     fill
                                                     sizes={isLeadCard ? '(max-width: 1280px) 100vw, 48vw' : '(max-width: 768px) 50vw, 28vw'}
                                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    unoptimized
                                                 />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--premium-spot)/0.18),transparent_58%),linear-gradient(180deg,hsl(var(--premium-surface-soft))_0%,transparent_100%)]">

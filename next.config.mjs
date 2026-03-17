@@ -14,8 +14,14 @@ const contentSecurityPolicy = [
 
 const nextConfig = {
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 86400,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920],
+    imageSizes: [96, 128, 256, 384],
     remotePatterns: [
       { protocol: 'https', hostname: 'files.cdn.printful.com' },
+      { protocol: 'https', hostname: 'az412349.cdn.gooten.com' },
+      { protocol: 'https', hostname: 'appassets.azureedge.net' },
       { protocol: 'https', hostname: 'smartprintai.com' },
       { protocol: 'https', hostname: 'www.smartprintai.com' },
       { protocol: 'http', hostname: 'localhost', port: '9000' },

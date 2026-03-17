@@ -28,7 +28,6 @@ export default function ProductCard({ id, name, sellPrice, category, imageUrl, h
                         fill
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        unoptimized
                     />
                 ) : (
                     <div className="flex h-full items-center justify-center">

@@ -88,7 +88,6 @@ export default async function SampleDesigns({ copy = defaultCopy }: SampleDesign
                                                     fill
                                                     sizes={featuredCard ? '(max-width: 1280px) 100vw, 48vw' : '(max-width: 768px) 45vw, 24vw'}
                                                     className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                                    unoptimized
                                                 />
                                             ) : (
                                                 <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top_left,hsl(var(--premium-spot)/0.22),transparent_42%),radial-gradient(circle_at_bottom_right,hsl(var(--premium-spot-alt)/0.18),transparent_46%),linear-gradient(180deg,hsl(var(--premium-surface-soft))_0%,transparent_100%)] p-5">
