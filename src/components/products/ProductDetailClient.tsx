@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Shirt } from 'lucide-react'
+import { resolveColorHexFromName } from '@/lib/product-colors'
 
 type ProductColor = {
     name: string
@@ -42,8 +43,9 @@ const defaultCopy = {
     readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
 }
 
-function colorDotStyle(hex: string) {
-    const safeHex = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#ffffff'
+function colorDotStyle(name: string, hex: string) {
+    const hasValidHex = /^#[0-9a-f]{6}$/i.test(hex)
+    const safeHex = hasValidHex && hex.toLowerCase() !== '#ffffff' ? hex : resolveColorHexFromName(name)
     return { backgroundColor: safeHex }
 }
 
@@ -64,7 +66,15 @@ export default function ProductDetailClient({
         [product.colors, selectedColor]
     )
 
+    const selectedColorRawHex = selectedColorData?.hex ?? '#FFFFFF'
+    const selectedColorHasValidHex = /^#[0-9a-f]{6}$/i.test(selectedColorRawHex)
+    const selectedColorHex = selectedColorData
+        ? selectedColorHasValidHex && selectedColorRawHex.toLowerCase() !== '#ffffff'
+            ? selectedColorRawHex
+            : resolveColorHexFromName(selectedColorData.name)
+        : '#ffffff'
     const imageUrl = selectedColorData?.previewImageUrl || product.imageUrl
+    const isFallbackColorPreview = Boolean(!selectedColorData?.previewImageUrl && product.imageUrl)
     const createHref =
         `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
@@ -74,15 +84,28 @@ export default function ProductDetailClient({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="relative aspect-square rounded-2xl glass flex items-center justify-center overflow-hidden">
                 {imageUrl ? (
-                    <Image
-                        src={imageUrl}
-                        alt={`${product.name} - ${selectedColor}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-cover"
-                        unoptimized
-                        priority
-                    />
+                    <>
+                        <Image
+                            src={imageUrl}
+                            alt={`${product.name} - ${selectedColor}`}
+                            fill
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            className="object-cover"
+                            unoptimized
+                            priority
+                        />
+                        {isFallbackColorPreview ? (
+                            <div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    backgroundColor: selectedColorHex,
+                                    opacity: 0.14,
+                                    mixBlendMode: 'multiply',
+                                }}
+                                aria-hidden="true"
+                            />
+                        ) : null}
+                    </>
                 ) : (
                     <Shirt className="w-32 h-32 text-muted-foreground/30" />
                 )}
@@ -126,7 +149,10 @@ export default function ProductDetailClient({
                                         : 'glass text-muted-foreground hover:text-foreground'
                                         }`}
                                 >
-                                    <span className="w-4 h-4 rounded-full border border-white/20" style={colorDotStyle(color.hex)} />
+                                    <span
+                                        className="w-4 h-4 rounded-full border border-white/20"
+                                        style={colorDotStyle(color.name, color.hex)}
+                                    />
                                     {color.name}
                                 </button>
                             ))}
