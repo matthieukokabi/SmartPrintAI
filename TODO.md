@@ -126,6 +126,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Google Merchant Center warnings cleared on live catalog (2026-03-12 manual verification: `Attention requise` empty; all 19 products in review/green pipeline)
 - [x] Google Ads account linked to Merchant Center with billing profile attached (2026-03-12; service visible under `Accès et services`)
 - [x] SEO optimization pass for product pages (titles, metadata, canonical tags, Product/ItemList schema, crawl controls)
+- [x] Wave 1 semantic guarantee for `/create` and localized `/[locale]/create` H1 fallback (2026-03-17: upgraded Suspense fallback in both routes to render server-side hero heading copy so crawlers and no-JS fallbacks always see an H1; verified with `npm run lint`, `npm run test`, and `DATABASE_URL=postgresql://user:pass@localhost:5432/db STRIPE_SECRET_KEY=sk_test_dummy GEMINI_API_KEY=dummy RESEND_API_KEY=re_dummy AUTH_SESSION_SECRET=0123456789abcdef NEXT_PUBLIC_APP_URL=https://smartprintai.com npm run build`)
 - [x] Publish first 2 SEO blog posts (intent-focused) with live routes `/blog` and `/blog/[slug]`
 - [x] Publish third multilingual SEO blog post (2026-03-11: `top-selling-ai-tshirt-themes-you-can-launch-this-week` in `en/fr/de/es`)
 - [x] Publish SEO blog expansion batch (2026-03-13: added 6 new high-intent blog topics for fitness merch, family reunions, bachelorette events, Etsy mug niches, graduation gifts, and small-business merch; wired into all locale blog routes and sorted blog index by latest publish date)
