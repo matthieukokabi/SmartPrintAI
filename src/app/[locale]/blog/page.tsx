@@ -14,6 +14,41 @@ type LocaleBlogPageProps = {
 
 export const dynamicParams = false
 
+const discoveryCopyByLocale: Record<
+    SupportedLocale,
+    {
+        productsTitle: string
+        productsDescription: string
+        createTitle: string
+        createDescription: string
+    }
+> = {
+    en: {
+        productsTitle: 'Browse all products',
+        productsDescription: 'Jump from trend research to live product pages.',
+        createTitle: 'Start creating now',
+        createDescription: 'Generate your own design and apply it on products with AI.',
+    },
+    fr: {
+        productsTitle: 'Voir tous les produits',
+        productsDescription: 'Passez de la recherche de tendances aux pages produits.',
+        createTitle: 'Commencer a creer',
+        createDescription: "Generez votre design et appliquez-le aux produits avec l'IA.",
+    },
+    de: {
+        productsTitle: 'Alle Produkte ansehen',
+        productsDescription: 'Von Trend-Recherche direkt zu den Produktseiten wechseln.',
+        createTitle: 'Jetzt erstellen',
+        createDescription: 'Eigenes Design mit KI erzeugen und auf Produkte anwenden.',
+    },
+    es: {
+        productsTitle: 'Ver todos los productos',
+        productsDescription: 'Pasa de investigar tendencias a paginas de producto.',
+        createTitle: 'Empieza a crear',
+        createDescription: 'Genera tu propio diseno con IA y aplicalo en productos.',
+    },
+}
+
 export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
 }
@@ -43,6 +78,7 @@ export default function LocalizedBlogIndexPage({ params }: LocaleBlogPageProps) 
 
     const locale = params.locale as SupportedLocale
     const copy = BLOG_UI_COPY[locale]
+    const discoveryCopy = discoveryCopyByLocale[locale]
     const posts = getLocalizedBlogPosts(locale)
 
     const itemListSchema = {
@@ -70,6 +106,23 @@ export default function LocalizedBlogIndexPage({ params }: LocaleBlogPageProps) 
                 <h1 className="text-3xl sm:text-4xl font-bold">{copy.heading}</h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </header>
+
+            <section className="grid gap-3 sm:grid-cols-2">
+                <Link
+                    href={`/${locale}/products`}
+                    className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60"
+                >
+                    <p className="text-sm font-semibold">{discoveryCopy.productsTitle}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{discoveryCopy.productsDescription}</p>
+                </Link>
+                <Link
+                    href={`/${locale}/create`}
+                    className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60"
+                >
+                    <p className="text-sm font-semibold">{discoveryCopy.createTitle}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{discoveryCopy.createDescription}</p>
+                </Link>
+            </section>
 
             <div className="space-y-4">
                 {posts.map((post) => (

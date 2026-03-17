@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
 import { toAbsoluteUrl } from '@/lib/site'
@@ -64,6 +65,17 @@ export default async function ProductsPage() {
                 </h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </div>
+
+            <section className="mb-12 grid gap-3 sm:grid-cols-2">
+                <Link href="/create" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">
+                    <p className="text-sm font-semibold">Design your own product</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Use AI to generate art and preview it on products.</p>
+                </Link>
+                <Link href="/blog" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">
+                    <p className="text-sm font-semibold">Read design guides</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Find ideas and trends, then jump back into product creation.</p>
+                </Link>
+            </section>
 
             {products.length === 0 ? (
                 <div className="glass rounded-2xl p-10 text-center">

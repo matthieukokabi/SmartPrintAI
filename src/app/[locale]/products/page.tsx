@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
@@ -62,6 +63,41 @@ const sectionCopyByLocale: Record<
     },
 }
 
+const discoveryCopyByLocale: Record<
+    SupportedLocale,
+    {
+        createTitle: string
+        createDescription: string
+        blogTitle: string
+        blogDescription: string
+    }
+> = {
+    en: {
+        createTitle: 'Design your own product',
+        createDescription: 'Use AI to generate art and preview it on products.',
+        blogTitle: 'Read design guides',
+        blogDescription: 'Find ideas and trends, then jump back into product creation.',
+    },
+    fr: {
+        createTitle: 'Creez votre produit',
+        createDescription: "Utilisez l'IA pour generer une creation et la previsualiser sur vos produits.",
+        blogTitle: 'Lire les guides',
+        blogDescription: 'Trouvez des idees et tendances, puis revenez a la creation de produit.',
+    },
+    de: {
+        createTitle: 'Eigenes Produkt gestalten',
+        createDescription: 'Mit KI Designs erstellen und direkt auf Produkten ansehen.',
+        blogTitle: 'Design-Ratgeber lesen',
+        blogDescription: 'Ideen und Trends finden und danach direkt mit der Produkterstellung starten.',
+    },
+    es: {
+        createTitle: 'Disena tu propio producto',
+        createDescription: 'Usa IA para generar arte y previsualizarlo en productos.',
+        blogTitle: 'Leer guias de diseno',
+        blogDescription: 'Descubre ideas y tendencias y vuelve a crear productos.',
+    },
+}
+
 export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
 }
@@ -92,6 +128,7 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
     const locale = params.locale as SupportedLocale
     const copy = getLocaleCopy(locale).products
     const sectionCopy = sectionCopyByLocale[locale]
+    const discoveryCopy = discoveryCopyByLocale[locale]
 
     const allProducts = await prisma.product.findMany({
         where: { active: true },
@@ -136,6 +173,23 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
                 </h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </div>
+
+            <section className="mb-12 grid gap-3 sm:grid-cols-2">
+                <Link
+                    href={`/${locale}/create`}
+                    className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60"
+                >
+                    <p className="text-sm font-semibold">{discoveryCopy.createTitle}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{discoveryCopy.createDescription}</p>
+                </Link>
+                <Link
+                    href={`/${locale}/blog`}
+                    className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60"
+                >
+                    <p className="text-sm font-semibold">{discoveryCopy.blogTitle}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{discoveryCopy.blogDescription}</p>
+                </Link>
+            </section>
 
             {products.length === 0 ? (
                 <div className="glass rounded-2xl p-10 text-center">

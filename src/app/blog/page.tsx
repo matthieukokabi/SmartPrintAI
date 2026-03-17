@@ -39,6 +39,17 @@ export default function BlogIndexPage() {
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </header>
 
+            <section className="grid gap-3 sm:grid-cols-2">
+                <Link href="/products" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">
+                    <p className="text-sm font-semibold">Browse all products</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Jump from trend research to live product pages.</p>
+                </Link>
+                <Link href="/create" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">
+                    <p className="text-sm font-semibold">Start creating now</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Generate your own design and apply it on products with AI.</p>
+                </Link>
+            </section>
+
             <div className="space-y-4">
                 {posts.map((post) => (
                     <article key={post.slug} className="glass rounded-2xl p-6 space-y-3">
