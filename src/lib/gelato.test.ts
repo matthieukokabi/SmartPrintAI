@@ -8,6 +8,7 @@ import {
     extractGelatoProductName,
     extractGelatoProductSizes,
     extractGelatoStoreProductColorNames,
+    extractGelatoStoreProductColorPreviewMap,
     extractGelatoStoreProductTemplateId,
     extractGelatoStoreProductSizes,
     extractGelatoStoreProducts,
@@ -126,6 +127,33 @@ describe('Gelato ecommerce payload extraction', () => {
         const [storeProduct] = extractGelatoStoreProducts(storeProductPayload)
         expect(extractGelatoStoreProductSizes(storeProduct)).toEqual(['S', '2XL'])
         expect(extractGelatoStoreProductColorNames(storeProduct)).toEqual(['White', 'Black'])
+    })
+
+    it('extracts color-specific preview URLs from store product variants', () => {
+        const [storeProduct] = extractGelatoStoreProducts({
+            products: [
+                {
+                    id: 'store-product-1',
+                    variants: [
+                        {
+                            productUid: 'uid_1',
+                            attributes: { GarmentColor: 'black' },
+                            previewUrl: 'https://cdn.example.com/black.jpg',
+                        },
+                        {
+                            productUid: 'uid_2',
+                            attributes: { GarmentColor: 'white' },
+                            thumbnails: [{ url: 'https://cdn.example.com/white.jpg' }],
+                        },
+                    ],
+                },
+            ],
+        })
+
+        expect(extractGelatoStoreProductColorPreviewMap(storeProduct)).toEqual({
+            black: 'https://cdn.example.com/black.jpg',
+            white: 'https://cdn.example.com/white.jpg',
+        })
     })
 
     it('extracts template id from store product payload', () => {

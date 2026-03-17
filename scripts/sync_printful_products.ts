@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv'
 dotenv.config({ path: ['.env.local', '.env'] })
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
+import { pickCoreColorSubset } from '../src/lib/product-colors'
 
 type PrintfulProductSummary = {
   id: number
@@ -221,7 +222,7 @@ async function main() {
     const existing = await prisma.product.findUnique({ where: { printfulId } })
 
     const sizes = uniqueStrings(variants.map((v) => v.size))
-    const colors = normalizeColors(variants)
+    const colors = pickCoreColorSubset(normalizeColors(variants), 4)
 
     if (colors.length === 0) {
       skipped += 1

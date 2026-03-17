@@ -19,6 +19,7 @@ import {
     extractGelatoStoreProductDescription,
     extractGelatoStoreProductImageUrl,
     extractGelatoStoreProductName,
+    extractGelatoStoreProductColorPreviewMap,
     extractGelatoStoreProductSizes,
     extractGelatoStoreProductTemplateId,
     extractGelatoStoreProducts,
@@ -29,6 +30,7 @@ import {
     extractGelatoStoreVariantMapping,
     extractGelatoVariantMapping,
 } from '../src/lib/gelato'
+import { buildCuratedColorPayloads } from '../src/lib/product-colors'
 import { type GelatoTemplateMappingEntry, resolveGelatoStoreId, resolveGelatoTemplateMappings } from '../src/lib/gelato-template-mapping'
 
 type SyncStats = {
@@ -176,24 +178,6 @@ function sanitizeGelatoImageUrl(value: string | null | undefined): string {
     }
 
     return normalized
-}
-
-function toColorPayloads(colorNames: string[]): Array<{ name: string; hex: string; printfulVariantId: number }> {
-    if (colorNames.length === 0) {
-        return [
-            {
-                name: 'White',
-                hex: '#FFFFFF',
-                printfulVariantId: 0,
-            },
-        ]
-    }
-
-    return colorNames.map((name) => ({
-        name,
-        hex: '#FFFFFF',
-        printfulVariantId: 0,
-    }))
 }
 
 const databaseUrl = process.env.DATABASE_URL
@@ -459,7 +443,7 @@ async function syncCatalog(catalogUid: string): Promise<SyncStats> {
                 basePrice,
                 sellPrice,
                 sizes,
-                colors: toColorPayloads([colorName]),
+                colors: buildCuratedColorPayloads([colorName]),
                 imageUrl,
                 printArea: {
                     width: 4200,
@@ -644,6 +628,7 @@ async function syncStoreTemplates(
     let skippedNoPrice = 0
     let skippedUnavailable = 0
     let skippedDuplicates = 0
+    let skippedFiltered = 0
     const syncedPrintfulIds: string[] = []
     const syncedTemplateIds = new Set<string>()
 
@@ -675,6 +660,7 @@ async function syncStoreTemplates(
         const imageUrl = sanitizeGelatoImageUrl(extractGelatoStoreProductImageUrl(storeProduct))
         const sizes = extractGelatoStoreProductSizes(storeProduct)
         const colorNames = extractGelatoStoreProductColorNames(storeProduct)
+        const colorPreviewMap = extractGelatoStoreProductColorPreviewMap(storeProduct)
         const category = classifyCategoryByProductType(
             templateMapping.productType,
             `${templateMapping.productType} ${productName}`
@@ -684,6 +670,12 @@ async function syncStoreTemplates(
         if (!basePrice || basePrice <= 0) {
             skippedNoPrice += 1
             console.log(`Skip ${templateMapping.templateId}: no unit price found from mapped variants.`)
+            continue
+        }
+
+        if (GELATO_SYNC_REQUIRE_IMAGE && !imageUrl) {
+            skippedFiltered += 1
+            console.log(`Skip ${templateMapping.templateId}: missing product image URL.`)
             continue
         }
 
@@ -714,7 +706,7 @@ async function syncStoreTemplates(
             basePrice,
             sellPrice,
             sizes: sizes.length > 0 ? sizes : ['Default'],
-            colors: toColorPayloads(colorNames),
+            colors: buildCuratedColorPayloads(colorNames, { previewByName: colorPreviewMap }),
             imageUrl,
             printArea: {
                 width: 4200,
@@ -766,7 +758,7 @@ async function syncStoreTemplates(
         skippedUnavailable,
         skippedUnprintable: 0,
         skippedDuplicates,
-        skippedFiltered: 0,
+        skippedFiltered,
         skippedNoProducts: 0,
         syncedPrintfulIds,
     }

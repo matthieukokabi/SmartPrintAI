@@ -412,6 +412,53 @@ export function extractGelatoStoreProductColorNames(storeProductPayload: unknown
     return values.map((value) => toTitleCase(value))
 }
 
+export function extractGelatoStoreProductColorPreviewMap(storeProductPayload: unknown): Record<string, string> {
+    if (!isObject(storeProductPayload)) {
+        return {}
+    }
+
+    const variants = storeProductPayload.variants
+    if (!Array.isArray(variants)) {
+        return {}
+    }
+
+    const previewsByColor: Record<string, string> = {}
+
+    for (const variant of variants) {
+        if (!isObject(variant)) {
+            continue
+        }
+
+        const attributes = extractGelatoAttributesMap(variant)
+        const colorRaw =
+            attributes.garmentcolor ||
+            attributes.color ||
+            pickString(variant, ['color', 'Color', 'garmentColor', 'GarmentColor'])
+        const colorName = asNonEmptyString(colorRaw)
+        if (!colorName) {
+            continue
+        }
+
+        const normalizedColor = colorName.trim().toLowerCase()
+        if (previewsByColor[normalizedColor]) {
+            continue
+        }
+
+        const directImage = asHttpUrl(
+            pickString(variant, ['previewUrl', 'imageUrl', 'thumbnailUrl', 'externalThumbnailUrl'])
+        )
+        const nestedImage = findImageUrlDeep(variant, 0)
+        const previewImageUrl = directImage || nestedImage
+        if (!previewImageUrl) {
+            continue
+        }
+
+        previewsByColor[normalizedColor] = previewImageUrl
+    }
+
+    return previewsByColor
+}
+
 export function extractGelatoTemplateProductUids(templatePayload: unknown): string[] {
     if (!isObject(templatePayload)) {
         return []

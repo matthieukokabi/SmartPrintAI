@@ -22,7 +22,12 @@ export async function GET(req: NextRequest) {
         }
 
         const products = await prisma.product.findMany({
-            where: { active: true },
+            where: {
+                active: true,
+                imageUrl: {
+                    not: '',
+                },
+            },
             orderBy: { name: 'asc' },
         })
 

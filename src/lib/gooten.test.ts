@@ -140,6 +140,31 @@ describe('Gooten payload extraction', () => {
             },
             colors: ['Black', 'White'],
             sizes: ['M', 'L'],
+            colorPreviewUrls: {},
+        })
+    })
+
+    it('maps variant preview image URLs by color when available', () => {
+        const payload = {
+            ProductVariants: [
+                {
+                    SKU: 'sku_black_m',
+                    ColorName: 'Black',
+                    Size: 'M',
+                    PreviewUrl: 'https://cdn.example.com/black.jpg',
+                },
+                {
+                    SKU: 'sku_white_l',
+                    ColorName: 'White',
+                    Size: 'L',
+                    Images: [{ Url: 'https://cdn.example.com/white.jpg' }],
+                },
+            ],
+        }
+
+        expect(extractGootenVariantMapping(payload).colorPreviewUrls).toEqual({
+            black: 'https://cdn.example.com/black.jpg',
+            white: 'https://cdn.example.com/white.jpg',
         })
     })
 

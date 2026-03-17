@@ -16,6 +16,7 @@ import {
     extractGootenProducts,
     extractGootenVariantMapping,
 } from '../src/lib/gooten'
+import { buildCuratedColorPayloads } from '../src/lib/product-colors'
 
 function parseKeywordEnv(value: string | undefined): string[] {
     if (!value) {
@@ -46,15 +47,6 @@ function containsKeyword(text: string, keywords: string[]): boolean {
 function calcSellPrice(basePrice: number, multiplier: number, minMargin: number): number {
     const raw = Math.max(basePrice * multiplier, basePrice + minMargin)
     return Math.round(raw * 100) / 100
-}
-
-function toColorPayloads(colorNames: string[]): Array<{ name: string; hex: string; printfulVariantId: number }> {
-    const colors = colorNames.length > 0 ? colorNames : ['Default']
-    return colors.map((name) => ({
-        name,
-        hex: '#FFFFFF',
-        printfulVariantId: 0,
-    }))
 }
 
 const databaseUrl = process.env.DATABASE_URL
@@ -183,10 +175,13 @@ async function main() {
         const category = classifyCategory(`${productName} ${extractGootenProductCategory(productPayload) || ''}`)
         const sizes =
             variantMapping.sizes.length > 0 ? variantMapping.sizes : extractGootenProductSizes(productPayload)
-        const colors = toColorPayloads(
+        const sourceColorNames =
             variantMapping.colors.length > 0
                 ? variantMapping.colors
                 : extractGootenProductColorNames(productPayload)
+        const curatedColors = buildCuratedColorPayloads(
+            sourceColorNames,
+            { previewByName: variantMapping.colorPreviewUrls }
         )
         const description = extractGootenProductDescription(productPayload) || productName
 
@@ -198,7 +193,7 @@ async function main() {
             basePrice,
             sellPrice,
             sizes: sizes.length > 0 ? sizes : ['One Size'],
-            colors,
+            colors: curatedColors,
             imageUrl,
             printArea: {
                 width: 4200,

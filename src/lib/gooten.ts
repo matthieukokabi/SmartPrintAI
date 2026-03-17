@@ -11,6 +11,7 @@ type GootenVariantMapping = {
     variantMapping: Record<string, string>
     colors: string[]
     sizes: string[]
+    colorPreviewUrls: Record<string, string>
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -375,6 +376,7 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
     const mapping: Record<string, string> = {}
     const colors: string[] = []
     const sizes: string[] = []
+    const colorPreviewUrls: Record<string, string> = {}
     let defaultSku: string | null = null
 
     for (const variant of variants) {
@@ -387,11 +389,16 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
 
         const color = extractGootenVariantColor(variant)
         const size = extractGootenVariantSize(variant)
+        const previewImageUrl = extractGootenPreviewUrl(variant)
 
         if (color) {
             mapUniqueRecordKey(mapping, color, sku)
             if (!colors.some((value) => normalizeMatchKey(value) === normalizeMatchKey(color))) {
                 colors.push(color)
+            }
+            const normalizedColor = normalizeMatchKey(color)
+            if (!colorPreviewUrls[normalizedColor] && isHttpUrl(previewImageUrl)) {
+                colorPreviewUrls[normalizedColor] = previewImageUrl
             }
         }
 
@@ -412,6 +419,7 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
         variantMapping: mapping,
         colors,
         sizes,
+        colorPreviewUrls,
     }
 }
 

@@ -21,10 +21,11 @@ export const metadata: Metadata = {
 }
 
 export default async function ProductsPage() {
-    const products = await prisma.product.findMany({
+    const allProducts = await prisma.product.findMany({
         where: { active: true },
         orderBy: { name: 'asc' },
     })
+    const products = allProducts.filter((product) => product.imageUrl.trim().length > 0)
     const customizableProducts = products.filter((product) =>
         isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
     )

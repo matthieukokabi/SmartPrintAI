@@ -9,6 +9,7 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { normalizeProductDescription } from '@/lib/product-description'
+import { pickCoreColorSubset } from '@/lib/product-colors'
 
 type ProductColor = {
     name: string
@@ -110,7 +111,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
                         ? color.previewImageUrl.trim()
                         : null,
             }))
+            .slice(0, 80)
         : []
+    const curatedColors = pickCoreColorSubset(colors, 4)
 
     const productForClient = {
         id: product.id,
@@ -120,7 +123,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         sellPrice: product.sellPrice,
         sizes: product.sizes,
         imageUrl: product.imageUrl,
-        colors,
+        colors: curatedColors,
     }
     const canDesignWithAI = isMockupEligibleProduct({
         name: product.name,
