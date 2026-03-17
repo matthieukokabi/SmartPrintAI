@@ -53,6 +53,9 @@ export default function Navbar() {
                         <Link href="/account/orders" className="site-nav-link text-sm text-muted-foreground transition-colors">
                             Orders
                         </Link>
+                        <Link href="/support" className="site-nav-link text-sm text-muted-foreground transition-colors">
+                            Support
+                        </Link>
                     </div>
 
                     <div className="flex items-center gap-2.5">

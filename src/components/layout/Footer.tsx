@@ -5,7 +5,7 @@ export default function Footer() {
     return (
         <footer className="site-footer mt-24 border-t border-border/60">
             <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+                <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="mb-5 flex items-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-sky-500">
@@ -34,6 +34,15 @@ export default function Footer() {
                             <li><Link href="/support" className="hover:text-foreground transition-colors">Contact</Link></li>
                             <li><Link href="/support#faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
                             <li><Link href="/support#shipping" className="hover:text-foreground transition-colors">Shipping</Link></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Trust</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li><Link href="/about" className="hover:text-foreground transition-colors">About</Link></li>
+                            <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                            <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
                         </ul>
                     </div>
                 </div>
