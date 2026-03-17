@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { toAbsoluteUrl } from '@/lib/site'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
 
@@ -78,7 +78,7 @@ export function generateMetadata({ params }: LocaleProductsPageProps): Metadata 
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: `/${locale}/products`,
+            canonical: buildLocaleCanonical(locale, '/products'),
             languages: buildLocaleAlternates('/products'),
         },
     }

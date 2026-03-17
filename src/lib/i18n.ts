@@ -1134,6 +1134,10 @@ export function getLocalizedPath(locale: SupportedLocale, path: string): string 
     return `/${locale}${normalizedPath}`
 }
 
+export function buildLocaleCanonical(locale: SupportedLocale, path: string): string {
+    return getLocalizedPath(locale, path)
+}
+
 export function buildLocaleAlternates(path: string): Record<string, string> {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`
     const languages: Record<string, string> = {}

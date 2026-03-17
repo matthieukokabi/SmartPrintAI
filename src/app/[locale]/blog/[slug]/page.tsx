@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocaleBlogPostPageProps = {
     params: {
@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: LocaleBlogPostPageProps): Pro
         description: post.description,
         keywords: post.keywords.join(', '),
         alternates: {
-            canonical: `/${locale}/blog/${post.slug}`,
+            canonical: buildLocaleCanonical(locale, `/blog/${post.slug}`),
             languages: buildLocaleAlternates(`/blog/${post.slug}`),
         },
         openGraph: {

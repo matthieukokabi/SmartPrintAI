@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import SupportPageClient from '@/components/support/SupportPageClient'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocaleSupportPageProps = {
     params: {
@@ -28,7 +28,7 @@ export function generateMetadata({ params }: LocaleSupportPageProps): Metadata {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: `/${locale}/support`,
+            canonical: buildLocaleCanonical(locale, '/support'),
             languages: buildLocaleAlternates('/support'),
         },
     }

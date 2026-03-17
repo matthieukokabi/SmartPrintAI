@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocaleBlogPageProps = {
     params: {
@@ -30,7 +30,7 @@ export function generateMetadata({ params }: LocaleBlogPageProps): Metadata {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: `/${locale}/blog`,
+            canonical: buildLocaleCanonical(locale, '/blog'),
             languages: buildLocaleAlternates('/blog'),
         },
     }

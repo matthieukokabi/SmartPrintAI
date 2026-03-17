@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
@@ -90,7 +90,7 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
         title: product.name,
         description,
         alternates: {
-            canonical: `/${locale}/products/${product.id}`,
+            canonical: buildLocaleCanonical(locale, `/products/${product.id}`),
             languages: buildLocaleAlternates(`/products/${product.id}`),
         },
         openGraph: {

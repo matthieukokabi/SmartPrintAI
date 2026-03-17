@@ -2,7 +2,15 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import SuccessPageClient from '@/components/order/SuccessPageClient'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, getLocalizedPath, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import {
+    SUPPORTED_LOCALES,
+    buildLocaleAlternates,
+    buildLocaleCanonical,
+    getLocaleCopy,
+    getLocalizedPath,
+    isSupportedLocale,
+    type SupportedLocale,
+} from '@/lib/i18n'
 
 type LocaleSuccessPageProps = {
     params: {
@@ -28,7 +36,7 @@ export function generateMetadata({ params }: LocaleSuccessPageProps): Metadata {
     return {
         title: copy.metadataTitle,
         alternates: {
-            canonical: `/${locale}/success`,
+            canonical: buildLocaleCanonical(locale, '/success'),
             languages: buildLocaleAlternates('/success'),
         },
         robots: {

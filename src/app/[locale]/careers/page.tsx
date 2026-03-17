@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import CareersLanding from '@/components/careers/CareersLanding'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocalizedCareersPageProps = {
     params: {
@@ -27,7 +27,7 @@ export function generateMetadata({ params }: LocalizedCareersPageProps): Metadat
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: `/${locale}/careers`,
+            canonical: buildLocaleCanonical(locale, '/careers'),
             languages: buildLocaleAlternates('/careers'),
         },
     }

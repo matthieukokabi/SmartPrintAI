@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import CartPageClient from '@/components/cart/CartPageClient'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, getLocalizedPath, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, getLocalizedPath, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocaleCartPageProps = {
     params: {
@@ -27,7 +27,7 @@ export function generateMetadata({ params }: LocaleCartPageProps): Metadata {
     return {
         title: copy.metadataTitle,
         alternates: {
-            canonical: `/${locale}/cart`,
+            canonical: buildLocaleCanonical(locale, '/cart'),
             languages: buildLocaleAlternates('/cart'),
         },
         robots: {

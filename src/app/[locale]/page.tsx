@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import HomeLanding from '@/components/home/HomeLanding'
-import { SUPPORTED_LOCALES, buildLocaleAlternates, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
 type LocalePageProps = {
     params: {
@@ -28,7 +28,7 @@ export function generateMetadata({ params }: LocalePageProps): Metadata {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: `/${locale}`,
+            canonical: buildLocaleCanonical(locale, '/'),
             languages: buildLocaleAlternates('/'),
         },
     }
