@@ -33,6 +33,7 @@ type Props = {
         colorsLabel: string
         designButtonLabel: string
         readyToBuyOnlyLabel: string
+        fallbackPreviewNote?: string
     }
 }
 
@@ -41,67 +42,8 @@ const defaultCopy = {
     colorsLabel: 'Colors',
     designButtonLabel: 'Design This Product with AI',
     readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
-}
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-    const normalized = hex.trim().toLowerCase()
-    if (!/^#[0-9a-f]{6}$/i.test(normalized)) {
-        return null
-    }
-    const value = normalized.slice(1)
-    const r = Number.parseInt(value.slice(0, 2), 16)
-    const g = Number.parseInt(value.slice(2, 4), 16)
-    const b = Number.parseInt(value.slice(4, 6), 16)
-    return { r, g, b }
-}
-
-function rgbToHsl({ r, g, b }: { r: number; g: number; b: number }): { h: number; s: number; l: number } {
-    const rn = r / 255
-    const gn = g / 255
-    const bn = b / 255
-    const max = Math.max(rn, gn, bn)
-    const min = Math.min(rn, gn, bn)
-    const delta = max - min
-
-    let h = 0
-    if (delta !== 0) {
-        if (max === rn) {
-            h = ((gn - bn) / delta + (gn < bn ? 6 : 0)) * 60
-        } else if (max === gn) {
-            h = ((bn - rn) / delta + 2) * 60
-        } else {
-            h = ((rn - gn) / delta + 4) * 60
-        }
-    }
-
-    const l = (max + min) / 2
-    const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1))
-    return { h, s, l }
-}
-
-function buildFallbackImageFilter(selectedColorHex: string): string {
-    const rgb = hexToRgb(selectedColorHex)
-    if (!rgb) {
-        return 'none'
-    }
-
-    const { h, s, l } = rgbToHsl(rgb)
-    const normalizedLightness = l
-    const normalizedSaturation = s
-
-    if (normalizedLightness >= 0.92) {
-        return 'grayscale(1) brightness(1.22) contrast(0.92)'
-    }
-
-    if (normalizedLightness <= 0.12) {
-        return 'grayscale(1) brightness(0.45) contrast(1.2)'
-    }
-
-    const saturateFactor = Math.max(2.8, Math.min(6.5, 2.6 + normalizedSaturation * 5))
-    const brightnessFactor = Math.max(0.75, Math.min(1.06, 0.72 + normalizedLightness * 0.5))
-    const contrastFactor = Math.max(0.96, Math.min(1.16, 0.96 + normalizedSaturation * 0.22))
-
-    return `grayscale(1) sepia(1) saturate(${saturateFactor.toFixed(2)}) hue-rotate(${Math.round(h)}deg) brightness(${brightnessFactor.toFixed(2)}) contrast(${contrastFactor.toFixed(2)})`
+    fallbackPreviewNote:
+        'Color-specific preview is not available for this item yet. Your selected color will still be used for ordering.',
 }
 
 function colorDotStyle(name: string, hex: string) {
@@ -134,9 +76,12 @@ export default function ProductDetailClient({
             ? selectedColorRawHex
             : resolveColorHexFromName(selectedColorData.name)
         : '#ffffff'
-    const imageUrl = selectedColorData?.previewImageUrl || product.imageUrl
-    const isFallbackColorPreview = Boolean(!selectedColorData?.previewImageUrl && product.imageUrl)
-    const fallbackImageFilter = isFallbackColorPreview ? buildFallbackImageFilter(selectedColorHex) : 'none'
+    const selectedColorPreviewUrl =
+        typeof selectedColorData?.previewImageUrl === 'string' && selectedColorData.previewImageUrl.trim().length > 0
+            ? selectedColorData.previewImageUrl.trim()
+            : null
+    const imageUrl = selectedColorPreviewUrl || product.imageUrl
+    const isFallbackColorPreview = Boolean(!selectedColorPreviewUrl && product.imageUrl)
     const createHref =
         `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
@@ -153,20 +98,18 @@ export default function ProductDetailClient({
                             fill
                             sizes="(max-width: 768px) 100vw, 50vw"
                             className="object-cover"
-                            style={isFallbackColorPreview ? { filter: fallbackImageFilter } : undefined}
                             unoptimized
                             priority
                         />
                         {isFallbackColorPreview ? (
                             <div
-                                className="absolute inset-0 pointer-events-none"
+                                className="absolute bottom-3 left-3 pointer-events-none rounded-md border border-border bg-background/85 px-2 py-1 text-[11px] leading-tight text-muted-foreground backdrop-blur"
                                 style={{
-                                    backgroundColor: selectedColorHex,
-                                    opacity: 0.08,
-                                    mixBlendMode: 'soft-light',
+                                    boxShadow: `inset 0 0 0 1px ${selectedColorHex}33`,
                                 }}
-                                aria-hidden="true"
-                            />
+                            >
+                                {copy.fallbackPreviewNote || defaultCopy.fallbackPreviewNote}
+                            </div>
                         ) : null}
                     </>
                 ) : (
