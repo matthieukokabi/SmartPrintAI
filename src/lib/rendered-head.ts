@@ -4,6 +4,23 @@ type ParsedHead = {
     ogUrl: string | null
 }
 
+export type RenderedLocale = 'en' | 'fr' | 'de' | 'es'
+
+type TrustVisibility = {
+    requiredMarkers: string[]
+    foundMarkers: string[]
+    isVisible: boolean
+}
+
+const RENDERED_LOCALES: RenderedLocale[] = ['en', 'fr', 'de', 'es']
+
+const TRUST_MARKERS_BY_LOCALE: Record<RenderedLocale, string[]> = {
+    en: ['Delivery SLA', 'Support Promise', 'Returns Policy'],
+    fr: ['Delai de livraison', 'Promesse support', 'Politique de retour'],
+    de: ['Lieferzeit', 'Support-Versprechen', 'Rueckgabe'],
+    es: ['Plazo de entrega', 'Compromiso de soporte', 'Politica de devolucion'],
+}
+
 function normalizeRel(value: string | undefined): string[] {
     if (!value) {
         return []
@@ -86,4 +103,24 @@ export function toPathname(href: string): string {
     const parsed = new URL(href, 'https://smartprintai.com')
     const normalized = parsed.pathname.replace(/\/+$/, '')
     return normalized.length > 0 ? normalized : '/'
+}
+
+export function resolveRenderedLocaleFromPath(pathname: string): RenderedLocale {
+    const normalized = pathname.startsWith('/') ? pathname : `/${pathname}`
+    for (const locale of RENDERED_LOCALES) {
+        if (normalized === `/${locale}` || normalized.startsWith(`/${locale}/`)) {
+            return locale
+        }
+    }
+    return 'en'
+}
+
+export function parseTrustVisibility(html: string, locale: RenderedLocale): TrustVisibility {
+    const requiredMarkers = TRUST_MARKERS_BY_LOCALE[locale]
+    const foundMarkers = requiredMarkers.filter((marker) => html.includes(marker))
+    return {
+        requiredMarkers,
+        foundMarkers,
+        isVisible: foundMarkers.length === requiredMarkers.length,
+    }
 }

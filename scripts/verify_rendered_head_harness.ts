@@ -1,15 +1,30 @@
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
-import { parseRenderedHead, toPathname } from '../src/lib/rendered-head'
+import {
+    parseRenderedHead,
+    parseTrustVisibility,
+    resolveRenderedLocaleFromPath,
+    toPathname,
+    type RenderedLocale,
+} from '../src/lib/rendered-head'
 
-type Locale = 'en' | 'fr' | 'de' | 'es'
+type TargetName = 'local' | 'prod'
+type TrustExpectation = 'required' | 'optional' | 'absent'
 
 type RouteExpectation = {
     path: string
+    targets?: TargetName[]
+    trustExpectation?: TrustExpectation
+}
+
+type ResolvedRouteExpectation = {
+    path: string
     canonicalPath: string
     alternatesBasePath: string
+    locale: RenderedLocale
+    trustExpectation: TrustExpectation
 }
 
 type RouteResult = {
@@ -21,37 +36,57 @@ type RouteResult = {
     actualOgPath: string | null
     expectedAlternates: Record<string, string>
     actualAlternates: Record<string, string>
+    locale: RenderedLocale
+    expectedTrustExpectation: TrustExpectation
+    expectedTrustMarkers: string[]
+    foundTrustMarkers: string[]
+    actualTrustVisible: boolean
     failures: string[]
 }
 
 type TargetResult = {
-    target: 'local' | 'prod'
+    target: TargetName
     baseUrl: string
     routeResults: RouteResult[]
     failures: string[]
 }
 
-const LOCALES: Locale[] = ['en', 'fr', 'de', 'es']
+type TimestampParts = {
+    iso: string
+    compact: string
+    date: string
+}
 
-const ROUTE_EXPECTATIONS: RouteExpectation[] = [
-    { path: '/create', canonicalPath: '/create', alternatesBasePath: '/create' },
-    { path: '/en/create', canonicalPath: '/create', alternatesBasePath: '/create' },
-    { path: '/fr/create', canonicalPath: '/fr/create', alternatesBasePath: '/create' },
-    { path: '/de/create', canonicalPath: '/de/create', alternatesBasePath: '/create' },
-    { path: '/es/create', canonicalPath: '/es/create', alternatesBasePath: '/create' },
-    { path: '/blog', canonicalPath: '/blog', alternatesBasePath: '/blog' },
-    { path: '/en/blog', canonicalPath: '/blog', alternatesBasePath: '/blog' },
-    { path: '/fr/blog', canonicalPath: '/fr/blog', alternatesBasePath: '/blog' },
-    { path: '/support', canonicalPath: '/support', alternatesBasePath: '/support' },
-    { path: '/en/support', canonicalPath: '/support', alternatesBasePath: '/support' },
-    { path: '/fr/support', canonicalPath: '/fr/support', alternatesBasePath: '/support' },
+const LOCALES: RenderedLocale[] = ['en', 'fr', 'de', 'es']
+
+const STATIC_ROUTE_EXPECTATIONS: RouteExpectation[] = [
+    { path: '/create', trustExpectation: 'required' },
+    { path: '/en/create', trustExpectation: 'required' },
+    { path: '/fr/create', trustExpectation: 'required' },
+    { path: '/de/create', trustExpectation: 'required' },
+    { path: '/es/create', trustExpectation: 'required' },
+    { path: '/products', trustExpectation: 'required', targets: ['prod'] },
+    { path: '/blog', trustExpectation: 'absent' },
+    { path: '/en/blog', trustExpectation: 'absent' },
+    { path: '/fr/blog', trustExpectation: 'absent' },
+    { path: '/de/blog', trustExpectation: 'absent' },
+    { path: '/es/blog', trustExpectation: 'absent' },
 ]
 
 function normalizeBaseUrl(value: string): string {
     return value.trim().replace(/\/+$/, '')
 }
 
-function currentTimestamp(): { iso: string; compact: string; date: string } {
+function normalizeRoutePath(value: string): string {
+    if (!value) {
+        return '/'
+    }
+    const prefixed = value.startsWith('/') ? value : `/${value}`
+    const normalized = prefixed.replace(/\/+$/, '')
+    return normalized.length > 0 ? normalized : '/'
+}
+
+function currentTimestamp(): TimestampParts {
     const now = new Date()
     const yyyy = String(now.getFullYear())
     const mm = String(now.getMonth() + 1).padStart(2, '0')
@@ -70,7 +105,7 @@ function toRelativePath(filePath: string): string {
     return path.relative(process.cwd(), filePath).split(path.sep).join('/')
 }
 
-function localizedPath(locale: Locale, basePath: string): string {
+function localizedPath(locale: RenderedLocale, basePath: string): string {
     if (locale === 'en') {
         return basePath
     }
@@ -95,6 +130,81 @@ function artifactFileName(routePath: string): string {
         return '_root'
     }
     return routePath.replace(/^\/+/, '').replace(/\/+/g, '_')
+}
+
+function parseLocaleAndBasePath(routePath: string): { locale: RenderedLocale; basePath: string } {
+    const normalizedPath = normalizeRoutePath(routePath)
+    for (const locale of LOCALES) {
+        if (normalizedPath === `/${locale}`) {
+            return {
+                locale,
+                basePath: '/',
+            }
+        }
+        if (normalizedPath.startsWith(`/${locale}/`)) {
+            const withoutLocale = normalizedPath.replace(new RegExp(`^/${locale}`), '')
+            return {
+                locale,
+                basePath: withoutLocale.length > 0 ? withoutLocale : '/',
+            }
+        }
+    }
+
+    return {
+        locale: resolveRenderedLocaleFromPath(normalizedPath),
+        basePath: normalizedPath,
+    }
+}
+
+function expectedCanonicalPath(locale: RenderedLocale, basePath: string): string {
+    if (locale === 'en') {
+        return basePath
+    }
+    return localizedPath(locale, basePath)
+}
+
+function shouldRunOnTarget(route: RouteExpectation, target: TargetName): boolean {
+    if (!route.targets || route.targets.length === 0) {
+        return true
+    }
+    return route.targets.includes(target)
+}
+
+function resolveRouteExpectation(route: RouteExpectation): ResolvedRouteExpectation {
+    const normalizedPath = normalizeRoutePath(route.path)
+    const localeAndBase = parseLocaleAndBasePath(normalizedPath)
+    return {
+        path: normalizedPath,
+        canonicalPath: expectedCanonicalPath(localeAndBase.locale, localeAndBase.basePath),
+        alternatesBasePath: localeAndBase.basePath,
+        locale: localeAndBase.locale,
+        trustExpectation: route.trustExpectation || 'optional',
+    }
+}
+
+function discoverProductDetailPath(html: string): string | null {
+    const patterns = [
+        /href=(['"])(\/products\/[^'"?#]+)\1/i,
+        /href=(['"])(\/(?:en|fr|de|es)\/products\/[^'"?#]+)\1/i,
+        /href=(['"])(https?:\/\/[^'"\\s]+\/products\/[^'"?#]+)\1/i,
+    ]
+
+    for (const pattern of patterns) {
+        const match = pattern.exec(html)
+        if (!match || !match[2]) {
+            continue
+        }
+        const resolved = new URL(match[2], 'https://smartprintai.com')
+        const routePath = normalizeRoutePath(resolved.pathname)
+        if (routePath === '/products') {
+            continue
+        }
+        if (routePath.startsWith('/products/') || /^\/(en|fr|de|es)\/products\/.+/.test(routePath)) {
+            return routePath
+        }
+    }
+
+    return null
 }
 
 async function fetchHtml(baseUrl: string, routePath: string): Promise<string> {
@@ -131,13 +241,51 @@ async function waitForServer(baseUrl: string, readinessPath: string): Promise<vo
     throw new Error(`Local server did not become ready at ${baseUrl}${readinessPath}. Last error: ${lastError}`)
 }
 
-function assertRoute(html: string, route: RouteExpectation, htmlArtifact: string): RouteResult {
+async function resolveRouteExpectationsForTarget(target: TargetName, baseUrl: string): Promise<{ routes: ResolvedRouteExpectation[]; failures: string[] }> {
+    const failures: string[] = []
+    const routes = STATIC_ROUTE_EXPECTATIONS
+        .filter((route) => shouldRunOnTarget(route, target))
+        .map(resolveRouteExpectation)
+
+    const includeProducts = routes.some((route) => route.path === '/products')
+    if (includeProducts) {
+        try {
+            const productsHtml = await fetchHtml(baseUrl, '/products')
+            const discoveredPath = discoverProductDetailPath(productsHtml)
+            const fallbackPath = normalizeRoutePath(process.env.SEO_VERIFY_PRODUCT_DETAIL_PATH || '')
+            const productDetailPath = discoveredPath || (fallbackPath === '/' ? null : fallbackPath)
+
+            if (!productDetailPath) {
+                failures.push(`[${target}] unable to discover product detail route from /products`)
+            } else {
+                routes.push(
+                    resolveRouteExpectation({
+                        path: productDetailPath,
+                        trustExpectation: 'required',
+                        targets: target === 'prod' ? ['prod'] : ['local'],
+                    })
+                )
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            failures.push(`[${target}] /products discovery failed (${message})`)
+        }
+    }
+
+    return {
+        routes,
+        failures,
+    }
+}
+
+function assertRoute(html: string, route: ResolvedRouteExpectation, htmlArtifact: string): RouteResult {
     const failures: string[] = []
     const parsed = parseRenderedHead(html)
     const canonicalPath = parsed.canonicalHref ? toPathname(parsed.canonicalHref) : null
     const ogPath = parsed.ogUrl ? toPathname(parsed.ogUrl) : null
     const expectedAlt = expectedAlternates(route.alternatesBasePath)
     const actualAlternates: Record<string, string> = {}
+    const trustVisibility = parseTrustVisibility(html, route.locale)
 
     if (!canonicalPath) {
         failures.push(`${route.path}: missing canonical tag`)
@@ -179,6 +327,16 @@ function assertRoute(html: string, route: RouteExpectation, htmlArtifact: string
         }
     }
 
+    if (route.trustExpectation === 'required' && !trustVisibility.isVisible) {
+        failures.push(
+            `${route.path}: trust strip not fully visible (found ${trustVisibility.foundMarkers.length}/${trustVisibility.requiredMarkers.length} markers)`
+        )
+    }
+
+    if (route.trustExpectation === 'absent' && trustVisibility.foundMarkers.length > 0) {
+        failures.push(`${route.path}: trust markers unexpectedly present on non-money page`)
+    }
+
     return {
         path: route.path,
         htmlArtifact,
@@ -188,18 +346,26 @@ function assertRoute(html: string, route: RouteExpectation, htmlArtifact: string
         actualOgPath: ogPath,
         expectedAlternates: expectedAlt,
         actualAlternates,
+        locale: route.locale,
+        expectedTrustExpectation: route.trustExpectation,
+        expectedTrustMarkers: trustVisibility.requiredMarkers,
+        foundTrustMarkers: trustVisibility.foundMarkers,
+        actualTrustVisible: trustVisibility.isVisible,
         failures,
     }
 }
 
-async function runTargetAssertions(target: 'local' | 'prod', baseUrl: string, artifactRoot: string): Promise<TargetResult> {
+async function runTargetAssertions(target: TargetName, baseUrl: string, artifactRoot: string): Promise<TargetResult> {
     const targetDir = path.join(artifactRoot, target)
     await mkdir(targetDir, { recursive: true })
 
     const routeResults: RouteResult[] = []
     const failures: string[] = []
 
-    for (const route of ROUTE_EXPECTATIONS) {
+    const routeResolution = await resolveRouteExpectationsForTarget(target, baseUrl)
+    failures.push(...routeResolution.failures)
+
+    for (const route of routeResolution.routes) {
         const fileBase = artifactFileName(route.path)
         const htmlFile = path.join(targetDir, `${fileBase}.html`)
         try {
@@ -223,6 +389,11 @@ async function runTargetAssertions(target: 'local' | 'prod', baseUrl: string, ar
                 actualOgPath: null,
                 expectedAlternates: expectedAlternates(route.alternatesBasePath),
                 actualAlternates: {},
+                locale: route.locale,
+                expectedTrustExpectation: route.trustExpectation,
+                expectedTrustMarkers: parseTrustVisibility('', route.locale).requiredMarkers,
+                foundTrustMarkers: [],
+                actualTrustVisible: false,
                 failures: [`${route.path}: fetch failure (${errorMessage})`],
             })
             failures.push(`[${target}] ${route.path}: fetch failure (${errorMessage})`)
@@ -237,11 +408,7 @@ async function runTargetAssertions(target: 'local' | 'prod', baseUrl: string, ar
     }
 }
 
-async function runWithLocalServer(
-    host: string,
-    port: number,
-    artifactRoot: string,
-): Promise<TargetResult> {
+async function runWithLocalServer(host: string, port: number, artifactRoot: string): Promise<TargetResult> {
     const baseUrl = `http://${host}:${port}`
     const child = spawn('npm', ['run', 'start'], {
         env: {
@@ -267,17 +434,31 @@ async function runWithLocalServer(
     }
 }
 
+function readGitCommitSha(): string {
+    const resolved = spawnSync('git', ['rev-parse', '--short', 'HEAD'], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+    })
+    if (resolved.status !== 0) {
+        return 'unknown'
+    }
+    const value = (resolved.stdout || '').trim()
+    return value.length > 0 ? value : 'unknown'
+}
+
 function renderMarkdownReport(
     generatedAtIso: string,
+    commitSha: string,
     artifactRoot: string,
     summaryFile: string,
     targetResults: TargetResult[],
     failures: string[],
 ): string {
     const lines: string[] = []
-    lines.push('# Wave 3 Rendered HTML Verification Harness')
+    lines.push('# Wave 4 Rendered Head + Trust Verification Harness')
     lines.push('')
     lines.push(`Generated: ${generatedAtIso}`)
+    lines.push(`Commit: \`${commitSha}\``)
     lines.push(`Artifact root: \`${toRelativePath(artifactRoot)}\``)
     lines.push(`Summary JSON: \`${toRelativePath(summaryFile)}\``)
     lines.push('')
@@ -286,13 +467,20 @@ function renderMarkdownReport(
         lines.push(`- \`${result.target}\` -> ${result.baseUrl} (routes: ${result.routeResults.length}, failures: ${result.failures.length})`)
     }
     lines.push('')
-    lines.push('## Route Snapshot Artifacts')
-    lines.push('- Raw rendered HTML for each route is stored per target in the artifact root.')
-    lines.push('- Filenames map to routes, for example `_root.html`, `create.html`, `fr_create.html`.')
+    lines.push('## Trust Visibility States')
+    for (const result of targetResults) {
+        lines.push(`### ${result.target}`)
+        for (const routeResult of result.routeResults) {
+            lines.push(
+                `- \`${routeResult.path}\`: trust=${routeResult.actualTrustVisible ? 'visible' : 'missing'} ` +
+                `(expected ${routeResult.expectedTrustExpectation}, markers ${routeResult.foundTrustMarkers.length}/${routeResult.expectedTrustMarkers.length})`
+            )
+        }
+    }
     lines.push('')
     lines.push('## Result')
     if (failures.length === 0) {
-        lines.push('- PASS: canonical/hreflang/og:url assertions passed for all configured targets and routes.')
+        lines.push('- PASS: canonical/hreflang/x-default/og:url and trust visibility assertions passed for all configured targets/routes.')
     } else {
         lines.push('- FAIL: one or more assertions failed.')
         for (const failure of failures) {
@@ -307,17 +495,22 @@ async function main(): Promise<void> {
     const timestamp = currentTimestamp()
     const localHost = (process.env.SEO_VERIFY_LOCAL_HOST || '127.0.0.1').trim()
     const localPort = Number(process.env.SEO_VERIFY_LOCAL_PORT || '3301')
-    const includeLocal = (process.env.SEO_VERIFY_INCLUDE_LOCAL || '1').trim() !== '0'
+    const includeLocal = (process.env.SEO_VERIFY_INCLUDE_LOCAL || '0').trim() !== '0'
     const includeProd = (process.env.SEO_VERIFY_INCLUDE_PROD || '1').trim() !== '0'
     const prodBaseUrl = normalizeBaseUrl(process.env.SEO_VERIFY_PROD_BASE_URL || 'https://smartprintai.com')
+    const commitSha = (process.env.SEO_VERIFY_COMMIT_SHA || '').trim() || readGitCommitSha()
+
     const artifactRoot = path.resolve(
         process.cwd(),
-        process.env.SEO_VERIFY_ARTIFACT_DIR || path.join('docs/reports/artifacts', `wave3-rendered-head-${timestamp.compact}`),
+        process.env.SEO_VERIFY_ARTIFACT_DIR ||
+            path.join('docs/reports/artifacts', `wave4-rendered-head-${timestamp.compact}-${commitSha}`),
     )
+
     const reportFile = path.resolve(
         process.cwd(),
-        path.join('docs/reports', `WAVE3_RENDERED_HEAD_VERIFY_${timestamp.compact}.md`),
+        path.join('docs/reports', `WAVE4_RENDERED_HEAD_VERIFY_${timestamp.compact}_${commitSha}.md`),
     )
+
     const summaryFile = path.join(artifactRoot, 'summary.json')
 
     if (!includeLocal && !includeProd) {
@@ -341,8 +534,9 @@ async function main(): Promise<void> {
     const summary = {
         generatedAt: timestamp.iso,
         generatedDate: timestamp.date,
+        commitSha,
         artifactRoot: toRelativePath(artifactRoot),
-        routeCount: ROUTE_EXPECTATIONS.length,
+        routeCount: targetResults.reduce((sum, result) => sum + result.routeResults.length, 0),
         targets: targetResults,
         failures,
     }
@@ -350,7 +544,7 @@ async function main(): Promise<void> {
     await writeFile(summaryFile, `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
     await writeFile(
         reportFile,
-        renderMarkdownReport(timestamp.iso, artifactRoot, summaryFile, targetResults, failures),
+        renderMarkdownReport(timestamp.iso, commitSha, artifactRoot, summaryFile, targetResults, failures),
         'utf8',
     )
 

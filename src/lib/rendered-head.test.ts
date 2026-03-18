@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseRenderedHead, toPathname } from './rendered-head'
+import { parseRenderedHead, parseTrustVisibility, resolveRenderedLocaleFromPath, toPathname } from './rendered-head'
 
 describe('rendered head parser', () => {
     it('parses canonical, alternates, and og:url from server-rendered head html', () => {
@@ -28,5 +28,28 @@ describe('rendered head parser', () => {
         expect(toPathname('https://smartprintai.com/fr/create')).toBe('/fr/create')
         expect(toPathname('/create')).toBe('/create')
         expect(toPathname('https://smartprintai.com/')).toBe('/')
+    })
+
+    it('resolves locale from rendered route path', () => {
+        expect(resolveRenderedLocaleFromPath('/create')).toBe('en')
+        expect(resolveRenderedLocaleFromPath('/fr/create')).toBe('fr')
+        expect(resolveRenderedLocaleFromPath('/de/blog')).toBe('de')
+        expect(resolveRenderedLocaleFromPath('/es/support')).toBe('es')
+        expect(resolveRenderedLocaleFromPath('/unknown/path')).toBe('en')
+    })
+
+    it('detects trust marker visibility for a locale', () => {
+        const html = `
+            <div>
+                <p>Delivery SLA</p>
+                <p>Support Promise</p>
+                <p>Returns Policy</p>
+            </div>
+        `
+
+        const visibility = parseTrustVisibility(html, 'en')
+        expect(visibility.requiredMarkers).toEqual(['Delivery SLA', 'Support Promise', 'Returns Policy'])
+        expect(visibility.foundMarkers).toEqual(['Delivery SLA', 'Support Promise', 'Returns Policy'])
+        expect(visibility.isVisible).toBe(true)
     })
 })
