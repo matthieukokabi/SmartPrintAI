@@ -17,6 +17,8 @@ Run a scheduled VPS checkpoint that captures:
   - `bash scripts/resolve_lighthouse_chrome_path.sh`
 - Env bootstrap contract test:
   - `npm run test:ops:env-loader`
+- Artifact sync contract test:
+  - `npm run test:ops:artifact-sync`
 - Install daily systemd timer on VPS:
   - `sudo bash scripts/install_quality_checkpoint_timer.sh`
 
@@ -55,6 +57,13 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_ENV_FILE` (default `.env.local`)
   - `SMARTPRINTAI_ENV_FILE` (fallback path alias used by shared env loader)
   - Checkpoint bootstrap requires `DATABASE_URL`; missing env file/vars fails fast with remediation output.
+- Artifact sync controls:
+  - `npm run ops:quality-checkpoint:sync` syncs the latest checkpoint artifact set from VPS in one command.
+  - Optional overrides:
+    - `SMARTPRINTAI_VPS_HOST` (default `root@187.124.30.177`)
+    - `SMARTPRINTAI_REMOTE_APP_DIR` (default `/root/smartprintai`)
+  - Deterministic/local-fixture mode:
+    - `bash scripts/sync_vps_checkpoint_artifacts.sh --source-root <fixture-root>`
 - Lighthouse runtime preflight overrides:
   - `QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER` (default `scripts/resolve_lighthouse_chrome_path.sh`)
   - `LIGHTHOUSE_CHROME_PATH` (optional explicit browser executable)
@@ -77,11 +86,21 @@ Per run (timestamp + commit SHA):
 
 ## Exit Codes
 - `0`: success (or success with non-critical warnings when strict mode is disabled)
+- `14`: env bootstrap failure before stage execution (missing env loader/file/required vars)
 - `11`: rendered stage critical failure
 - `12`: Lighthouse stage critical failure
 - `13`: trend stage critical failure
 - `41`: conversion stage failure in strict non-critical mode
 - `42`: alerts stage failure in strict non-critical mode
+
+## One-Command Artifact Sync Workflow
+1. Run checkpoint on VPS:
+   - `npm run ops:quality-checkpoint`
+2. Sync latest artifacts into local repo:
+   - `npm run ops:quality-checkpoint:sync`
+3. Review generated Wave 8 sync mapping:
+   - `docs/reports/artifacts/wave8-artifact-sync-<timestamp>-<sha>/wave8-artifact-sync-<timestamp>-<sha>.json`
+   - `docs/reports/artifacts/wave8-artifact-sync-<timestamp>-<sha>/wave8-artifact-sync-<timestamp>-<sha>.md`
 
 ## systemd Units
 - Service: `ops/systemd/smartprintai-quality-checkpoint.service`
