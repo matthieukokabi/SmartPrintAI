@@ -19,9 +19,13 @@ TREND_HISTORY_DIR="docs/reports/artifacts/wave5-trend-history"
 TREND_REPORT_FILE="docs/reports/WAVE5_TREND_GATE_${TIMESTAMP}_${COMMIT_SHA}.md"
 CHECKPOINT_DIR="docs/reports/artifacts/wave5-checkpoints"
 CHECKPOINT_FILE="${CHECKPOINT_DIR}/checkpoint-${TIMESTAMP}-${COMMIT_SHA}.json"
+SNAPSHOT_FILE="${CHECKPOINT_DIR}/snapshot-${TIMESTAMP}-${COMMIT_SHA}.json"
+SNAPSHOT_REPORT_FILE="docs/reports/WAVE5_QUALITY_SNAPSHOT_${TIMESTAMP}_${COMMIT_SHA}.md"
 
 RETENTION_DAYS="${QUALITY_CHECKPOINT_RETENTION_DAYS:-14}"
 QUALITY_TREND_HISTORY_RETENTION="${QUALITY_TREND_HISTORY_RETENTION:-60}"
+QUALITY_CHECKPOINT_INCLUDE_LOCAL="${QUALITY_CHECKPOINT_INCLUDE_LOCAL:-0}"
+QUALITY_CHECKPOINT_INCLUDE_PROD="${QUALITY_CHECKPOINT_INCLUDE_PROD:-1}"
 mkdir -p "$CHECKPOINT_DIR"
 
 run_stage() {
@@ -47,8 +51,8 @@ lighthouse_status=0
 trend_status=0
 
 run_stage "rendered" env \
-  SEO_VERIFY_INCLUDE_LOCAL=0 \
-  SEO_VERIFY_INCLUDE_PROD=1 \
+  SEO_VERIFY_INCLUDE_LOCAL="$QUALITY_CHECKPOINT_INCLUDE_LOCAL" \
+  SEO_VERIFY_INCLUDE_PROD="$QUALITY_CHECKPOINT_INCLUDE_PROD" \
   SEO_VERIFY_COMMIT_SHA="$COMMIT_SHA" \
   SEO_VERIFY_ARTIFACT_DIR="$RENDERED_ARTIFACT_DIR" \
   npm run seo:verify:rendered || rendered_status=$?
@@ -94,18 +98,31 @@ cat > "$CHECKPOINT_FILE" <<JSON
       "summary": "${trend_summary}",
       "report": "${TREND_REPORT_FILE}"
     }
+  },
+  "snapshot": {
+    "json": "${SNAPSHOT_FILE}",
+    "report": "${SNAPSHOT_REPORT_FILE}"
   }
 }
 JSON
 
+env \
+  QUALITY_CHECKPOINT_FILE="$CHECKPOINT_FILE" \
+  QUALITY_SNAPSHOT_JSON="$SNAPSHOT_FILE" \
+  QUALITY_SNAPSHOT_REPORT="$SNAPSHOT_REPORT_FILE" \
+  npm run ops:quality-snapshot
+
 cp "$CHECKPOINT_FILE" "${CHECKPOINT_DIR}/latest.json"
+cp "$SNAPSHOT_FILE" "${CHECKPOINT_DIR}/latest-snapshot.json"
 
 if [ "$RETENTION_DAYS" -ge 1 ] 2>/dev/null; then
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave5-rendered-semantics-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave5-lighthouse-deterministic-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave5-trend-history-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name 'checkpoint-*.json' -mtime +"$RETENTION_DAYS" -delete
+  find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name 'snapshot-*.json' -mtime +"$RETENTION_DAYS" -delete
   find docs/reports -maxdepth 1 -type f -name 'WAVE5_TREND_GATE_*.md' -mtime +"$RETENTION_DAYS" -delete
+  find docs/reports -maxdepth 1 -type f -name 'WAVE5_QUALITY_SNAPSHOT_*.md' -mtime +"$RETENTION_DAYS" -delete
 fi
 
 echo "[checkpoint] summary: ${CHECKPOINT_FILE}"

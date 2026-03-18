@@ -25,6 +25,7 @@
     "perf:lighthouse:trend-gate": "node --import tsx scripts/quality_trend_gate.ts",
     "test:deploy:vps": "bash scripts/tests/deploy_healthcheck_test.sh && bash scripts/tests/deploy_vps_script_test.sh",
     "test:quality:trend": "bash scripts/tests/quality_trend_gate_test.sh",
+    "test:quality:snapshot": "bash scripts/tests/build_quality_ops_snapshot_test.sh",
     "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts src/app/money-pages-schema-trust-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -33,6 +34,7 @@
     "pricing:margin-cheatsheet": "tsx scripts/build_margin_cheatsheet.ts",
     "marketing:weekly-batch": "tsx scripts/generate_weekly_content_batch.ts",
     "deploy:vps": "./scripts/deploy_vps.sh",
+    "ops:quality-snapshot": "node --import tsx scripts/build_quality_ops_snapshot.ts",
     "ops:quality-checkpoint": "bash scripts/run_quality_checkpoint.sh",
     "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh"
   },

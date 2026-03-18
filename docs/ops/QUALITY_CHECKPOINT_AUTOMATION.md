@@ -5,6 +5,7 @@ Run a scheduled VPS checkpoint that captures:
 - rendered-head verification summary
 - deterministic Lighthouse gate summary
 - trend gate evaluation with warmup status
+- mission-control quality snapshot (RAG flags + trend deltas)
 
 ## Commands
 - One-off checkpoint:
@@ -20,6 +21,9 @@ Per run (timestamp + commit SHA):
 - `docs/reports/WAVE5_TREND_GATE_<timestamp>_<sha>.md`
 - `docs/reports/artifacts/wave5-checkpoints/checkpoint-<timestamp>-<sha>.json`
 - `docs/reports/artifacts/wave5-checkpoints/latest.json`
+- `docs/reports/artifacts/wave5-checkpoints/snapshot-<timestamp>-<sha>.json`
+- `docs/reports/artifacts/wave5-checkpoints/latest-snapshot.json`
+- `docs/reports/WAVE5_QUALITY_SNAPSHOT_<timestamp>_<sha>.md`
 
 ## Trend Warmup and Retention
 - Trend warmup status is explicit in trend summary JSON/report (`status: warmup`).
@@ -29,6 +33,9 @@ Per run (timestamp + commit SHA):
   - `QUALITY_TREND_HISTORY_RETENTION` (default `60`)
 - Artifact/checkpoint retention is day-based:
   - `QUALITY_CHECKPOINT_RETENTION_DAYS` (default `14`)
+- Rendered harness target toggles (useful for local validation):
+  - `QUALITY_CHECKPOINT_INCLUDE_LOCAL` (default `0`)
+  - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
 
 ## systemd Units
 - Service: `ops/systemd/smartprintai-quality-checkpoint.service`
