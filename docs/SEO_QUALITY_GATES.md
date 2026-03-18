@@ -76,8 +76,13 @@
   - Persists rolling history under:
     - `docs/reports/artifacts/wave4-trend-history/lighthouse_history.json`
     - `docs/reports/artifacts/wave4-trend-history/rendered_head_history.json`
+    - `docs/reports/artifacts/wave4-trend-history/trend_lifecycle_state.json`
   - Uses rolling-window statistical regression detection (mean/stddev threshold with minimum absolute drop floor) to reduce one-off noise false positives.
   - Keeps hard-fail behavior for critical rendered-head failures while trend-checking trust visibility rate drift.
+  - Lifecycle automation:
+    - automatically marks trend `mode` as `active` once minimum baseline depth is reached (no manual switch)
+    - records lifecycle transition metadata (`previousMode`, `justActivated`, `activeSince`) in summary output
+    - adds warmup ETA (`remainingRuns`, cadence hours, estimated activation timestamp) while in warmup
   - Outputs timestamped artifacts + report under:
     - `docs/reports/artifacts/wave4-lighthouse-trend-<timestamp>-<sha>/`
     - `docs/reports/WAVE4_TREND_GATE_<timestamp>_<sha>.md`
@@ -85,6 +90,7 @@
     - `QUALITY_TREND_WINDOW` (default `5`)
     - `QUALITY_TREND_MIN_BASELINE` (default `3`)
     - `QUALITY_TREND_WRITE_HISTORY=0` to run read-only (no history file writes)
+    - `QUALITY_TREND_CHECKPOINT_INTERVAL_HOURS` (default `24`, used for warmup ETA)
 - `scripts/tests/quality_trend_gate_test.sh`
   - Deterministic fixture coverage for trend gate pass/fail paths:
     - passes when baseline sample size is below threshold

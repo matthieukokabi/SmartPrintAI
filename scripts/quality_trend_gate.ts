@@ -69,12 +69,30 @@ type TrendFinding = {
 }
 
 type TrendStatus = 'pass' | 'fail' | 'warmup'
+type TrendMode = 'warmup' | 'active'
 
 type TrendEvaluation = {
     findings: TrendFinding[]
     baselineCount: number
     minBaseline: number
     warmup: boolean
+}
+
+type WarmupEta = {
+    remainingRuns: number
+    checkpointIntervalHours: number
+    estimatedActivationAt: string | null
+}
+
+type TrendLifecycleState = {
+    mode: TrendMode
+    activeSince: string | null
+    updatedAt: string
+    minBaseline: number
+    baselineCount: {
+        lighthouse: number
+        rendered: number
+    }
 }
 
 const CATEGORY_KEYS: Array<keyof Scores> = ['performance', 'accessibility', 'seo']
@@ -127,6 +145,14 @@ function parsePositiveInteger(value: string | undefined, fallback: number): numb
         return fallback
     }
     return Math.floor(parsed)
+}
+
+function parseGeneratedAt(value: string): Date {
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) {
+        return new Date()
+    }
+    return parsed
 }
 
 async function readJsonFile<T>(filePath: string): Promise<T> {
@@ -266,6 +292,22 @@ async function writeHistory<T>(filePath: string, entries: T[]): Promise<void> {
     await writeFile(filePath, `${JSON.stringify(entries, null, 2)}\n`, 'utf8')
 }
 
+async function readTrendLifecycleState(filePath: string): Promise<TrendLifecycleState | null> {
+    if (!existsSync(filePath)) {
+        return null
+    }
+    try {
+        return await readJsonFile<TrendLifecycleState>(filePath)
+    } catch {
+        return null
+    }
+}
+
+async function writeTrendLifecycleState(filePath: string, state: TrendLifecycleState): Promise<void> {
+    await mkdir(path.dirname(filePath), { recursive: true })
+    await writeFile(filePath, `${JSON.stringify(state, null, 2)}\n`, 'utf8')
+}
+
 function upsertHistoryRecord<T extends { generatedAt: string; summaryPath: string }>(history: T[], current: T): T[] {
     const existingIndex = history.findIndex((entry) => entry.summaryPath === current.summaryPath)
     const nextHistory = [...history]
@@ -400,6 +442,22 @@ function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: Render
     }
 }
 
+function buildWarmupEta(generatedAt: string, lighthouseRemaining: number, renderedRemaining: number): WarmupEta {
+    const remainingRuns = Math.max(lighthouseRemaining, renderedRemaining)
+    const checkpointIntervalHours = parsePositiveInteger(process.env.QUALITY_TREND_CHECKPOINT_INTERVAL_HOURS, 24)
+    const generatedAtDate = parseGeneratedAt(generatedAt)
+    const estimatedActivationAt =
+        remainingRuns <= 0
+            ? generatedAtDate.toISOString()
+            : new Date(generatedAtDate.getTime() + remainingRuns * checkpointIntervalHours * 60 * 60 * 1000).toISOString()
+
+    return {
+        remainingRuns,
+        checkpointIntervalHours,
+        estimatedActivationAt,
+    }
+}
+
 function buildTrendReport(
     generatedAt: string,
     commitSha: string,
@@ -409,6 +467,10 @@ function buildTrendReport(
     lighthouseHistorySize: number,
     renderedHistorySize: number,
     status: TrendStatus,
+    mode: TrendMode,
+    previousMode: TrendMode | null,
+    justActivated: boolean,
+    warmupEta: WarmupEta,
     lighthouseEvaluation: TrendEvaluation,
     renderedEvaluation: TrendEvaluation,
     lighthouseRecord: LighthouseHistoryRecord,
@@ -431,6 +493,10 @@ function buildTrendReport(
     lines.push(`- Minimum baseline required: ${lighthouseEvaluation.minBaseline}`)
     lines.push('')
     lines.push('## Quality Trend Snapshot')
+    lines.push(`- Trend mode: ${mode.toUpperCase()}`)
+    if (previousMode) {
+        lines.push(`- Previous trend mode: ${previousMode.toUpperCase()}`)
+    }
     lines.push(
         `- Lighthouse overall (perf/a11y/seo): ${lighthouseRecord.overall.performance.toFixed(3)} / ${lighthouseRecord.overall.accessibility.toFixed(3)} / ${lighthouseRecord.overall.seo.toFixed(3)}`
     )
@@ -446,6 +512,14 @@ function buildTrendReport(
         lines.push(
             `- Warmup status: active (need ${lighthouseRemaining} more lighthouse and ${renderedRemaining} more rendered samples)`
         )
+        lines.push(
+            `- Warmup ETA: ${warmupEta.remainingRuns} run(s) at ${warmupEta.checkpointIntervalHours}h cadence (estimated activation ${warmupEta.estimatedActivationAt || 'unknown'})`
+        )
+    } else if (mode === 'active') {
+        lines.push('- Warmup status: completed (trend gate enforcement active).')
+        if (justActivated) {
+            lines.push('- Lifecycle transition: warmup -> active detected in this run.')
+        }
     }
     lines.push('')
     lines.push('## Result')
@@ -515,6 +589,16 @@ async function main(): Promise<void> {
     } else if (lighthouseEvaluation.warmup || renderedEvaluation.warmup) {
         status = 'warmup'
     }
+    const mode: TrendMode = status === 'warmup' ? 'warmup' : 'active'
+    const lighthouseRemaining = Math.max(0, lighthouseEvaluation.minBaseline - lighthouseEvaluation.baselineCount)
+    const renderedRemaining = Math.max(0, renderedEvaluation.minBaseline - renderedEvaluation.baselineCount)
+    const warmupEta = buildWarmupEta(timestamp.iso, lighthouseRemaining, renderedRemaining)
+
+    const trendLifecycleStatePath = path.join(historyRoot, 'trend_lifecycle_state.json')
+    const previousLifecycleState = await readTrendLifecycleState(trendLifecycleStatePath)
+    const previousMode = previousLifecycleState?.mode || null
+    const justActivated = previousMode === 'warmup' && mode === 'active'
+    const activeSince = mode === 'active' ? previousLifecycleState?.activeSince || timestamp.iso : null
 
     const artifactRoot = path.join(
         process.cwd(),
@@ -539,24 +623,45 @@ async function main(): Promise<void> {
         generatedDate: timestamp.date,
         commitSha,
         status,
+        mode,
         lighthouseSummaryPath: toRelativePath(lighthouseSummaryPath),
         renderedSummaryPath: toRelativePath(renderedSummaryPath),
         lighthouseHistoryPath: toRelativePath(lighthouseHistoryPath),
         renderedHistoryPath: toRelativePath(renderedHistoryPath),
+        trendLifecycleStatePath: toRelativePath(trendLifecycleStatePath),
         lighthouseHistorySize: lighthouseHistory.length,
         renderedHistorySize: renderedHistory.length,
         retentionLimit,
         warmup: {
-            active: status === 'warmup',
+            active: mode === 'warmup',
             minBaseline: lighthouseEvaluation.minBaseline,
             lighthouseBaselineCount: lighthouseEvaluation.baselineCount,
             renderedBaselineCount: renderedEvaluation.baselineCount,
             remaining: {
-                lighthouse: Math.max(0, lighthouseEvaluation.minBaseline - lighthouseEvaluation.baselineCount),
-                rendered: Math.max(0, renderedEvaluation.minBaseline - renderedEvaluation.baselineCount),
+                lighthouse: lighthouseRemaining,
+                rendered: renderedRemaining,
             },
+            eta: warmupEta,
+        },
+        lifecycle: {
+            previousMode,
+            justActivated,
+            activeSince,
         },
         findings,
+    }
+
+    if (shouldWriteHistory) {
+        await writeTrendLifecycleState(trendLifecycleStatePath, {
+            mode,
+            activeSince,
+            updatedAt: timestamp.iso,
+            minBaseline: lighthouseEvaluation.minBaseline,
+            baselineCount: {
+                lighthouse: lighthouseEvaluation.baselineCount,
+                rendered: renderedEvaluation.baselineCount,
+            },
+        })
     }
 
     await writeFile(trendSummaryPath, `${JSON.stringify(trendSummary, null, 2)}\n`, 'utf8')
@@ -571,6 +676,10 @@ async function main(): Promise<void> {
             lighthouseHistory.length,
             renderedHistory.length,
             status,
+            mode,
+            previousMode,
+            justActivated,
+            warmupEta,
             lighthouseEvaluation,
             renderedEvaluation,
             lighthouseRecord,
