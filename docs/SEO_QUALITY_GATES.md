@@ -6,8 +6,15 @@
 
 ## Command
 - `npm run test:seo:gates`
+- `npm run seo:assert:rendered`
 
 ## Included Gates
+- `scripts/assert_rendered_alternates.ts`
+  - Production-like rendered-head assertions (SSR output), not only metadata contracts.
+  - Verifies `/create`, locale create routes, and localized key templates for:
+    - canonical path correctness
+    - alternates coverage (`en`, `fr`, `de`, `es`, `x-default`) from rendered HTML link tags
+    - `og:url` parity with canonical path
 - `src/app/metadata-regression.test.ts`
   - Canonical + hreflang parity for key templates.
   - Locale `en` canonical collapse regression checks.
@@ -29,4 +36,4 @@
   - Static internal links from core navigation and key marketing pages must resolve to existing app routes.
 
 ## CI Integration
-- `scripts/ci_non_interactive.sh` now runs the gates between build and full test run.
+- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + SEO regression suites between build and full test run.
