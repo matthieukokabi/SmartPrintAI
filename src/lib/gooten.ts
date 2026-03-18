@@ -1,5 +1,8 @@
 const DEFAULT_GOOTEN_BASE_URL = 'https://api.print.io/api'
 const GOOTEN_CATALOG_URL = 'https://gtnadminassets.blob.core.windows.net/productdatav3/catalog.json'
+const GOOTEN_RELIABLE_MEDIA_HOSTS = new Set(['appassets.azureedge.net'])
+const GOOTEN_RELIABLE_MEDIA_HOST_SUFFIXES = ['.cdn.gooten.com']
+const GOOTEN_IMAGE_PATH_PATTERN = /\.(?:avif|gif|jpe?g|png|svg|webp)$/i
 
 type RequestOptions = {
     method?: 'GET' | 'POST'
@@ -69,8 +72,49 @@ function uniqueStrings(values: Array<string | null | undefined>): string[] {
     return out
 }
 
-function isHttpUrl(value: unknown): value is string {
-    return typeof value === 'string' && /^https?:\/\//i.test(value.trim())
+function isReliableGootenMediaHost(hostname: string): boolean {
+    const normalized = hostname.trim().toLowerCase()
+    if (GOOTEN_RELIABLE_MEDIA_HOSTS.has(normalized)) {
+        return true
+    }
+    return GOOTEN_RELIABLE_MEDIA_HOST_SUFFIXES.some((suffix) => normalized.endsWith(suffix))
+}
+
+function sanitizeGootenImageUrl(value: unknown, options: { requireReliableHost?: boolean } = {}): string | null {
+    const raw = asString(value)
+    if (!raw) {
+        return null
+    }
+
+    let candidate = raw
+    const normalized = raw.toLowerCase()
+    const nestedProtocolIndexes = [normalized.indexOf('https://', 8), normalized.indexOf('http://', 8)].filter(
+        (index) => index > -1
+    )
+    if (nestedProtocolIndexes.length > 0) {
+        candidate = raw.slice(Math.min(...nestedProtocolIndexes))
+    }
+
+    let parsed: URL
+    try {
+        parsed = new URL(candidate)
+    } catch {
+        return null
+    }
+
+    if (!/^https?:$/.test(parsed.protocol)) {
+        return null
+    }
+
+    if (options.requireReliableHost && !isReliableGootenMediaHost(parsed.hostname)) {
+        return null
+    }
+
+    if (!GOOTEN_IMAGE_PATH_PATTERN.test(parsed.pathname)) {
+        return null
+    }
+
+    return parsed.toString()
 }
 
 export class GootenClient {
@@ -389,7 +433,7 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
 
         const color = extractGootenVariantColor(variant)
         const size = extractGootenVariantSize(variant)
-        const previewImageUrl = extractGootenPreviewUrl(variant)
+        const previewImageUrl = sanitizeGootenImageUrl(extractGootenPreviewUrl(variant), { requireReliableHost: true })
 
         if (color) {
             mapUniqueRecordKey(mapping, color, sku)
@@ -397,7 +441,7 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
                 colors.push(color)
             }
             const normalizedColor = normalizeMatchKey(color)
-            if (!colorPreviewUrls[normalizedColor] && isHttpUrl(previewImageUrl)) {
+            if (!colorPreviewUrls[normalizedColor] && previewImageUrl) {
                 colorPreviewUrls[normalizedColor] = previewImageUrl
             }
         }
@@ -441,16 +485,19 @@ export function extractGootenProductCategory(productPayload: unknown): string | 
 export function extractGootenProductImageUrl(productPayload: unknown): string | null {
     if (!isObject(productPayload)) return null
 
-    const direct = pickString(productPayload, [
-        'ImageUrl',
-        'imageUrl',
-        'ThumbnailUrl',
-        'thumbnailUrl',
-        'PreviewUrl',
-        'previewUrl',
-        'url',
-    ])
-    if (isHttpUrl(direct)) {
+    const direct = sanitizeGootenImageUrl(
+        pickString(productPayload, [
+            'ImageUrl',
+            'imageUrl',
+            'ThumbnailUrl',
+            'thumbnailUrl',
+            'PreviewUrl',
+            'previewUrl',
+            'url',
+        ]),
+        { requireReliableHost: true }
+    )
+    if (direct) {
         return direct
     }
 
@@ -459,8 +506,11 @@ export function extractGootenProductImageUrl(productPayload: unknown): string | 
         if (!Array.isArray(candidate)) continue
         for (const item of candidate) {
             if (!isObject(item)) continue
-            const nested = pickString(item, ['Url', 'url', 'ImageUrl', 'imageUrl', 'ThumbnailUrl', 'thumbnailUrl'])
-            if (isHttpUrl(nested)) {
+            const nested = sanitizeGootenImageUrl(
+                pickString(item, ['Url', 'url', 'ImageUrl', 'imageUrl', 'ThumbnailUrl', 'thumbnailUrl']),
+                { requireReliableHost: true }
+            )
+            if (nested) {
                 return nested
             }
         }
@@ -474,8 +524,10 @@ export function extractGootenPreviewUrl(payload: unknown): string | null {
         return null
     }
 
-    const direct = pickString(payload, ['Url', 'url', 'ImageUrl', 'imageUrl', 'PreviewUrl', 'previewUrl'])
-    if (isHttpUrl(direct)) {
+    const direct = sanitizeGootenImageUrl(
+        pickString(payload, ['Url', 'url', 'ImageUrl', 'imageUrl', 'PreviewUrl', 'previewUrl'])
+    )
+    if (direct) {
         return direct
     }
 
@@ -484,8 +536,8 @@ export function extractGootenPreviewUrl(payload: unknown): string | null {
         if (!Array.isArray(candidate)) continue
         for (const image of candidate) {
             if (!isObject(image)) continue
-            const imageUrl = pickString(image, ['Url', 'url', 'ImageUrl', 'imageUrl'])
-            if (isHttpUrl(imageUrl)) {
+            const imageUrl = sanitizeGootenImageUrl(pickString(image, ['Url', 'url', 'ImageUrl', 'imageUrl']))
+            if (imageUrl) {
                 return imageUrl
             }
         }

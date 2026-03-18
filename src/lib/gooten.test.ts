@@ -32,7 +32,7 @@ describe('Gooten payload extraction', () => {
                         {
                             product_id: 352,
                             name: 'Woven Pillows',
-                            url: 'https://cdn.example.com/woven-pillow.png',
+                            url: 'https://appassets.azureedge.net/product-throwpillows/Preview/Latest/Pillow_Woven_Catalog_Photo_01.png',
                             cheapest_price: '$22.40',
                         },
                     ],
@@ -44,7 +44,8 @@ describe('Gooten payload extraction', () => {
             expect.objectContaining({
                 ProductId: '352',
                 name: 'Woven Pillows',
-                ImageUrl: 'https://cdn.example.com/woven-pillow.png',
+                ImageUrl:
+                    'https://appassets.azureedge.net/product-throwpillows/Preview/Latest/Pillow_Woven_Catalog_Photo_01.png',
                 MinPrice: 22.4,
             }),
         ])
@@ -62,10 +63,32 @@ describe('Gooten payload extraction', () => {
 
     it('extracts image URL from nested image arrays', () => {
         const productPayload = {
-            Images: [{ Url: 'https://cdn.example.com/tshirt.jpg' }],
+            Images: [{ Url: 'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/TShirt_Catalog_1.jpg' }],
         }
 
-        expect(extractGootenProductImageUrl(productPayload)).toBe('https://cdn.example.com/tshirt.jpg')
+        expect(extractGootenProductImageUrl(productPayload)).toBe(
+            'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/TShirt_Catalog_1.jpg'
+        )
+    })
+
+    it('normalizes malformed nested gooten image URLs', () => {
+        const malformed =
+            'https://appassets.azureedge.net/https://appassets.azureedge.net/product-wineglasses/Preview/Stemmed_Wine_Glass_Catalog_Photo_01.png'
+
+        expect(extractGootenProductImageUrl({ url: malformed })).toBe(
+            'https://appassets.azureedge.net/product-wineglasses/Preview/Stemmed_Wine_Glass_Catalog_Photo_01.png'
+        )
+    })
+
+    it('suppresses unsupported media hosts when extracting product images', () => {
+        const productPayload = {
+            ImageUrl: 'https://printmeeappassets.blob.core.windows.net/product-preview.png',
+            Images: [{ Url: 'https://appassets.azureedge.net/product-mugs/Preview/Mug_Catalog_01.jpg' }],
+        }
+
+        expect(extractGootenProductImageUrl(productPayload)).toBe(
+            'https://appassets.azureedge.net/product-mugs/Preview/Mug_Catalog_01.jpg'
+        )
     })
 
     it('extracts sizes and colors from options', () => {
@@ -151,31 +174,56 @@ describe('Gooten payload extraction', () => {
                     SKU: 'sku_black_m',
                     ColorName: 'Black',
                     Size: 'M',
-                    PreviewUrl: 'https://cdn.example.com/black.jpg',
+                    PreviewUrl: 'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/Black.jpg',
                 },
                 {
                     SKU: 'sku_white_l',
                     ColorName: 'White',
                     Size: 'L',
-                    Images: [{ Url: 'https://cdn.example.com/white.jpg' }],
+                    Images: [{ Url: 'https://appassets.azureedge.net/product-tshirts/Preview/New/White.jpg' }],
                 },
             ],
         }
 
         expect(extractGootenVariantMapping(payload).colorPreviewUrls).toEqual({
-            black: 'https://cdn.example.com/black.jpg',
-            white: 'https://cdn.example.com/white.jpg',
+            black: 'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/Black.jpg',
+            white: 'https://appassets.azureedge.net/product-tshirts/Preview/New/White.jpg',
         })
     })
 
     it('extracts preview URL from nested image payload', () => {
         const payload = {
             Result: {
-                Images: [{ Url: 'https://cdn.example.com/preview.jpg' }],
+                Images: [{ Url: 'https://appassets.azureedge.net/product-mugs/Preview/New/Mug_Preview_01.jpg' }],
             },
         }
 
-        expect(extractGootenPreviewUrl(payload)).toBe('https://cdn.example.com/preview.jpg')
+        expect(extractGootenPreviewUrl(payload)).toBe(
+            'https://appassets.azureedge.net/product-mugs/Preview/New/Mug_Preview_01.jpg'
+        )
+    })
+
+    it('ignores unsupported variant preview media hosts', () => {
+        const payload = {
+            ProductVariants: [
+                {
+                    SKU: 'sku_black_m',
+                    ColorName: 'Black',
+                    Size: 'M',
+                    PreviewUrl: 'https://printmeeappassets.blob.core.windows.net/product-black.jpg',
+                },
+                {
+                    SKU: 'sku_white_l',
+                    ColorName: 'White',
+                    Size: 'L',
+                    PreviewUrl: 'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/White.jpg',
+                },
+            ],
+        }
+
+        expect(extractGootenVariantMapping(payload).colorPreviewUrls).toEqual({
+            white: 'https://az412349.cdn.gooten.com/product-tshirts/Preview/New/White.jpg',
+        })
     })
 
     it('extracts SpaceId options from Gooten API validation errors', () => {
