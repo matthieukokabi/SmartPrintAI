@@ -1,0 +1,529 @@
+{
+  "generatedAt": "2026-03-18T13:40:06.082Z",
+  "generatedDate": "2026-03-18",
+  "artifactRoot": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06",
+  "routeCount": 11,
+  "targets": [
+    {
+      "target": "local",
+      "baseUrl": "http://127.0.0.1:3301",
+      "routeResults": [
+        {
+          "path": "/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/en_create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/fr_create.html",
+          "expectedCanonicalPath": "/fr/create",
+          "actualCanonicalPath": "/fr/create",
+          "expectedOgPath": "/fr/create",
+          "actualOgPath": "/fr/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/de/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/de_create.html",
+          "expectedCanonicalPath": "/de/create",
+          "actualCanonicalPath": "/de/create",
+          "expectedOgPath": "/de/create",
+          "actualOgPath": "/de/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/es/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/es_create.html",
+          "expectedCanonicalPath": "/es/create",
+          "actualCanonicalPath": "/es/create",
+          "expectedOgPath": "/es/create",
+          "actualOgPath": "/es/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/en_blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/fr_blog.html",
+          "expectedCanonicalPath": "/fr/blog",
+          "actualCanonicalPath": "/fr/blog",
+          "expectedOgPath": "/fr/blog",
+          "actualOgPath": "/fr/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/support.html",
+          "expectedCanonicalPath": "/support",
+          "actualCanonicalPath": "/support",
+          "expectedOgPath": "/support",
+          "actualOgPath": "/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/en_support.html",
+          "expectedCanonicalPath": "/support",
+          "actualCanonicalPath": "/support",
+          "expectedOgPath": "/support",
+          "actualOgPath": "/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/local/fr_support.html",
+          "expectedCanonicalPath": "/fr/support",
+          "actualCanonicalPath": "/fr/support",
+          "expectedOgPath": "/fr/support",
+          "actualOgPath": "/fr/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "target": "prod",
+      "baseUrl": "https://smartprintai.com",
+      "routeResults": [
+        {
+          "path": "/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/en_create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/fr_create.html",
+          "expectedCanonicalPath": "/fr/create",
+          "actualCanonicalPath": "/fr/create",
+          "expectedOgPath": "/fr/create",
+          "actualOgPath": "/fr/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/de/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/de_create.html",
+          "expectedCanonicalPath": "/de/create",
+          "actualCanonicalPath": "/de/create",
+          "expectedOgPath": "/de/create",
+          "actualOgPath": "/de/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/es/create",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/es_create.html",
+          "expectedCanonicalPath": "/es/create",
+          "actualCanonicalPath": "/es/create",
+          "expectedOgPath": "/es/create",
+          "actualOgPath": "/es/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "failures": []
+        },
+        {
+          "path": "/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/en_blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/fr_blog.html",
+          "expectedCanonicalPath": "/fr/blog",
+          "actualCanonicalPath": "/fr/blog",
+          "expectedOgPath": "/fr/blog",
+          "actualOgPath": "/fr/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "failures": []
+        },
+        {
+          "path": "/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/support.html",
+          "expectedCanonicalPath": "/support",
+          "actualCanonicalPath": "/support",
+          "expectedOgPath": "/support",
+          "actualOgPath": "/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/en_support.html",
+          "expectedCanonicalPath": "/support",
+          "actualCanonicalPath": "/support",
+          "expectedOgPath": "/support",
+          "actualOgPath": "/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/support",
+          "htmlArtifact": "docs/reports/artifacts/wave3-rendered-head-2026-03-18_14-40-06/prod/fr_support.html",
+          "expectedCanonicalPath": "/fr/support",
+          "actualCanonicalPath": "/fr/support",
+          "expectedOgPath": "/fr/support",
+          "actualOgPath": "/fr/support",
+          "expectedAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "actualAlternates": {
+            "en": "/support",
+            "fr": "/fr/support",
+            "de": "/de/support",
+            "es": "/es/support",
+            "x-default": "/support"
+          },
+          "failures": []
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}
