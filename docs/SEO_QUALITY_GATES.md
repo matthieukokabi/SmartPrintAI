@@ -41,6 +41,9 @@
     - `CSP_MODE=legacy` keeps fallback `script-src 'self' 'unsafe-inline' 'unsafe-eval' https:`
 - `src/app/internal-links-regression.test.ts`
   - Static internal links from core navigation and key marketing pages must resolve to existing app routes.
+- `src/app/money-pages-schema-trust-regression.test.ts`
+  - Prevents trust-strip drift on money pages (`/create`, products list/detail, localized variants).
+  - Ensures JSON-LD schema anchor blocks remain on those templates (BreadcrumbList, ItemList, Product/Offer wiring).
 - `scripts/lighthouse_budget_gate.ts`
   - Deterministic Lighthouse gating with warm-up + multi-run median scoring.
   - Uses stable headless Chrome flags and fixed category set (`performance`, `accessibility`, `seo`).

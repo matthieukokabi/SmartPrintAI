@@ -25,7 +25,7 @@
     "perf:lighthouse:trend-gate": "node --import tsx scripts/quality_trend_gate.ts",
     "test:deploy:vps": "bash scripts/tests/deploy_healthcheck_test.sh",
     "test:quality:trend": "bash scripts/tests/quality_trend_gate_test.sh",
-    "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts",
+    "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts src/app/money-pages-schema-trust-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
