@@ -155,16 +155,26 @@ npm run build
 systemctl restart '$SERVICE_NAME'
 systemctl is-active '$SERVICE_NAME'
 
+CHECK_RETRIES=\${DEPLOY_CHECK_RETRIES:-20}
+CHECK_DELAY_SECONDS=\${DEPLOY_CHECK_DELAY_SECONDS:-1}
+
 check_http() {
   label=\"\$1\"
   url=\"\$2\"
   expected=\"\${3:-200}\"
-  code=\$(curl -sS -o /dev/null -w '%{http_code}' \"\$url\" || true)
-  echo \"\${label}=\${code}\"
-  if [ \"\$code\" != \"\$expected\" ]; then
-    echo \"ERROR: \${label} expected \${expected}, got \${code}\" >&2
-    exit 1
-  fi
+  code=000
+  for attempt in \$(seq 1 \"\$CHECK_RETRIES\"); do
+    code=\$(curl -sS -o /dev/null -w '%{http_code}' \"\$url\" || true)
+    echo \"\${label}=\${code} (attempt \${attempt}/\${CHECK_RETRIES})\"
+    if [ \"\$code\" = \"\$expected\" ]; then
+      return 0
+    fi
+    if [ \"\$attempt\" -lt \"\$CHECK_RETRIES\" ]; then
+      sleep \"\$CHECK_DELAY_SECONDS\"
+    fi
+  done
+  echo \"ERROR: \${label} expected \${expected}, got \${code} after \${CHECK_RETRIES} attempts\" >&2
+  exit 1
 }
 
 echo '-- local checks --'

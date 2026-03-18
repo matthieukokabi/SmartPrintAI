@@ -1,6 +1,6 @@
 # Wave 3 Validation Report
 
-Generated: 2026-03-18 14:45:59 CET
+Generated: 2026-03-18 15:09:23 CET
 Project: SmartPrintAI (`smartprintai.com`)
 Baseline shipped app commit: `4a6c705`
 Wave 3 implementation commits validated: `e366670`, `5aa3949`, `01c6891`, `ff8aeb4`, `c727201`, `ae42c5e`
@@ -34,6 +34,21 @@ Results:
 
 Note:
 - An initial `ci:check` attempt using only placeholder `DATABASE_URL` failed during local rendered-head assertions (`P1000` DB auth). Final validation used `SEO_ASSERT_BASE_URL=https://smartprintai.com` so assertions run against rendered production HTML and complete green.
+
+## Production Rollout Verification (Post-validation)
+Commands executed:
+```bash
+./scripts/deploy_vps.sh --allow-dirty --skip-install --skip-migrate
+SEO_ASSERT_BASE_URL=https://smartprintai.com npm run seo:assert:rendered
+```
+
+Results:
+- Deployment: PASS
+  - VPS build + restart completed for commit `168f128`
+  - Local checks: `local_root=200`, `local_blog=200`, `local_feed=200` (with retry on restart race)
+  - Public checks: `public_root=200`, `public_blog=200`, `public_feed=200`
+- Post-deploy rendered assertions: PASS for 7 routes on production base URL.
+- Deploy pipeline hardening: `scripts/deploy_vps.sh` now retries health checks with configurable backoff (`DEPLOY_CHECK_RETRIES`, `DEPLOY_CHECK_DELAY_SECONDS`) to avoid false negatives during service warmup.
 
 ## Production Spot Checks (Raw HTML + Headers)
 
@@ -73,7 +88,7 @@ curl -sSI https://smartprintai.com | rg -i "^content-security-policy:|^strict-tr
 ```
 Observed:
 ```text
-content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https:; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; object-src 'none'
+content-security-policy: default-src 'self'; script-src 'self' https:; script-src-elem 'self' 'unsafe-inline' https:; script-src-attr 'none'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; object-src 'none'
 strict-transport-security: max-age=31536000; includeSubDomains
 x-frame-options: DENY
 x-content-type-options: nosniff
@@ -119,9 +134,10 @@ Gate result: PASS (thresholds and regression budgets).
 - PASS: Lighthouse route budgets are enforced in CI with deterministic retries/median scoring.
 - PASS: Schema and trust markers remain present after Wave 3 SEO/security changes.
 - PASS: Security header baseline remains intact (`HSTS`, `XFO`, `nosniff`, strict referrer policy, CSP object/frame/base/form controls).
+- PASS: CSP phase-3 header variant is live in production (`script-src 'self' https:` plus `script-src-elem` and `script-src-attr 'none'`).
+- PASS: Deployment automation no longer fails on transient restart timing due health-check retry/backoff.
 
-## Deferred / Residual Risks
-- Deferred: CSP phase-3 stricter `script-src-elem` posture is implemented and tested in code, but current live header still reflects stage-2 style `script-src 'unsafe-inline'` on `smartprintai.com`. Production rollout/deploy confirmation is still required to evidence the phase-3 header variant live.
+## Residual Risks
 - Residual: `/create` trust strip copy is not visible in raw server HTML curl output due client-rendered flow characteristics; money-page trust copy is validated on `/products` and product detail SSR HTML.
 
 ## Artifact Index
