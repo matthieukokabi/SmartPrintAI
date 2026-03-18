@@ -20,6 +20,7 @@
     "sync:products:gelato": "tsx scripts/sync_gelato_products.ts",
     "sync:products:gooten": "tsx scripts/sync_gooten_products.ts",
     "seo:assert:rendered": "tsx scripts/assert_rendered_alternates.ts",
+    "seo:verify:rendered": "tsx scripts/verify_rendered_head_harness.ts",
     "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",

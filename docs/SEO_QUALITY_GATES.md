@@ -7,6 +7,7 @@
 ## Command
 - `npm run test:seo:gates`
 - `npm run seo:assert:rendered`
+- `npm run seo:verify:rendered`
 
 ## Included Gates
 - `scripts/assert_rendered_alternates.ts`
@@ -37,3 +38,16 @@
 
 ## CI Integration
 - `scripts/ci_non_interactive.sh` now runs rendered-head assertions + SEO regression suites between build and full test run.
+
+## Wave 3 Verification Harness
+- `scripts/verify_rendered_head_harness.ts`
+  - Fetches rendered HTML from both a managed local server (`next start`) and production by default.
+  - Asserts canonical, locale alternates (`en`, `fr`, `de`, `es`, `x-default`), and `og:url` consistency.
+  - Saves raw HTML artifacts per route and target, plus a JSON summary, under:
+    - `docs/reports/artifacts/wave3-rendered-head-<timestamp>/`
+  - Writes a timestamped markdown result report:
+    - `docs/reports/WAVE3_RENDERED_HEAD_VERIFY_<timestamp>.md`
+- Useful environment flags:
+  - `SEO_VERIFY_INCLUDE_LOCAL=0` to skip local checks.
+  - `SEO_VERIFY_INCLUDE_PROD=0` to skip production checks.
+  - `SEO_VERIFY_PROD_BASE_URL=https://smartprintai.com` to override the production base URL.
