@@ -15,6 +15,8 @@ Run a scheduled VPS checkpoint that captures:
   - `npm run ops:quality-checkpoint`
 - Lighthouse runtime preflight only:
   - `bash scripts/resolve_lighthouse_chrome_path.sh`
+- Env bootstrap contract test:
+  - `npm run test:ops:env-loader`
 - Install daily systemd timer on VPS:
   - `sudo bash scripts/install_quality_checkpoint_timer.sh`
 
@@ -49,6 +51,10 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
 - Deterministic Lighthouse fixture enforcement toggle:
   - `QUALITY_CHECKPOINT_REQUIRE_FIXTURE` (default `1`, set `0` only for diagnostics)
+- Shared env bootstrap controls:
+  - `QUALITY_CHECKPOINT_ENV_FILE` (default `.env.local`)
+  - `SMARTPRINTAI_ENV_FILE` (fallback path alias used by shared env loader)
+  - Checkpoint bootstrap requires `DATABASE_URL`; missing env file/vars fails fast with remediation output.
 - Lighthouse runtime preflight overrides:
   - `QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER` (default `scripts/resolve_lighthouse_chrome_path.sh`)
   - `LIGHTHOUSE_CHROME_PATH` (optional explicit browser executable)

@@ -25,8 +25,10 @@ setup_fixture_repo() {
   local tmp_dir="$1"
 
   mkdir -p "${tmp_dir}/scripts" "${tmp_dir}/docs/reports" "${tmp_dir}/docs/reports/artifacts" "${tmp_dir}/bin" "${tmp_dir}/state"
+  mkdir -p "${tmp_dir}/scripts/lib"
   cp "$CHECKPOINT_SCRIPT" "${tmp_dir}/scripts/run_quality_checkpoint.sh"
   cp "${ROOT_DIR}/scripts/resolve_lighthouse_chrome_path.sh" "${tmp_dir}/scripts/resolve_lighthouse_chrome_path.sh"
+  cp "${ROOT_DIR}/scripts/lib/env_loader.sh" "${tmp_dir}/scripts/lib/env_loader.sh"
   chmod +x "${tmp_dir}/scripts/run_quality_checkpoint.sh"
   chmod +x "${tmp_dir}/scripts/resolve_lighthouse_chrome_path.sh"
 
@@ -127,6 +129,10 @@ set -euo pipefail
 printf '%s\n' "${1:-0}" >> "${CHECKPOINT_TEST_SLEEP_LOG:?}"
 EOF
   chmod +x "${tmp_dir}/bin/sleep"
+
+  cat > "${tmp_dir}/.env.local" <<'EOF'
+DATABASE_URL=postgresql://checkpoint:test@localhost:5432/smartprintai
+EOF
 }
 
 latest_checkpoint_file() {

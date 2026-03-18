@@ -4,6 +4,20 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+ENV_LOADER_SCRIPT="${ROOT_DIR}/scripts/lib/env_loader.sh"
+QUALITY_CHECKPOINT_ENV_FILE="${QUALITY_CHECKPOINT_ENV_FILE:-${SMARTPRINTAI_ENV_FILE:-${ROOT_DIR}/.env.local}}"
+
+if [ ! -f "$ENV_LOADER_SCRIPT" ]; then
+  echo "[checkpoint] missing env loader script: ${ENV_LOADER_SCRIPT}" >&2
+  exit 14
+fi
+
+# shellcheck source=/dev/null
+source "$ENV_LOADER_SCRIPT"
+if ! smartprintai_bootstrap_env "$QUALITY_CHECKPOINT_ENV_FILE" DATABASE_URL; then
+  exit 14
+fi
+
 if [ -s /root/.nvm/nvm.sh ]; then
   # shellcheck source=/dev/null
   . /root/.nvm/nvm.sh
