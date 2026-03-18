@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from './schema'
+import { buildBreadcrumbList, buildLocalizedSchemaUrl, buildProductOfferSchema, getBreadcrumbLabel } from './schema'
 
 describe('schema helpers', () => {
     beforeEach(() => {
@@ -64,5 +64,11 @@ describe('schema helpers', () => {
         expect(getBreadcrumbLabel('de', 'products')).toBe('Produkte')
         expect(getBreadcrumbLabel('es', 'create')).toBe('Crear')
     })
-})
 
+    it('builds schema URLs that stay aligned with locale canonical policy', () => {
+        expect(buildLocalizedSchemaUrl('en', '/products/prod_1')).toBe('https://smartprintai.com/products/prod_1')
+        expect(buildLocalizedSchemaUrl('fr', '/products/prod_1')).toBe('https://smartprintai.com/fr/products/prod_1')
+        expect(buildLocalizedSchemaUrl('en', '/blog/post-1')).toBe('https://smartprintai.com/blog/post-1')
+        expect(buildLocalizedSchemaUrl('de', '/blog/post-1')).toBe('https://smartprintai.com/de/blog/post-1')
+    })
+})

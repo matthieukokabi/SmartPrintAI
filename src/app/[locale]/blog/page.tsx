@@ -3,10 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
-import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
-import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
+import { buildBreadcrumbList, buildLocalizedSchemaUrl, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleBlogPageProps = {
     params: {
@@ -96,7 +95,7 @@ export default function LocalizedBlogIndexPage({ params }: LocaleBlogPageProps) 
         itemListElement: posts.map((post, index) => ({
             '@type': 'ListItem',
             position: index + 1,
-            url: toAbsoluteUrl(`/${locale}/blog/${post.slug}`),
+            url: buildLocalizedSchemaUrl(locale, `/blog/${post.slug}`),
             name: post.title,
         })),
     }

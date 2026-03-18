@@ -5,12 +5,11 @@ import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
 import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
-import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
-import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
+import { buildBreadcrumbList, buildLocalizedSchemaUrl, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleProductsPageProps = {
     params: {
@@ -163,7 +162,7 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
         itemListElement: products.map((product, index) => ({
             '@type': 'ListItem',
             position: index + 1,
-            url: toAbsoluteUrl(`/${locale}/products/${product.id}`),
+            url: buildLocalizedSchemaUrl(locale, `/products/${product.id}`),
             name: product.name,
         })),
     }

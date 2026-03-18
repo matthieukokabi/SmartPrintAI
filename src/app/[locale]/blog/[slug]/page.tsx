@@ -3,10 +3,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocalizedBlogPosts } from '@/content/blogPosts'
-import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
-import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
+import { buildBreadcrumbList, buildLocalizedSchemaUrl, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleBlogPostPageProps = {
     params: {
@@ -70,6 +69,7 @@ export default function LocalizedBlogPostPage({ params }: LocaleBlogPostPageProp
         notFound()
     }
     const relatedPosts = getRelatedLocalizedBlogPosts(post.slug, locale, 3)
+    const postPath = buildLocaleCanonical(locale, `/blog/${post.slug}`)
 
     const articleSchema = {
         '@context': 'https://schema.org',
@@ -86,12 +86,11 @@ export default function LocalizedBlogPostPage({ params }: LocaleBlogPostPageProp
             '@type': 'Organization',
             name: 'SmartPrintAI',
         },
-        mainEntityOfPage: toAbsoluteUrl(`/${locale}/blog/${post.slug}`),
+        mainEntityOfPage: buildLocalizedSchemaUrl(locale, `/blog/${post.slug}`),
         keywords: post.keywords,
     }
     const blogPath = buildLocaleCanonical(locale, '/blog')
     const homePath = buildLocaleCanonical(locale, '/')
-    const postPath = buildLocaleCanonical(locale, `/blog/${post.slug}`)
     const breadcrumbSchema = buildBreadcrumbList([
         { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
         { name: getBreadcrumbLabel(locale, 'blog'), path: blogPath },

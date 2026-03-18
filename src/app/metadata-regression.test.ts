@@ -26,6 +26,7 @@ import { generateMetadata as generateProductMetadata } from '@/app/products/[id]
 import { generateMetadata as generateLocalizedProductMetadata } from '@/app/[locale]/products/[id]/page'
 import { generateMetadata as generateBlogPostMetadata } from '@/app/blog/[slug]/page'
 import { generateMetadata as generateLocalizedBlogPostMetadata } from '@/app/[locale]/blog/[slug]/page'
+import { buildLocalizedSchemaUrl } from '@/lib/schema'
 
 function toLocalizedPath(locale: 'en' | 'fr' | 'de' | 'es', path: string) {
     if (locale === 'en') {
@@ -148,5 +149,34 @@ describe('Wave 2 metadata regression coverage', () => {
         expect(localizedMetaDe.openGraph?.url).toBe('https://smartprintai.com/de/products/prod_1')
         expect(localizedMetaDe.openGraph?.locale).toBe('de_DE')
         expectLocaleAlternates(localizedMetaDe.alternates?.languages as Record<string, string> | undefined, '/products/prod_1')
+    })
+
+    it('keeps localized schema URLs aligned with canonical + hreflang metadata paths', async () => {
+        const slug = 'creative-ai-tshirt-ideas-for-dog-lovers'
+        const productPath = '/products/prod_1'
+        const blogPath = `/blog/${slug}`
+
+        mocks.findUnique.mockResolvedValue({
+            id: 'prod_1',
+            name: 'Premium Tee',
+            description: 'Product description',
+            imageUrl: '/images/prod_1.png',
+        })
+
+        const productEn = await generateLocalizedProductMetadata({ params: { locale: 'en', id: 'prod_1' } })
+        expect(productEn.alternates?.canonical).toBe(productPath)
+        expect(productEn.openGraph?.url).toBe(buildLocalizedSchemaUrl('en', productPath))
+
+        const productDe = await generateLocalizedProductMetadata({ params: { locale: 'de', id: 'prod_1' } })
+        expect(productDe.alternates?.canonical).toBe('/de/products/prod_1')
+        expect(productDe.openGraph?.url).toBe(buildLocalizedSchemaUrl('de', productPath))
+
+        const blogEn = await generateLocalizedBlogPostMetadata({ params: { locale: 'en', slug } })
+        expect(blogEn.alternates?.canonical).toBe(blogPath)
+        expect(blogEn.openGraph?.url).toBe(buildLocalizedSchemaUrl('en', blogPath))
+
+        const blogFr = await generateLocalizedBlogPostMetadata({ params: { locale: 'fr', slug } })
+        expect(blogFr.alternates?.canonical).toBe(`/fr/blog/${slug}`)
+        expect(blogFr.openGraph?.url).toBe(buildLocalizedSchemaUrl('fr', blogPath))
     })
 })

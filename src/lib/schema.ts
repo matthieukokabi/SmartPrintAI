@@ -1,4 +1,4 @@
-import type { SupportedLocale } from './i18n'
+import { buildLocaleCanonical, type SupportedLocale } from './i18n'
 import { toAbsoluteUrl } from './site'
 
 type BreadcrumbKey = 'home' | 'create' | 'products' | 'blog' | 'support'
@@ -105,3 +105,6 @@ export function buildProductOfferSchema(input: ProductOfferSchemaInput) {
     }
 }
 
+export function buildLocalizedSchemaUrl(locale: SupportedLocale, path: string): string {
+    return toAbsoluteUrl(buildLocaleCanonical(locale, path))
+}
