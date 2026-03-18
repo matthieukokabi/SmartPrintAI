@@ -12,15 +12,12 @@ export default function GoogleAnalytics() {
                 src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
                 strategy="afterInteractive"
             />
-            <Script id="ga4-init" strategy="afterInteractive">
-                {`
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments);}
-                    window.gtag = window.gtag || gtag;
-                    gtag('js', new Date());
-                    gtag('config', '${measurementId}', { anonymize_ip: true });
-                `}
-            </Script>
+            <Script
+                id="ga4-init"
+                src="/ga4-init.js"
+                data-measurement-id={measurementId}
+                strategy="afterInteractive"
+            />
         </>
     )
 }

@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import { getMetadataBase } from '@/lib/site'
-import { THEME_INIT_SCRIPT } from '@/lib/theme'
 
 export const metadata: Metadata = {
     metadataBase: getMetadataBase(),
@@ -54,10 +54,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <head>
-                <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
-            </head>
             <body className="overflow-x-hidden">
+                <Script id="theme-init" src="/theme-init.js" strategy="beforeInteractive" />
                 <GoogleAnalytics />
                 <Navbar />
                 <main className="min-h-screen pt-20">{children}</main>

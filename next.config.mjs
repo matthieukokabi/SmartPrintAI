@@ -1,6 +1,14 @@
+const cspMode = (process.env.CSP_MODE || 'hardened').trim().toLowerCase()
+const isLegacyCspMode = cspMode === 'legacy'
+const scriptSrcTokens = ["'self'", "'unsafe-inline'", 'https:']
+if (isLegacyCspMode) {
+  scriptSrcTokens.splice(2, 0, "'unsafe-eval'")
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+  `script-src ${scriptSrcTokens.join(' ')}`,
+  ...(isLegacyCspMode ? [] : ["script-src-attr 'none'"]),
   "style-src 'self' 'unsafe-inline' https:",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
