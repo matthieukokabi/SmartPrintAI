@@ -13,6 +13,8 @@ Run a scheduled VPS checkpoint that captures:
 ## Commands
 - One-off checkpoint:
   - `npm run ops:quality-checkpoint`
+- Lighthouse runtime preflight only:
+  - `bash scripts/resolve_lighthouse_chrome_path.sh`
 - Install daily systemd timer on VPS:
   - `sudo bash scripts/install_quality_checkpoint_timer.sh`
 
@@ -47,6 +49,10 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
 - Deterministic Lighthouse fixture enforcement toggle:
   - `QUALITY_CHECKPOINT_REQUIRE_FIXTURE` (default `1`, set `0` only for diagnostics)
+- Lighthouse runtime preflight overrides:
+  - `QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER` (default `scripts/resolve_lighthouse_chrome_path.sh`)
+  - `LIGHTHOUSE_CHROME_PATH` (optional explicit browser executable)
+  - On Ubuntu VPS, install and hold `google-chrome-stable` to keep checkpoint runtime parity stable.
 - DB-dependent conversion stage resilience:
   - `QUALITY_CHECKPOINT_DB_MAX_RETRIES` (default `3`, includes initial attempt)
   - `QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS` (default `5`, linear backoff base in seconds)

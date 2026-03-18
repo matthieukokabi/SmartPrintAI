@@ -246,9 +246,12 @@ function detectChromePath(): string | undefined {
 
     const staticCandidates = [
         '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        '/usr/bin/google-chrome-stable',
         '/usr/bin/google-chrome',
+        '/opt/google/chrome/chrome',
         '/usr/bin/chromium',
         '/usr/bin/chromium-browser',
+        '/snap/bin/chromium',
     ]
     for (const candidate of staticCandidates) {
         if (existsSync(candidate)) {
@@ -256,7 +259,7 @@ function detectChromePath(): string | undefined {
         }
     }
 
-    const commandCandidates = ['google-chrome', 'chromium', 'chromium-browser', 'chrome']
+    const commandCandidates = ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser', 'chrome']
     for (const command of commandCandidates) {
         const resolved = spawnSync('which', [command], { encoding: 'utf8' })
         if (resolved.status === 0) {

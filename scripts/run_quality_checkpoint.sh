@@ -38,6 +38,7 @@ QUALITY_TREND_HISTORY_RETENTION="${QUALITY_TREND_HISTORY_RETENTION:-60}"
 QUALITY_CHECKPOINT_INCLUDE_LOCAL="${QUALITY_CHECKPOINT_INCLUDE_LOCAL:-0}"
 QUALITY_CHECKPOINT_INCLUDE_PROD="${QUALITY_CHECKPOINT_INCLUDE_PROD:-1}"
 QUALITY_CHECKPOINT_REQUIRE_FIXTURE="${QUALITY_CHECKPOINT_REQUIRE_FIXTURE:-1}"
+QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER="${QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER:-${ROOT_DIR}/scripts/resolve_lighthouse_chrome_path.sh}"
 QUALITY_CHECKPOINT_DB_MAX_RETRIES_RAW="${QUALITY_CHECKPOINT_DB_MAX_RETRIES:-3}"
 QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS_RAW="${QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS:-5}"
 QUALITY_CHECKPOINT_STRICT_NON_CRITICAL="${QUALITY_CHECKPOINT_STRICT_NON_CRITICAL:-0}"
@@ -121,7 +122,7 @@ stage_hint() {
       printf '%s' "Check rendered harness connectivity/HTML assertions and re-run with SEO_VERIFY_INCLUDE_PROD=1."
       ;;
     lighthouse)
-      printf '%s' "Review Lighthouse artifact route scores/fixture resolution and rerun perf:lighthouse:gate."
+      printf '%s' "Review Lighthouse runtime preflight, fixture resolution, and rerun perf:lighthouse:gate."
       ;;
     trend)
       printf '%s' "Inspect trend summary findings/warmup lifecycle and verify history artifact continuity."
@@ -143,6 +144,8 @@ lighthouse_status=0
 trend_status=0
 conversion_status=0
 alert_status=0
+lighthouse_runtime_status="unknown"
+lighthouse_runtime_path=""
 
 run_stage "rendered" env \
   SEO_VERIFY_INCLUDE_LOCAL="$QUALITY_CHECKPOINT_INCLUDE_LOCAL" \
@@ -151,10 +154,29 @@ run_stage "rendered" env \
   SEO_VERIFY_ARTIFACT_DIR="$RENDERED_ARTIFACT_DIR" \
   npm run seo:verify:rendered || rendered_status=$?
 
-run_stage "lighthouse" env \
-  LIGHTHOUSE_REQUIRE_FIXTURE="$QUALITY_CHECKPOINT_REQUIRE_FIXTURE" \
-  LIGHTHOUSE_ARTIFACT_DIR="$LIGHTHOUSE_ARTIFACT_DIR" \
-  npm run perf:lighthouse:gate || lighthouse_status=$?
+if [ ! -x "$QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER" ]; then
+  lighthouse_runtime_status="resolver_missing"
+  lighthouse_status=65
+  echo "[checkpoint] lighthouse preflight: FAIL (resolver not executable: ${QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER})" >&2
+else
+  set +e
+  lighthouse_runtime_path="$("$QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER")"
+  lighthouse_status=$?
+  set -e
+
+  if [ "$lighthouse_status" -ne 0 ]; then
+    lighthouse_runtime_status="missing_binary"
+    echo "[checkpoint] lighthouse preflight: FAIL (exit ${lighthouse_status})" >&2
+  else
+    lighthouse_runtime_status="ready"
+    echo "[checkpoint] lighthouse preflight: resolved browser at ${lighthouse_runtime_path}"
+    run_stage "lighthouse" env \
+      LIGHTHOUSE_CHROME_PATH="$lighthouse_runtime_path" \
+      LIGHTHOUSE_REQUIRE_FIXTURE="$QUALITY_CHECKPOINT_REQUIRE_FIXTURE" \
+      LIGHTHOUSE_ARTIFACT_DIR="$LIGHTHOUSE_ARTIFACT_DIR" \
+      npm run perf:lighthouse:gate || lighthouse_status=$?
+  fi
+fi
 
 run_stage "trend" env \
   QUALITY_TREND_HISTORY_DIR="$TREND_HISTORY_DIR" \
@@ -214,6 +236,10 @@ cat > "$CHECKPOINT_FILE" <<JSON
     },
     "lighthouse": {
       "status": ${lighthouse_status},
+      "runtime": {
+        "status": "${lighthouse_runtime_status}",
+        "chromePath": "${lighthouse_runtime_path}"
+      },
       "summary": "${lighthouse_summary}"
     },
     "trend": {

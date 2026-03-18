@@ -26,7 +26,9 @@ setup_fixture_repo() {
 
   mkdir -p "${tmp_dir}/scripts" "${tmp_dir}/docs/reports" "${tmp_dir}/docs/reports/artifacts" "${tmp_dir}/bin" "${tmp_dir}/state"
   cp "$CHECKPOINT_SCRIPT" "${tmp_dir}/scripts/run_quality_checkpoint.sh"
+  cp "${ROOT_DIR}/scripts/resolve_lighthouse_chrome_path.sh" "${tmp_dir}/scripts/resolve_lighthouse_chrome_path.sh"
   chmod +x "${tmp_dir}/scripts/run_quality_checkpoint.sh"
+  chmod +x "${tmp_dir}/scripts/resolve_lighthouse_chrome_path.sh"
 
   cat > "${tmp_dir}/bin/npm" <<'EOF'
 #!/usr/bin/env bash
@@ -112,6 +114,13 @@ esac
 EOF
   chmod +x "${tmp_dir}/bin/npm"
 
+  cat > "${tmp_dir}/bin/google-chrome-stable" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Google Chrome 999.0.0.0"
+EOF
+  chmod +x "${tmp_dir}/bin/google-chrome-stable"
+
   cat > "${tmp_dir}/bin/sleep" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -142,6 +151,7 @@ run_case_conversion_retry_success() {
 
   local checkpoint_file
   checkpoint_file="$(latest_checkpoint_file "$tmp_dir")"
+  assert_eq "$(json_value "$checkpoint_file" "stages.lighthouse.runtime.status")" "ready" "lighthouse runtime should be preflight-ready"
   assert_eq "$(json_value "$checkpoint_file" "stages.conversion.status")" "0" "conversion should pass after retry"
   assert_eq "$(json_value "$checkpoint_file" "executionPolicy.dbRetry.maxAttempts")" "3" "retry policy max attempts"
   assert_eq "$(cat "${tmp_dir}/state/attempt_ops_conversion_insights.txt")" "2" "conversion stage should run twice"

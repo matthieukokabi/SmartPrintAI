@@ -67,6 +67,7 @@
     - `LIGHTHOUSE_PRODUCT_DETAIL_PATH`
     - `LIGHTHOUSE_PRODUCT_DETAIL_SOURCE_PATH`
     - `LIGHTHOUSE_PRODUCT_DETAIL_FALLBACK_PATH`
+    - `LIGHTHOUSE_CHROME_PATH` (explicit Chrome/Chromium binary for VPS/runtime parity)
     - `LIGHTHOUSE_REQUIRE_FIXTURE` (`1` default; set `0` only for non-gating diagnostics)
   - Outputs timestamped JSON artifacts + report under `docs/reports/artifacts/lighthouse-<timestamp>/`.
   - Baseline refresh workflow:
