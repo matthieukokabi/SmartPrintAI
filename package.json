@@ -22,6 +22,7 @@
     "seo:assert:rendered": "tsx scripts/assert_rendered_alternates.ts",
     "seo:verify:rendered": "tsx scripts/verify_rendered_head_harness.ts",
     "perf:lighthouse:gate": "tsx scripts/lighthouse_budget_gate.ts",
+    "test:deploy:vps": "bash scripts/tests/deploy_healthcheck_test.sh",
     "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",

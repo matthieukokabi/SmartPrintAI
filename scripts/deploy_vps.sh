@@ -158,37 +158,26 @@ systemctl is-active '$SERVICE_NAME'
 CHECK_RETRIES=\${DEPLOY_CHECK_RETRIES:-20}
 CHECK_DELAY_SECONDS=\${DEPLOY_CHECK_DELAY_SECONDS:-1}
 
-check_http() {
-  label=\"\$1\"
-  url=\"\$2\"
-  expected=\"\${3:-200}\"
-  code=000
-  for attempt in \$(seq 1 \"\$CHECK_RETRIES\"); do
-    code=\$(curl -sS -o /dev/null -w '%{http_code}' \"\$url\" || true)
-    echo \"\${label}=\${code} (attempt \${attempt}/\${CHECK_RETRIES})\"
-    if [ \"\$code\" = \"\$expected\" ]; then
-      return 0
-    fi
-    if [ \"\$attempt\" -lt \"\$CHECK_RETRIES\" ]; then
-      sleep \"\$CHECK_DELAY_SECONDS\"
-    fi
-  done
-  echo \"ERROR: \${label} expected \${expected}, got \${code} after \${CHECK_RETRIES} attempts\" >&2
+if [ ! -f ./scripts/lib/deploy_healthcheck.sh ]; then
+  echo 'ERROR: ./scripts/lib/deploy_healthcheck.sh not found on remote host.' >&2
   exit 1
-}
+fi
+
+# shellcheck disable=SC1091
+source ./scripts/lib/deploy_healthcheck.sh
 
 echo '-- local checks --'
-check_http local_root http://127.0.0.1:3100/
-check_http local_blog http://127.0.0.1:3100/blog
-check_http local_feed http://127.0.0.1:3100/google/merchant-feed.xml
+check_http_with_retry local_root http://127.0.0.1:3100/ 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
+check_http_with_retry local_blog http://127.0.0.1:3100/blog 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
+check_http_with_retry local_feed http://127.0.0.1:3100/google/merchant-feed.xml 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
 "
 
 if [[ "$RUN_PUBLIC_CHECKS" -eq 1 ]]; then
   REMOTE_CMD="${REMOTE_CMD}
 echo '-- public checks --'
-check_http public_root '$PUBLIC_URL/'
-check_http public_blog '$PUBLIC_URL/blog'
-check_http public_feed '$PUBLIC_URL/google/merchant-feed.xml'
+check_http_with_retry public_root '$PUBLIC_URL/' 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
+check_http_with_retry public_blog '$PUBLIC_URL/blog' 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
+check_http_with_retry public_feed '$PUBLIC_URL/google/merchant-feed.xml' 200 \"\$CHECK_RETRIES\" \"\$CHECK_DELAY_SECONDS\"
 "
 fi
 

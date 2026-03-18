@@ -9,22 +9,25 @@ if [ -s /root/.nvm/nvm.sh ]; then
   . /root/.nvm/nvm.sh
 fi
 
-echo "[1/6] Lint"
+echo "[1/7] Lint"
 npm run lint -- --no-cache
 
-echo "[2/6] Build"
+echo "[2/7] Build"
 npm run build
 
-echo "[3/6] Rendered head assertions"
+echo "[3/7] Rendered head assertions"
 npm run seo:assert:rendered
 
-echo "[4/6] SEO quality gates"
+echo "[4/7] Deploy retry tests"
+npm run test:deploy:vps
+
+echo "[5/7] SEO quality gates"
 npm run test:seo:gates
 
-echo "[5/6] Lighthouse budget gate"
+echo "[6/7] Lighthouse budget gate"
 npm run perf:lighthouse:gate
 
-echo "[6/6] Tests"
+echo "[7/7] Tests"
 if [ "$(npm pkg get scripts.test | tr -d " \"")" != "null" ]; then
   npm test
 else
