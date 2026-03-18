@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import CreatePageClient from '@/components/create/CreatePageClient'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
@@ -73,6 +74,7 @@ export default function LocalizedCreatePage({ params }: LocaleCreatePageProps) {
                             </h1>
                             <p className="text-muted-foreground">{copy.subtitle}</p>
                         </div>
+                        <TrustSignalStrip locale={locale} className="mb-8" />
                     </div>
                 }
             >

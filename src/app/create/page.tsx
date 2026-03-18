@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import CreatePageClient from '@/components/create/CreatePageClient'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { DEFAULT_LOCALE, getLocaleCopy, type SupportedLocale } from '@/lib/i18n'
 import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
@@ -26,6 +27,7 @@ export default function CreatePage() {
                             </h1>
                             <p className="text-muted-foreground">{copy.subtitle}</p>
                         </div>
+                        <TrustSignalStrip locale={locale} className="mb-8" />
                     </div>
                 }
             >
