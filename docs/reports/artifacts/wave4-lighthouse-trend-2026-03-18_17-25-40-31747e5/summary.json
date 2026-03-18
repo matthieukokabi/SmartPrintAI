@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-03-18T16:25:40.562Z",
+  "generatedDate": "2026-03-18",
+  "commitSha": "31747e5",
+  "lighthouseSummaryPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/summary.json",
+  "renderedSummaryPath": "docs/reports/artifacts/wave4-rendered-head-2026-03-18_17-21-11-31747e5/summary.json",
+  "lighthouseHistoryPath": "docs/reports/artifacts/wave4-trend-history/lighthouse_history.json",
+  "renderedHistoryPath": "docs/reports/artifacts/wave4-trend-history/rendered_head_history.json",
+  "lighthouseHistorySize": 1,
+  "renderedHistorySize": 1,
+  "findings": []
+}

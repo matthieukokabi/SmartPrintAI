@@ -1,0 +1,8 @@
+Pre-fix source snapshot (commit d4bb9be)
+Files: src/app/create/page.tsx and src/app/[locale]/create/page.tsx
+
+== default create trust-strip references ==
+21:                fallback={
+
+== localized create trust-strip references ==
+68:                fallback={

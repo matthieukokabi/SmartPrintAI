@@ -1,0 +1,190 @@
+{
+  "generatedAt": "2026-03-18T16:21:15.751Z",
+  "generatedDate": "2026-03-18",
+  "baseUrl": "https://smartprintai.com",
+  "runsPerRoute": 2,
+  "artifactRoot": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15",
+  "routeResults": [
+    {
+      "key": "home",
+      "path": "/",
+      "url": "https://smartprintai.com/",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 0.91,
+            "accessibility": 0.95,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/home.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 0.91,
+            "accessibility": 0.95,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/home.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 0.91,
+        "accessibility": 0.95,
+        "seo": 1
+      }
+    },
+    {
+      "key": "create",
+      "path": "/create",
+      "url": "https://smartprintai.com/create",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/create.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/create.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "products",
+      "path": "/products",
+      "url": "https://smartprintai.com/products",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.96,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/products.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.96,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/products.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 1,
+        "accessibility": 0.96,
+        "seo": 1
+      }
+    },
+    {
+      "key": "productDetail",
+      "path": "/products/cmmhtq4e4000343l29gzhn3ca",
+      "url": "https://smartprintai.com/products/cmmhtq4e4000343l29gzhn3ca",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/productDetail.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/productDetail.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "blog",
+      "path": "/blog",
+      "url": "https://smartprintai.com/blog",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/blog.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/blog.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "support",
+      "path": "/support",
+      "url": "https://smartprintai.com/support",
+      "attempts": [
+        {
+          "attempt": 1,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/support.attempt-1.json"
+        },
+        {
+          "attempt": 2,
+          "scores": {
+            "performance": 1,
+            "accessibility": 0.94,
+            "seo": 1
+          },
+          "reportPath": "docs/reports/artifacts/lighthouse-2026-03-18_17-21-15/support.attempt-2.json"
+        }
+      ],
+      "finalScores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
+  ],
+  "failures": []
+}
