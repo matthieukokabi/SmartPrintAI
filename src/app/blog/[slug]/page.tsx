@@ -5,6 +5,7 @@ import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocal
 import { toAbsoluteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 type BlogPostPageProps = {
     params: {
@@ -71,10 +72,16 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         mainEntityOfPage: toAbsoluteUrl(`/blog/${post.slug}`),
         keywords: post.keywords,
     }
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: '/' },
+        { name: getBreadcrumbLabel(locale, 'blog'), path: '/blog' },
+        { name: post.title, path: `/blog/${post.slug}` },
+    ])
 
     return (
         <article className="max-w-3xl mx-auto px-4 py-12 space-y-8">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             <div className="space-y-3">
                 <Link href="/blog" className="inline-flex text-sm text-purple-300 hover:text-purple-200">

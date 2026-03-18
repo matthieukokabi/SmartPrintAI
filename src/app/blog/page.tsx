@@ -4,6 +4,7 @@ import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 const locale = DEFAULT_LOCALE
 const copy = BLOG_UI_COPY[locale]
@@ -36,10 +37,15 @@ export default function BlogIndexPage() {
             name: post.title,
         })),
     }
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: '/' },
+        { name: getBreadcrumbLabel(locale, 'blog'), path: '/blog' },
+    ])
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-12 space-y-8">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             <header className="space-y-3">
                 <h1 className="text-3xl sm:text-4xl font-bold">{copy.heading}</h1>

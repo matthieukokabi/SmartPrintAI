@@ -11,6 +11,7 @@ import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
+import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from '@/lib/schema'
 
 type ProductColor = {
     name: string
@@ -138,20 +139,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
             '@type': 'Brand',
             name: 'SmartPrintAI',
         },
-        offers: {
-            '@type': 'Offer',
-            priceCurrency: 'USD',
-            price: product.sellPrice.toFixed(2),
-            availability: 'https://schema.org/InStock',
-            url: toAbsoluteUrl(`/products/${product.id}`),
-        },
+        offers: buildProductOfferSchema({
+            path: `/products/${product.id}`,
+            sellPrice: product.sellPrice,
+            currency: 'USD',
+        }),
     }
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'home'), path: '/' },
+        { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'products'), path: '/products' },
+        { name: product.name, path: `/products/${product.id}` },
+    ])
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
             <div className="mb-5 flex justify-center">
                 <LanguageSwitcher currentLocale={DEFAULT_LOCALE} pagePath={`/products/${product.id}`} />

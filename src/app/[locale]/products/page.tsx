@@ -9,6 +9,7 @@ import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLoca
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleProductsPageProps = {
     params: {
@@ -165,12 +166,22 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
             name: product.name,
         })),
     }
+    const productsPath = buildLocaleCanonical(locale, '/products')
+    const homePath = buildLocaleCanonical(locale, '/')
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
+        { name: getBreadcrumbLabel(locale, 'products'), path: productsPath },
+    ])
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-12">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
             <div className="mb-5 flex justify-center">
                 <LanguageSwitcher currentLocale={locale} pagePath="/products" />

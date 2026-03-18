@@ -11,6 +11,7 @@ import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
+import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from '@/lib/schema'
 
 type ProductColor = {
     name: string
@@ -153,6 +154,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         printfulId: product.printfulId,
         printArea: product.printArea,
     })
+    const productPath = buildLocaleCanonical(locale, `/products/${product.id}`)
 
     const productSchema = {
         '@context': 'https://schema.org',
@@ -165,20 +167,29 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
             '@type': 'Brand',
             name: 'SmartPrintAI',
         },
-        offers: {
-            '@type': 'Offer',
-            priceCurrency: 'USD',
-            price: product.sellPrice.toFixed(2),
-            availability: 'https://schema.org/InStock',
-            url: toAbsoluteUrl(`/${locale}/products/${product.id}`),
-        },
+        offers: buildProductOfferSchema({
+            path: productPath,
+            sellPrice: product.sellPrice,
+            currency: 'USD',
+        }),
     }
+    const productsPath = buildLocaleCanonical(locale, '/products')
+    const homePath = buildLocaleCanonical(locale, '/')
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
+        { name: getBreadcrumbLabel(locale, 'products'), path: productsPath },
+        { name: product.name, path: productPath },
+    ])
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-12">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
             <div className="mb-5 flex justify-center">
                 <LanguageSwitcher currentLocale={locale} pagePath={`/products/${product.id}`} />

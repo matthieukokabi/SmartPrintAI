@@ -8,6 +8,7 @@ import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,12 +57,20 @@ export default async function ProductsPage() {
             name: product.name,
         })),
     }
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'home'), path: '/' },
+        { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'products'), path: '/products' },
+    ])
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-12">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
             <div className="mb-5 flex justify-center">
                 <LanguageSwitcher currentLocale={DEFAULT_LOCALE} pagePath="/products" />

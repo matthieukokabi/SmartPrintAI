@@ -6,6 +6,7 @@ import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocal
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleBlogPostPageProps = {
     params: {
@@ -88,12 +89,21 @@ export default function LocalizedBlogPostPage({ params }: LocaleBlogPostPageProp
         mainEntityOfPage: toAbsoluteUrl(`/${locale}/blog/${post.slug}`),
         keywords: post.keywords,
     }
+    const blogPath = buildLocaleCanonical(locale, '/blog')
+    const homePath = buildLocaleCanonical(locale, '/')
+    const postPath = buildLocaleCanonical(locale, `/blog/${post.slug}`)
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
+        { name: getBreadcrumbLabel(locale, 'blog'), path: blogPath },
+        { name: post.title, path: postPath },
+    ])
 
     const dateLocale = locale === 'de' ? 'de-DE' : locale === 'fr' ? 'fr-FR' : locale === 'es' ? 'es-ES' : 'en-US'
 
     return (
         <article className="max-w-3xl mx-auto px-4 py-12 space-y-8">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             <div className="space-y-3">
                 <div className="mb-2 flex justify-center">

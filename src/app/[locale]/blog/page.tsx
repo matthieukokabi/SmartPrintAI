@@ -6,6 +6,7 @@ import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
+import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleBlogPageProps = {
     params: {
@@ -99,12 +100,19 @@ export default function LocalizedBlogIndexPage({ params }: LocaleBlogPageProps) 
             name: post.title,
         })),
     }
+    const blogPath = buildLocaleCanonical(locale, '/blog')
+    const homePath = buildLocaleCanonical(locale, '/')
+    const breadcrumbSchema = buildBreadcrumbList([
+        { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
+        { name: getBreadcrumbLabel(locale, 'blog'), path: blogPath },
+    ])
 
     const dateLocale = locale === 'de' ? 'de-DE' : locale === 'fr' ? 'fr-FR' : locale === 'es' ? 'es-ES' : 'en-US'
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-12 space-y-8">
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
             <div className="mb-2 flex justify-center">
                 <LanguageSwitcher currentLocale={locale} pagePath="/blog" />
