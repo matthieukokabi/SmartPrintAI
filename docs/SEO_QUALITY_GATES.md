@@ -30,9 +30,12 @@
     - `X-Frame-Options`
     - `X-Content-Type-Options`
     - `Referrer-Policy`
-  - Hardened CSP contract:
-    - must include `script-src-attr 'none'`
-    - must not include `unsafe-eval`
+  - Hardened CSP phase-3 contract:
+    - `script-src` must stay at `'self' https:` (no `unsafe-inline`, no `unsafe-eval`)
+    - `script-src-elem` must include `'unsafe-inline'` for hydration/JSON-LD compatibility
+    - `script-src-attr` must remain `'none'`
+  - Legacy rollback contract:
+    - `CSP_MODE=legacy` keeps fallback `script-src 'self' 'unsafe-inline' 'unsafe-eval' https:`
 - `src/app/internal-links-regression.test.ts`
   - Static internal links from core navigation and key marketing pages must resolve to existing app routes.
 
