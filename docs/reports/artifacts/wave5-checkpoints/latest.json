@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-03-18T19:39:50Z",
+  "commitSha": "99e8498",
+  "retentionDays": 14,
+  "trendHistoryRetention": 60,
+  "stages": {
+    "rendered": {
+      "status": 0,
+      "summary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/summary.json"
+    },
+    "lighthouse": {
+      "status": 0,
+      "summary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_19-35-24-99e8498/summary.json"
+    },
+    "trend": {
+      "status": 0,
+      "phase": "warmup",
+      "summary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_19-35-24-99e8498/summary.json",
+      "report": "docs/reports/WAVE5_TREND_GATE_2026-03-18_19-35-24_99e8498.md"
+    }
+  },
+  "snapshot": {
+    "json": "docs/reports/artifacts/wave5-checkpoints/snapshot-2026-03-18_19-35-24-99e8498.json",
+    "report": "docs/reports/WAVE5_QUALITY_SNAPSHOT_2026-03-18_19-35-24_99e8498.md"
+  }
+}

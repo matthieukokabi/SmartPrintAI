@@ -29,6 +29,7 @@ Per run (timestamp + commit SHA):
 - Trend warmup status is explicit in trend summary JSON/report (`status: warmup`).
 - Statistical failures are only enforced when baseline depth is sufficient.
 - Critical failures (for example rendered verification failures) still fail immediately.
+- Checkpoint trend evaluation is pinned to the same run's rendered/lighthouse summaries (explicit summary-path handoff), so rolling history reflects checkpoint cadence rather than unrelated latest artifacts.
 - History retention is entry-based:
   - `QUALITY_TREND_HISTORY_RETENTION` (default `60`)
 - Artifact/checkpoint retention is day-based:

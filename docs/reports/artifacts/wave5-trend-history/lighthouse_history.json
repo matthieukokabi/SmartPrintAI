@@ -1,0 +1,86 @@
+[
+  {
+    "generatedAt": "2026-03-18T19:19:15.219Z",
+    "commitSha": "99e8498",
+    "summaryPath": "docs/reports/artifacts/lighthouse-2026-03-18_20-19-15/summary.json",
+    "overall": {
+      "performance": 0.985,
+      "accessibility": 0.945,
+      "seo": 1
+    },
+    "routes": {
+      "home": {
+        "performance": 0.91,
+        "accessibility": 0.95,
+        "seo": 1
+      },
+      "create": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "products": {
+        "performance": 1,
+        "accessibility": 0.96,
+        "seo": 1
+      },
+      "productDetail": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "blog": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "support": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
+  },
+  {
+    "generatedAt": "2026-03-18T19:35:27.066Z",
+    "commitSha": "99e8498",
+    "summaryPath": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_19-35-24-99e8498/summary.json",
+    "overall": {
+      "performance": 0.985,
+      "accessibility": 0.945,
+      "seo": 1
+    },
+    "routes": {
+      "home": {
+        "performance": 0.91,
+        "accessibility": 0.95,
+        "seo": 1
+      },
+      "create": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "products": {
+        "performance": 1,
+        "accessibility": 0.96,
+        "seo": 1
+      },
+      "productDetail": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "blog": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "support": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
+  }
+]

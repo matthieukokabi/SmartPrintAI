@@ -1,0 +1,1080 @@
+{
+  "generatedAt": "2026-03-18T19:35:25.399Z",
+  "generatedDate": "2026-03-18",
+  "commitSha": "99e8498",
+  "artifactRoot": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498",
+  "routeCount": 16,
+  "targets": [
+    {
+      "target": "prod",
+      "baseUrl": "https://smartprintai.com",
+      "routeResults": [
+        {
+          "path": "/create",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "breadcrumb",
+            "jsonLdCount": 1,
+            "schemaTypes": [
+              "BreadcrumbList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/create",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/en_create.html",
+          "expectedCanonicalPath": "/create",
+          "actualCanonicalPath": "/create",
+          "expectedOgPath": "/create",
+          "actualOgPath": "/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "breadcrumb",
+            "jsonLdCount": 1,
+            "schemaTypes": [
+              "BreadcrumbList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/create",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/fr_create.html",
+          "expectedCanonicalPath": "/fr/create",
+          "actualCanonicalPath": "/fr/create",
+          "expectedOgPath": "/fr/create",
+          "actualOgPath": "/fr/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "locale": "fr",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delai de livraison",
+            "Promesse support",
+            "Politique de retour"
+          ],
+          "foundTrustMarkers": [
+            "Delai de livraison",
+            "Promesse support",
+            "Politique de retour"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "breadcrumb",
+            "jsonLdCount": 1,
+            "schemaTypes": [
+              "BreadcrumbList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/fr/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contacter le support",
+              "Voir les conditions"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/fr/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/de/create",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/de_create.html",
+          "expectedCanonicalPath": "/de/create",
+          "actualCanonicalPath": "/de/create",
+          "expectedOgPath": "/de/create",
+          "actualOgPath": "/de/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "locale": "de",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Lieferzeit",
+            "Support-Versprechen",
+            "Rueckgabe"
+          ],
+          "foundTrustMarkers": [
+            "Lieferzeit",
+            "Support-Versprechen",
+            "Rueckgabe"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "breadcrumb",
+            "jsonLdCount": 1,
+            "schemaTypes": [
+              "BreadcrumbList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/de/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Support kontaktieren",
+              "Bedingungen lesen"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/de/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/es/create",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/es_create.html",
+          "expectedCanonicalPath": "/es/create",
+          "actualCanonicalPath": "/es/create",
+          "expectedOgPath": "/es/create",
+          "actualOgPath": "/es/create",
+          "expectedAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "actualAlternates": {
+            "en": "/create",
+            "fr": "/fr/create",
+            "de": "/de/create",
+            "es": "/es/create",
+            "x-default": "/create"
+          },
+          "locale": "es",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Plazo de entrega",
+            "Compromiso de soporte",
+            "Politica de devolucion"
+          ],
+          "foundTrustMarkers": [
+            "Plazo de entrega",
+            "Compromiso de soporte",
+            "Politica de devolucion"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "breadcrumb",
+            "jsonLdCount": 1,
+            "schemaTypes": [
+              "BreadcrumbList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/es/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contactar soporte",
+              "Revisar terminos"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/es/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/products",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/products.html",
+          "expectedCanonicalPath": "/products",
+          "actualCanonicalPath": "/products",
+          "expectedOgPath": "/products",
+          "actualOgPath": "/products",
+          "expectedAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "actualAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "itemlist+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/products",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/en_products.html",
+          "expectedCanonicalPath": "/products",
+          "actualCanonicalPath": "/products",
+          "expectedOgPath": "/products",
+          "actualOgPath": "/products",
+          "expectedAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "actualAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "itemlist+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/products",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/fr_products.html",
+          "expectedCanonicalPath": "/fr/products",
+          "actualCanonicalPath": "/fr/products",
+          "expectedOgPath": "/fr/products",
+          "actualOgPath": "/fr/products",
+          "expectedAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "actualAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "locale": "fr",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delai de livraison",
+            "Promesse support",
+            "Politique de retour"
+          ],
+          "foundTrustMarkers": [
+            "Delai de livraison",
+            "Promesse support",
+            "Politique de retour"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "itemlist+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/fr/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contacter le support",
+              "Voir les conditions"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/fr/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/de/products",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/de_products.html",
+          "expectedCanonicalPath": "/de/products",
+          "actualCanonicalPath": "/de/products",
+          "expectedOgPath": "/de/products",
+          "actualOgPath": "/de/products",
+          "expectedAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "actualAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "locale": "de",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Lieferzeit",
+            "Support-Versprechen",
+            "Rueckgabe"
+          ],
+          "foundTrustMarkers": [
+            "Lieferzeit",
+            "Support-Versprechen",
+            "Rueckgabe"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "itemlist+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/de/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Support kontaktieren",
+              "Bedingungen lesen"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/de/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/es/products",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/es_products.html",
+          "expectedCanonicalPath": "/es/products",
+          "actualCanonicalPath": "/es/products",
+          "expectedOgPath": "/es/products",
+          "actualOgPath": "/es/products",
+          "expectedAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "actualAlternates": {
+            "en": "/products",
+            "fr": "/fr/products",
+            "de": "/de/products",
+            "es": "/es/products",
+            "x-default": "/products"
+          },
+          "locale": "es",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Plazo de entrega",
+            "Compromiso de soporte",
+            "Politica de devolucion"
+          ],
+          "foundTrustMarkers": [
+            "Plazo de entrega",
+            "Compromiso de soporte",
+            "Politica de devolucion"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "itemlist+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/es/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contactar soporte",
+              "Revisar terminos"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/es/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "absent",
+          "trustVisibilityState": "absent:ssr-clean",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [],
+          "actualTrustVisible": false,
+          "schema": {
+            "expected": "none",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "absent",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": false,
+            "termsPathFound": true,
+            "termsLabelFound": false,
+            "reachability": {
+              "/support": null,
+              "/terms": null
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/en/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/en_blog.html",
+          "expectedCanonicalPath": "/blog",
+          "actualCanonicalPath": "/blog",
+          "expectedOgPath": "/blog",
+          "actualOgPath": "/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "absent",
+          "trustVisibilityState": "absent:ssr-clean",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [],
+          "actualTrustVisible": false,
+          "schema": {
+            "expected": "none",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "absent",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": false,
+            "termsPathFound": true,
+            "termsLabelFound": false,
+            "reachability": {
+              "/support": null,
+              "/terms": null
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/fr/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/fr_blog.html",
+          "expectedCanonicalPath": "/fr/blog",
+          "actualCanonicalPath": "/fr/blog",
+          "expectedOgPath": "/fr/blog",
+          "actualOgPath": "/fr/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "locale": "fr",
+          "expectedTrustExpectation": "absent",
+          "trustVisibilityState": "absent:ssr-clean",
+          "expectedTrustMarkers": [
+            "Delai de livraison",
+            "Promesse support",
+            "Politique de retour"
+          ],
+          "foundTrustMarkers": [],
+          "actualTrustVisible": false,
+          "schema": {
+            "expected": "none",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "absent",
+            "expectedPaths": [
+              "/fr/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contacter le support",
+              "Voir les conditions"
+            ],
+            "supportPathFound": false,
+            "supportLabelFound": false,
+            "termsPathFound": true,
+            "termsLabelFound": false,
+            "reachability": {
+              "/fr/support": null,
+              "/terms": null
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/de/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/de_blog.html",
+          "expectedCanonicalPath": "/de/blog",
+          "actualCanonicalPath": "/de/blog",
+          "expectedOgPath": "/de/blog",
+          "actualOgPath": "/de/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "locale": "de",
+          "expectedTrustExpectation": "absent",
+          "trustVisibilityState": "absent:ssr-clean",
+          "expectedTrustMarkers": [
+            "Lieferzeit",
+            "Support-Versprechen",
+            "Rueckgabe"
+          ],
+          "foundTrustMarkers": [],
+          "actualTrustVisible": false,
+          "schema": {
+            "expected": "none",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "absent",
+            "expectedPaths": [
+              "/de/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Support kontaktieren",
+              "Bedingungen lesen"
+            ],
+            "supportPathFound": false,
+            "supportLabelFound": false,
+            "termsPathFound": true,
+            "termsLabelFound": false,
+            "reachability": {
+              "/de/support": null,
+              "/terms": null
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/es/blog",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/es_blog.html",
+          "expectedCanonicalPath": "/es/blog",
+          "actualCanonicalPath": "/es/blog",
+          "expectedOgPath": "/es/blog",
+          "actualOgPath": "/es/blog",
+          "expectedAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "actualAlternates": {
+            "en": "/blog",
+            "fr": "/fr/blog",
+            "de": "/de/blog",
+            "es": "/es/blog",
+            "x-default": "/blog"
+          },
+          "locale": "es",
+          "expectedTrustExpectation": "absent",
+          "trustVisibilityState": "absent:ssr-clean",
+          "expectedTrustMarkers": [
+            "Plazo de entrega",
+            "Compromiso de soporte",
+            "Politica de devolucion"
+          ],
+          "foundTrustMarkers": [],
+          "actualTrustVisible": false,
+          "schema": {
+            "expected": "none",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "ItemList"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": true,
+            "hasProductOfferShape": false
+          },
+          "legalLinks": {
+            "expected": "absent",
+            "expectedPaths": [
+              "/es/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contactar soporte",
+              "Revisar terminos"
+            ],
+            "supportPathFound": false,
+            "supportLabelFound": false,
+            "termsPathFound": true,
+            "termsLabelFound": false,
+            "reachability": {
+              "/es/support": null,
+              "/terms": null
+            }
+          },
+          "failures": []
+        },
+        {
+          "path": "/products/cmmhtq4e4000343l29gzhn3ca",
+          "htmlArtifact": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/prod/products_cmmhtq4e4000343l29gzhn3ca.html",
+          "expectedCanonicalPath": "/products/cmmhtq4e4000343l29gzhn3ca",
+          "actualCanonicalPath": "/products/cmmhtq4e4000343l29gzhn3ca",
+          "expectedOgPath": "/products/cmmhtq4e4000343l29gzhn3ca",
+          "actualOgPath": "/products/cmmhtq4e4000343l29gzhn3ca",
+          "expectedAlternates": {
+            "en": "/products/cmmhtq4e4000343l29gzhn3ca",
+            "fr": "/fr/products/cmmhtq4e4000343l29gzhn3ca",
+            "de": "/de/products/cmmhtq4e4000343l29gzhn3ca",
+            "es": "/es/products/cmmhtq4e4000343l29gzhn3ca",
+            "x-default": "/products/cmmhtq4e4000343l29gzhn3ca"
+          },
+          "actualAlternates": {
+            "en": "/products/cmmhtq4e4000343l29gzhn3ca",
+            "fr": "/fr/products/cmmhtq4e4000343l29gzhn3ca",
+            "de": "/de/products/cmmhtq4e4000343l29gzhn3ca",
+            "es": "/es/products/cmmhtq4e4000343l29gzhn3ca",
+            "x-default": "/products/cmmhtq4e4000343l29gzhn3ca"
+          },
+          "locale": "en",
+          "expectedTrustExpectation": "required",
+          "trustVisibilityState": "required:ssr-visible",
+          "expectedTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "foundTrustMarkers": [
+            "Delivery SLA",
+            "Support Promise",
+            "Returns Policy"
+          ],
+          "actualTrustVisible": true,
+          "schema": {
+            "expected": "product+breadcrumb",
+            "jsonLdCount": 2,
+            "schemaTypes": [
+              "BreadcrumbList",
+              "Product"
+            ],
+            "parseErrors": [],
+            "hasBreadcrumbList": true,
+            "hasItemList": false,
+            "hasProductOfferShape": true
+          },
+          "legalLinks": {
+            "expected": "required",
+            "expectedPaths": [
+              "/support",
+              "/terms"
+            ],
+            "expectedLabels": [
+              "Contact support",
+              "Review terms"
+            ],
+            "supportPathFound": true,
+            "supportLabelFound": true,
+            "termsPathFound": true,
+            "termsLabelFound": true,
+            "reachability": {
+              "/support": 200,
+              "/terms": 200
+            }
+          },
+          "failures": []
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

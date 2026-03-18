@@ -22,6 +22,10 @@ CHECKPOINT_FILE="${CHECKPOINT_DIR}/checkpoint-${TIMESTAMP}-${COMMIT_SHA}.json"
 SNAPSHOT_FILE="${CHECKPOINT_DIR}/snapshot-${TIMESTAMP}-${COMMIT_SHA}.json"
 SNAPSHOT_REPORT_FILE="docs/reports/WAVE5_QUALITY_SNAPSHOT_${TIMESTAMP}_${COMMIT_SHA}.md"
 
+rendered_summary="${RENDERED_ARTIFACT_DIR}/summary.json"
+lighthouse_summary="${LIGHTHOUSE_ARTIFACT_DIR}/summary.json"
+trend_summary="${TREND_ARTIFACT_DIR}/summary.json"
+
 RETENTION_DAYS="${QUALITY_CHECKPOINT_RETENTION_DAYS:-14}"
 QUALITY_TREND_HISTORY_RETENTION="${QUALITY_TREND_HISTORY_RETENTION:-60}"
 QUALITY_CHECKPOINT_INCLUDE_LOCAL="${QUALITY_CHECKPOINT_INCLUDE_LOCAL:-0}"
@@ -66,13 +70,11 @@ run_stage "lighthouse" env \
 run_stage "trend" env \
   QUALITY_TREND_HISTORY_DIR="$TREND_HISTORY_DIR" \
   QUALITY_TREND_HISTORY_RETENTION="$QUALITY_TREND_HISTORY_RETENTION" \
+  QUALITY_TREND_LIGHTHOUSE_SUMMARY="$lighthouse_summary" \
+  QUALITY_TREND_RENDERED_SUMMARY="$rendered_summary" \
   QUALITY_TREND_ARTIFACT_DIR="$TREND_ARTIFACT_DIR" \
   QUALITY_TREND_REPORT_FILE="$TREND_REPORT_FILE" \
   npm run perf:lighthouse:trend-gate || trend_status=$?
-
-rendered_summary="${RENDERED_ARTIFACT_DIR}/summary.json"
-lighthouse_summary="${LIGHTHOUSE_ARTIFACT_DIR}/summary.json"
-trend_summary="${TREND_ARTIFACT_DIR}/summary.json"
 
 trend_phase="unknown"
 if [ -f "$trend_summary" ]; then

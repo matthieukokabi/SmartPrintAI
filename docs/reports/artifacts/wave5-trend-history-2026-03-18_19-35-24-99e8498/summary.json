@@ -1,0 +1,24 @@
+{
+  "generatedAt": "2026-03-18T19:39:50.275Z",
+  "generatedDate": "2026-03-18",
+  "commitSha": "99e8498",
+  "status": "warmup",
+  "lighthouseSummaryPath": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_19-35-24-99e8498/summary.json",
+  "renderedSummaryPath": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/summary.json",
+  "lighthouseHistoryPath": "docs/reports/artifacts/wave5-trend-history/lighthouse_history.json",
+  "renderedHistoryPath": "docs/reports/artifacts/wave5-trend-history/rendered_head_history.json",
+  "lighthouseHistorySize": 2,
+  "renderedHistorySize": 3,
+  "retentionLimit": 60,
+  "warmup": {
+    "active": true,
+    "minBaseline": 3,
+    "lighthouseBaselineCount": 1,
+    "renderedBaselineCount": 2,
+    "remaining": {
+      "lighthouse": 2,
+      "rendered": 1
+    }
+  },
+  "findings": []
+}

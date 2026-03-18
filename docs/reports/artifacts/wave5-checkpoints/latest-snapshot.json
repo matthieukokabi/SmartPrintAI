@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-03-18T19:39:51.685Z",
+  "commitSha": "99e8498",
+  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_19-35-24-99e8498.json",
+  "overallFlag": "amber",
+  "flags": {
+    "rendered": "green",
+    "lighthouse": "green",
+    "trend": "amber",
+    "deterministicRoute": "green",
+    "trustSchema": "green",
+    "legalLinks": "green"
+  },
+  "lighthouse": {
+    "routeCount": 6,
+    "failureCount": 0,
+    "averageScores": {
+      "performance": 0.985,
+      "accessibility": 0.945,
+      "seo": 1
+    },
+    "productDetailResolution": {
+      "strategy": "fixture",
+      "resolvedPath": null,
+      "sourcePath": null
+    }
+  },
+  "rendered": {
+    "failureCount": 0,
+    "requiredTrustVisible": 11,
+    "requiredTrustTotal": 11,
+    "requiredTrustRate": 1,
+    "trustSchemaPass": true,
+    "legalLinksPass": true
+  },
+  "trend": {
+    "status": "warmup",
+    "findingCount": 0,
+    "topFinding": null,
+    "warmupRemaining": {
+      "lighthouse": 2,
+      "rendered": 1
+    }
+  },
+  "sources": {
+    "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_19-35-24-99e8498/summary.json",
+    "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/summary.json",
+    "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_19-35-24-99e8498/summary.json"
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "generatedAt": "2026-03-18T19:23:49.906Z",
+    "commitSha": "99e8498",
+    "summaryPath": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-23-49-99e8498/summary.json",
+    "failureCount": 0,
+    "requiredTrustVisible": 11,
+    "requiredTrustTotal": 11,
+    "requiredTrustRate": 1
+  },
+  {
+    "generatedAt": "2026-03-18T19:29:32.803Z",
+    "commitSha": "99e8498",
+    "summaryPath": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-29-32-99e8498/summary.json",
+    "failureCount": 0,
+    "requiredTrustVisible": 11,
+    "requiredTrustTotal": 11,
+    "requiredTrustRate": 1
+  },
+  {
+    "generatedAt": "2026-03-18T19:35:25.399Z",
+    "commitSha": "99e8498",
+    "summaryPath": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/summary.json",
+    "failureCount": 0,
+    "requiredTrustVisible": 11,
+    "requiredTrustTotal": 11,
+    "requiredTrustRate": 1
+  }
+]
