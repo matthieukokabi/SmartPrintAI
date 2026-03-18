@@ -36,6 +36,8 @@ Per run (timestamp + commit SHA):
 - Rendered harness target toggles (useful for local validation):
   - `QUALITY_CHECKPOINT_INCLUDE_LOCAL` (default `0`)
   - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
+- Deterministic Lighthouse fixture enforcement toggle:
+  - `QUALITY_CHECKPOINT_REQUIRE_FIXTURE` (default `1`, set `0` only for diagnostics)
 
 ## systemd Units
 - Service: `ops/systemd/smartprintai-quality-checkpoint.service`

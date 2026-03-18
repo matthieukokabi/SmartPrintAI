@@ -103,6 +103,20 @@ function normalizePath(value: string): string {
     return value
 }
 
+function parseBooleanEnv(value: string | undefined, fallback: boolean): boolean {
+    if (!value) {
+        return fallback
+    }
+    const normalized = value.trim().toLowerCase()
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+        return true
+    }
+    if (['0', 'false', 'no', 'off'].includes(normalized)) {
+        return false
+    }
+    return fallback
+}
+
 function median(values: number[]): number {
     const sorted = [...values].sort((a, b) => a - b)
     const mid = Math.floor(sorted.length / 2)
@@ -424,6 +438,7 @@ function buildMarkdownReport(
     baseUrl: string,
     artifactRoot: string,
     summaryFile: string,
+    requireFixture: boolean,
     productDetailResolution: ProductDetailResolution,
     routeResults: RouteAuditResult[],
     failures: string[],
@@ -437,6 +452,7 @@ function buildMarkdownReport(
     lines.push(`Summary JSON: \`${toRelativePath(summaryFile)}\``)
     lines.push('')
     lines.push('## Product Detail Route Resolution')
+    lines.push(`- deterministic fixture required: \`${requireFixture ? 'yes' : 'no'}\``)
     lines.push(`- strategy: \`${productDetailResolution.strategy}\``)
     lines.push(`- configured fixture: \`${productDetailResolution.configuredFixturePath}\``)
     lines.push(`- selected route: \`${productDetailResolution.selectedPath}\``)
@@ -473,6 +489,7 @@ async function main(): Promise<void> {
     const config = await readJsonFile<LighthouseBudgetConfig>(CONFIG_PATH)
     const baseUrl = normalizeBaseUrl(process.env.LIGHTHOUSE_BASE_URL || config.defaultBaseUrl)
     const runsPerRoute = Number(process.env.LIGHTHOUSE_RUNS || config.runsPerRoute)
+    const requireFixture = parseBooleanEnv(process.env.LIGHTHOUSE_REQUIRE_FIXTURE, true)
     const updateBaseline = (process.env.LIGHTHOUSE_UPDATE_BASELINE || '0').trim() === '1'
     const artifactRoot = path.resolve(
         process.cwd(),
@@ -492,6 +509,11 @@ async function main(): Promise<void> {
     await mkdir(path.dirname(reportFile), { recursive: true })
 
     const { routeTargets, productDetailResolution } = await resolveRouteTargets(baseUrl, config)
+    if (requireFixture && productDetailResolution.strategy !== 'fixture') {
+        throw new Error(
+            `Deterministic Lighthouse fixture route is required for gate-critical checks, but resolved strategy was '${productDetailResolution.strategy}' (selected '${productDetailResolution.selectedPath}' from source '${productDetailResolution.discoverySourcePath}'). Ensure productDetailFixture.path resolves successfully or set LIGHTHOUSE_REQUIRE_FIXTURE=0 for non-gating diagnostics.`
+        )
+    }
     await warmupRoutes(routeTargets)
     const routeResults = await runLighthouseAttempts(routeTargets, runsPerRoute, artifactRoot)
 
@@ -508,6 +530,7 @@ async function main(): Promise<void> {
         baseUrl,
         runsPerRoute,
         artifactRoot: toRelativePath(artifactRoot),
+        requireFixture,
         productDetailResolution,
         routeResults,
         failures,
@@ -521,6 +544,7 @@ async function main(): Promise<void> {
             baseUrl,
             artifactRoot,
             summaryFile,
+            requireFixture,
             productDetailResolution,
             routeResults,
             failures,

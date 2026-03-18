@@ -11,6 +11,7 @@
 - `npm run perf:lighthouse:gate`
 - `npm run perf:lighthouse:trend-gate`
 - `npm run test:quality:trend`
+- `npm run ci:quality:guardrails`
 
 ## Included Gates
 - `scripts/assert_rendered_alternates.ts`
@@ -61,10 +62,12 @@
     - first tries configured fixture route
     - if fixture is unavailable, falls back to discovery from `productDetailFixture.fallbackSourcePath`
     - if discovery fails and `productDetailFixture.fallbackPath` is unset, exits with actionable error
+    - CI/release mode enforces fixture resolution and fails when strategy is not `fixture` (`LIGHTHOUSE_REQUIRE_FIXTURE=1`, default)
   - Useful environment overrides:
     - `LIGHTHOUSE_PRODUCT_DETAIL_PATH`
     - `LIGHTHOUSE_PRODUCT_DETAIL_SOURCE_PATH`
     - `LIGHTHOUSE_PRODUCT_DETAIL_FALLBACK_PATH`
+    - `LIGHTHOUSE_REQUIRE_FIXTURE` (`1` default; set `0` only for non-gating diagnostics)
   - Outputs timestamped JSON artifacts + report under `docs/reports/artifacts/lighthouse-<timestamp>/`.
   - Baseline refresh workflow:
     - run `LIGHTHOUSE_UPDATE_BASELINE=1 npm run perf:lighthouse:gate` after intentional performance improvements.
@@ -86,9 +89,23 @@
   - Deterministic fixture coverage for trend gate pass/fail paths:
     - passes when baseline sample size is below threshold
     - fails when statistically significant lighthouse regression appears against seeded history
+- `scripts/ci_quality_guardrails.ts`
+  - Release-focused assertion pass over generated Wave 5 summaries.
+  - Enforces CI hard-fail rules for:
+    - missing deterministic Lighthouse fixture resolution (`strategy !== fixture`)
+    - rendered semantic regressions on production-target checks
+    - trend gate `fail` status (while allowing `warmup` status)
+  - Inputs are explicit summary paths via:
+    - `CI_GUARD_LIGHTHOUSE_SUMMARY`
+    - `CI_GUARD_RENDERED_SUMMARY`
+    - `CI_GUARD_TREND_SUMMARY`
+  - Optional local pre-deploy override:
+    - `CI_GUARD_REQUIRE_PROD_TARGET=0` (default `1` for CI/release enforcement)
+- `scripts/tests/ci_quality_guardrails_test.sh`
+  - Deterministic coverage for CI guardrail pass/fail behavior (fixture, rendered regressions, trend fail/warmup).
 
 ## CI Integration
-- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + rendered trust harness + deploy retry tests + SEO regression suites + Lighthouse budget gate + trend gate before full test run.
+- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + rendered trust harness + deploy retry tests + SEO regression suites + Lighthouse budget gate + trend gate + release guardrail assertions before full test run.
 
 ## Wave 5 Rendered + Semantic Harness
 - `scripts/verify_rendered_head_harness.ts`
