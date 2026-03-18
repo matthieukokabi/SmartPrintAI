@@ -69,7 +69,7 @@
   - Baseline refresh workflow:
     - run `LIGHTHOUSE_UPDATE_BASELINE=1 npm run perf:lighthouse:gate` after intentional performance improvements.
 - `scripts/quality_trend_gate.ts`
-  - Aggregates the latest Lighthouse and rendered-head (`Wave 4`) summaries.
+  - Aggregates the latest Lighthouse and rendered semantic harness summaries (Wave 5, with Wave 4 artifact fallback).
   - Persists rolling history under:
     - `docs/reports/artifacts/wave4-trend-history/lighthouse_history.json`
     - `docs/reports/artifacts/wave4-trend-history/rendered_head_history.json`
@@ -90,14 +90,14 @@
 ## CI Integration
 - `scripts/ci_non_interactive.sh` now runs rendered-head assertions + rendered trust harness + deploy retry tests + SEO regression suites + Lighthouse budget gate + trend gate before full test run.
 
-## Wave 4 Verification Harness
+## Wave 5 Rendered + Semantic Harness
 - `scripts/verify_rendered_head_harness.ts`
   - Fetches rendered HTML from both a managed local server (`next start`) and production by default.
-  - Asserts canonical, locale alternates (`en`, `fr`, `de`, `es`, `x-default`), `og:url`, and trust-strip visibility expectations.
+  - Asserts canonical, locale alternates (`en`, `fr`, `de`, `es`, `x-default`), `og:url`, trust visibility state, money-page schema shape, and legal/support link integrity.
   - Saves raw HTML artifacts per route and target, plus a JSON summary, under:
-    - `docs/reports/artifacts/wave4-rendered-head-<timestamp>-<sha>/`
+    - `docs/reports/artifacts/wave5-rendered-semantics-<timestamp>-<sha>/`
   - Writes a timestamped markdown result report:
-    - `docs/reports/WAVE4_RENDERED_HEAD_VERIFY_<timestamp>_<sha>.md`
+    - `docs/reports/WAVE5_RENDERED_SEMANTICS_VERIFY_<timestamp>_<sha>.md`
 - Useful environment flags:
   - `SEO_VERIFY_INCLUDE_LOCAL=0` to skip local checks.
   - `SEO_VERIFY_INCLUDE_PROD=0` to skip production checks.

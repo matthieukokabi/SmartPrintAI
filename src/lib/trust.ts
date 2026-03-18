@@ -65,6 +65,6 @@ export function getTrustSignalModel(locale: SupportedLocale): TrustSignalModel {
     return {
         ...copy,
         supportPath: buildLocaleCanonical(locale, '/support'),
-        termsPath: buildLocaleCanonical(locale, '/terms'),
+        termsPath: '/terms',
     }
 }

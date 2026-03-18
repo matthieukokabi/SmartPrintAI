@@ -9,11 +9,11 @@ describe('getTrustSignalModel', () => {
         expect(trust.termsPath).toBe('/terms')
     })
 
-    it('keeps localized support and terms links prefixed for non-default locales', () => {
+    it('keeps localized support links and canonical terms links for non-default locales', () => {
         const trust = getTrustSignalModel('fr')
 
         expect(trust.supportPath).toBe('/fr/support')
-        expect(trust.termsPath).toBe('/fr/terms')
+        expect(trust.termsPath).toBe('/terms')
     })
 
     it('returns localized trust snippets', () => {

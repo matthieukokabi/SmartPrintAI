@@ -141,7 +141,8 @@ function toAbsolutePath(filePath: string): string {
     return path.join(process.cwd(), filePath)
 }
 
-async function findLatestSummaryPath(prefix: string): Promise<string> {
+async function findLatestSummaryPath(prefixOrPrefixes: string | string[]): Promise<string> {
+    const prefixes = Array.isArray(prefixOrPrefixes) ? prefixOrPrefixes : [prefixOrPrefixes]
     const artifactRoot = path.join(process.cwd(), 'docs', 'reports', 'artifacts')
     const entries = await readdir(artifactRoot, { withFileTypes: true })
 
@@ -151,7 +152,7 @@ async function findLatestSummaryPath(prefix: string): Promise<string> {
         if (!entry.isDirectory()) {
             continue
         }
-        if (!entry.name.startsWith(prefix)) {
+        if (!prefixes.some((prefix) => entry.name.startsWith(prefix))) {
             continue
         }
 
@@ -165,7 +166,9 @@ async function findLatestSummaryPath(prefix: string): Promise<string> {
     }
 
     if (candidates.length === 0) {
-        throw new Error(`No summary artifacts found for prefix '${prefix}' in ${toRelativePath(artifactRoot)}`)
+        throw new Error(
+            `No summary artifacts found for prefixes [${prefixes.join(', ')}] in ${toRelativePath(artifactRoot)}`,
+        )
     }
 
     candidates.sort((a, b) => b.mtimeMs - a.mtimeMs)
@@ -473,7 +476,7 @@ async function main(): Promise<void> {
     const renderedSummaryPath =
         (process.env.QUALITY_TREND_RENDERED_SUMMARY || '').trim().length > 0
             ? toAbsolutePath((process.env.QUALITY_TREND_RENDERED_SUMMARY || '').trim())
-            : await findLatestSummaryPath('wave4-rendered-head-')
+            : await findLatestSummaryPath(['wave5-rendered-semantics-', 'wave4-rendered-head-'])
 
     const lighthouseSummary = await readJsonFile<LighthouseSummary>(lighthouseSummaryPath)
     const renderedSummary = await readJsonFile<RenderedSummary>(renderedSummaryPath)
