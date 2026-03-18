@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2026-03-18T11:51:15.689Z",
+  "baseUrl": "https://smartprintai.com",
+  "routes": {
+    "home": {
+      "path": "/",
+      "scores": {
+        "performance": 0.91,
+        "accessibility": 0.95,
+        "seo": 1
+      }
+    },
+    "create": {
+      "path": "/create",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    "products": {
+      "path": "/products",
+      "scores": {
+        "performance": 0.985,
+        "accessibility": 0.96,
+        "seo": 1
+      }
+    },
+    "productDetail": {
+      "path": "/products/cmmhtq4e4000343l29gzhn3ca",
+      "scores": {
+        "performance": 0.955,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    "blog": {
+      "path": "/blog",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    "support": {
+      "path": "/support",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
+  }
+}

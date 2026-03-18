@@ -8,6 +8,7 @@
 - `npm run test:seo:gates`
 - `npm run seo:assert:rendered`
 - `npm run seo:verify:rendered`
+- `npm run perf:lighthouse:gate`
 
 ## Included Gates
 - `scripts/assert_rendered_alternates.ts`
@@ -38,9 +39,25 @@
     - `CSP_MODE=legacy` keeps fallback `script-src 'self' 'unsafe-inline' 'unsafe-eval' https:`
 - `src/app/internal-links-regression.test.ts`
   - Static internal links from core navigation and key marketing pages must resolve to existing app routes.
+- `scripts/lighthouse_budget_gate.ts`
+  - Deterministic Lighthouse gating with warm-up + multi-run median scoring.
+  - Uses stable headless Chrome flags and fixed category set (`performance`, `accessibility`, `seo`).
+  - Covers key conversion/content routes:
+    - home (`/`)
+    - create (`/create`)
+    - products (`/products`)
+    - product detail (discovered from `/products` rendered HTML)
+    - blog (`/blog`)
+    - support (`/support`)
+  - Enforces:
+    - minimum score thresholds (`config/lighthouse-budget.json`)
+    - trend-regression floors against `docs/reports/LIGHTHOUSE_BASELINE.json`
+  - Outputs timestamped JSON artifacts + report under `docs/reports/artifacts/lighthouse-<timestamp>/`.
+  - Baseline refresh workflow:
+    - run `LIGHTHOUSE_UPDATE_BASELINE=1 npm run perf:lighthouse:gate` after intentional performance improvements.
 
 ## CI Integration
-- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + SEO regression suites between build and full test run.
+- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + SEO regression suites + Lighthouse budget gate between build and full test run.
 
 ## Wave 3 Verification Harness
 - `scripts/verify_rendered_head_harness.ts`
