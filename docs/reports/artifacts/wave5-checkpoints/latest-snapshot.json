@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-03-18T19:39:51.685Z",
-  "commitSha": "99e8498",
-  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_19-35-24-99e8498.json",
+  "generatedAt": "2026-03-18T20:37:27.619Z",
+  "commitSha": "342743a",
+  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_20-32-47-342743a.json",
   "overallFlag": "amber",
   "flags": {
     "rendered": "green",
@@ -9,13 +9,15 @@
     "trend": "amber",
     "deterministicRoute": "green",
     "trustSchema": "green",
-    "legalLinks": "green"
+    "legalLinks": "green",
+    "conversionPulse": "amber",
+    "deployHealth": "amber"
   },
   "lighthouse": {
     "routeCount": 6,
     "failureCount": 0,
     "averageScores": {
-      "performance": 0.985,
+      "performance": 0.976,
       "accessibility": 0.945,
       "seo": 1
     },
@@ -38,13 +40,59 @@
     "findingCount": 0,
     "topFinding": null,
     "warmupRemaining": {
-      "lighthouse": 2,
-      "rendered": 1
+      "lighthouse": 1,
+      "rendered": 0
+    }
+  },
+  "conversion": {
+    "status": "unavailable",
+    "generatedCount": 0,
+    "purchaseCount": 0,
+    "conversionRate": 0,
+    "warningAnomalyCount": 1,
+    "criticalAnomalyCount": 0
+  },
+  "deployHealth": {
+    "status": "watch",
+    "renderedStageStatus": 0,
+    "lighthouseStageStatus": 0
+  },
+  "releaseConfidenceCard": {
+    "renderedSemantics": {
+      "flag": "green",
+      "requiredTrustRate": 1,
+      "failureCount": 0
+    },
+    "lighthouseDeterministicGate": {
+      "flag": "green",
+      "strategy": "fixture",
+      "averageScores": {
+        "performance": 0.976,
+        "accessibility": 0.945,
+        "seo": 1
+      }
+    },
+    "trendStatus": {
+      "flag": "amber",
+      "status": "warmup",
+      "findingCount": 0
+    },
+    "deployHealth": {
+      "flag": "amber",
+      "status": "watch"
+    },
+    "conversionPulse": {
+      "flag": "amber",
+      "status": "unavailable",
+      "conversionRate": 0,
+      "criticalAnomalyCount": 0,
+      "warningAnomalyCount": 1
     }
   },
   "sources": {
-    "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_19-35-24-99e8498/summary.json",
-    "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_19-35-24-99e8498/summary.json",
-    "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_19-35-24-99e8498/summary.json"
+    "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_20-32-47-342743a/summary.json",
+    "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_20-32-47-342743a/summary.json",
+    "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_20-32-47-342743a/summary.json",
+    "conversionSummary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_20-32-47-342743a/summary.json"
   }
 }

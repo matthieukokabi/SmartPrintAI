@@ -25,5 +25,14 @@
     "requiredTrustVisible": 11,
     "requiredTrustTotal": 11,
     "requiredTrustRate": 1
+  },
+  {
+    "generatedAt": "2026-03-18T20:32:48.192Z",
+    "commitSha": "342743a",
+    "summaryPath": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_20-32-47-342743a/summary.json",
+    "failureCount": 0,
+    "requiredTrustVisible": 11,
+    "requiredTrustTotal": 11,
+    "requiredTrustRate": 1
   }
 ]
