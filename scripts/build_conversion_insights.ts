@@ -5,6 +5,8 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
 type InsightStatus = 'ok' | 'unavailable'
+type ConnectivityStatus = 'connected_live' | 'degraded_no_db' | 'stale_cached'
+type DegradedPolicy = 'warn' | 'fail'
 
 type DesignSignal = {
     sessionId: string | null
@@ -62,6 +64,12 @@ type ConversionInsightSummary = {
     generatedAt: string
     commitSha: string
     status: InsightStatus
+    connectivity: {
+        status: ConnectivityStatus
+        policy: DegradedPolicy
+        reasonCode: string
+        message: string
+    }
     window: {
         days: number
         currentStart: string
@@ -124,6 +132,14 @@ function readWindowDays(): number {
 
     const clamped = Math.max(1, Math.min(31, Math.round(parsed)))
     return clamped
+}
+
+function readDegradedPolicy(): DegradedPolicy {
+    const rawValue = process.env.CONVERSION_INSIGHTS_DEGRADED_POLICY?.trim().toLowerCase()
+    if (rawValue === 'fail') {
+        return 'fail'
+    }
+    return 'warn'
 }
 
 function readCommitSha(): string {
@@ -249,10 +265,24 @@ async function readFixtureDataset(filePath: string): Promise<ConversionDataset> 
     return normalizeDataset(parsed)
 }
 
-async function readDatabaseDataset(now: Date, windowDays: number): Promise<ConversionDataset | null> {
+async function openLivePrismaClient(): Promise<
+    | {
+          ok: true
+          prisma: PrismaClient
+      }
+    | {
+          ok: false
+          reasonCode: string
+          message: string
+      }
+> {
     const databaseUrl = process.env.DATABASE_URL?.trim()
     if (!databaseUrl) {
-        return null
+        return {
+            ok: false,
+            reasonCode: 'missing_database_url',
+            message: 'DATABASE_URL is missing in runtime environment.',
+        }
     }
 
     const prisma = new PrismaClient({
@@ -260,44 +290,55 @@ async function readDatabaseDataset(now: Date, windowDays: number): Promise<Conve
         log: ['error'],
     })
 
+    try {
+        await prisma.$queryRawUnsafe('SELECT 1')
+        return { ok: true, prisma }
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error)
+        await prisma.$disconnect()
+        return {
+            ok: false,
+            reasonCode: 'database_connectivity_failed',
+            message: `Unable to connect to runtime database: ${reason}`,
+        }
+    }
+}
+
+async function readDatabaseDataset(prisma: PrismaClient, now: Date, windowDays: number): Promise<ConversionDataset> {
     const windowMs = windowDays * 24 * 60 * 60 * 1000
     const currentEnd = now
     const currentStart = new Date(currentEnd.getTime() - windowMs)
     const previousEnd = currentStart
     const previousStart = new Date(previousEnd.getTime() - windowMs)
 
-    try {
-        const [currentDesigns, previousDesigns, currentOrders, previousOrders] = await Promise.all([
-            prisma.design.findMany({
-                where: { createdAt: { gte: currentStart, lt: currentEnd } },
-                select: { sessionId: true },
-            }),
-            prisma.design.findMany({
-                where: { createdAt: { gte: previousStart, lt: previousEnd } },
-                select: { sessionId: true },
-            }),
-            prisma.order.findMany({
-                where: { createdAt: { gte: currentStart, lt: currentEnd } },
-                select: { status: true, sessionId: true },
-            }),
-            prisma.order.findMany({
-                where: { createdAt: { gte: previousStart, lt: previousEnd } },
-                select: { status: true, sessionId: true },
-            }),
-        ])
+    const [currentDesigns, previousDesigns, currentOrders, previousOrders] = await Promise.all([
+        prisma.design.findMany({
+            where: { createdAt: { gte: currentStart, lt: currentEnd } },
+            select: { sessionId: true },
+        }),
+        prisma.design.findMany({
+            where: { createdAt: { gte: previousStart, lt: previousEnd } },
+            select: { sessionId: true },
+        }),
+        prisma.order.findMany({
+            where: { createdAt: { gte: currentStart, lt: currentEnd } },
+            select: { status: true, sessionId: true },
+        }),
+        prisma.order.findMany({
+            where: { createdAt: { gte: previousStart, lt: previousEnd } },
+            select: { status: true, sessionId: true },
+        }),
+    ])
 
-        return {
-            current: {
-                designs: currentDesigns.map((entry) => ({ sessionId: entry.sessionId || null })),
-                orders: currentOrders.map((entry) => ({ status: entry.status, sessionId: entry.sessionId || null })),
-            },
-            previous: {
-                designs: previousDesigns.map((entry) => ({ sessionId: entry.sessionId || null })),
-                orders: previousOrders.map((entry) => ({ status: entry.status, sessionId: entry.sessionId || null })),
-            },
-        }
-    } finally {
-        await prisma.$disconnect()
+    return {
+        current: {
+            designs: currentDesigns.map((entry) => ({ sessionId: entry.sessionId || null })),
+            orders: currentOrders.map((entry) => ({ status: entry.status, sessionId: entry.sessionId || null })),
+        },
+        previous: {
+            designs: previousDesigns.map((entry) => ({ sessionId: entry.sessionId || null })),
+            orders: previousOrders.map((entry) => ({ status: entry.status, sessionId: entry.sessionId || null })),
+        },
     }
 }
 
@@ -421,6 +462,7 @@ function buildFunnelRows(generatedCount: number, purchaseCount: number): { pageD
 
 function buildAnomalies(params: {
     status: InsightStatus
+    unavailableReasonCode: string
     currentGeneratedCount: number
     currentPurchaseCount: number
     currentConversionRate: number
@@ -434,7 +476,7 @@ function buildAnomalies(params: {
 
     if (params.status === 'unavailable') {
         anomalies.push({
-            id: 'database_unavailable',
+            id: params.unavailableReasonCode || 'database_unavailable',
             severity: 'warning',
             message: 'Conversion insights are running in unavailable mode (no database input).',
             reasonHint: 'Set DATABASE_URL in the checkpoint runtime or pass CONVERSION_INSIGHTS_INPUT_FILE for fixture-mode validation.',
@@ -502,6 +544,9 @@ function buildMarkdown(summary: ConversionInsightSummary, summaryPath: string): 
     lines.push(`Generated: ${summary.generatedAt}`)
     lines.push(`Commit: \`${summary.commitSha}\``)
     lines.push(`Status: **${summary.status.toUpperCase()}**`)
+    lines.push(
+        `Connectivity: **${summary.connectivity.status}** (policy=${summary.connectivity.policy}, reason=${summary.connectivity.reasonCode})`,
+    )
     lines.push(`Summary JSON: \`${toRelativePath(summaryPath)}\``)
     lines.push('')
 
@@ -552,6 +597,7 @@ function buildMarkdown(summary: ConversionInsightSummary, summaryPath: string): 
 async function main(): Promise<void> {
     const now = new Date()
     const windowDays = readWindowDays()
+    const degradedPolicy = readDegradedPolicy()
     const windowMs = windowDays * 24 * 60 * 60 * 1000
     const commitSha = readCommitSha()
     const timestamp = formatTimestampForPath(now)
@@ -571,19 +617,35 @@ async function main(): Promise<void> {
 
     let status: InsightStatus = 'ok'
     let dataset: ConversionDataset
+    let connectivityStatus: ConnectivityStatus = 'connected_live'
+    let connectivityReasonCode = 'live_database'
+    let connectivityMessage = 'Runtime database connectivity precheck passed.'
     const fixturePath = process.env.CONVERSION_INSIGHTS_INPUT_FILE?.trim()
     if (fixturePath) {
         dataset = await readFixtureDataset(fixturePath)
+        connectivityStatus = 'connected_live'
+        connectivityReasonCode = 'fixture_input'
+        connectivityMessage = 'Fixture input file provided; runtime DB connectivity check skipped.'
     } else {
-        const databaseDataset = await readDatabaseDataset(now, windowDays)
-        if (!databaseDataset) {
+        const connection = await openLivePrismaClient()
+        if (!connection.ok) {
             status = 'unavailable'
+            connectivityStatus = 'degraded_no_db'
+            connectivityReasonCode = connection.reasonCode
+            connectivityMessage = connection.message
             dataset = {
                 current: { designs: [], orders: [] },
                 previous: { designs: [], orders: [] },
             }
+            if (degradedPolicy === 'fail') {
+                throw new Error(`[conversion-insights:${connection.reasonCode}] ${connection.message}`)
+            }
         } else {
-            dataset = databaseDataset
+            try {
+                dataset = await readDatabaseDataset(connection.prisma, now, windowDays)
+            } finally {
+                await connection.prisma.$disconnect()
+            }
         }
     }
 
@@ -606,6 +668,7 @@ async function main(): Promise<void> {
 
     const anomalies = buildAnomalies({
         status,
+        unavailableReasonCode: connectivityReasonCode,
         currentGeneratedCount,
         currentPurchaseCount,
         currentConversionRate,
@@ -620,6 +683,12 @@ async function main(): Promise<void> {
         generatedAt: now.toISOString(),
         commitSha,
         status,
+        connectivity: {
+            status: connectivityStatus,
+            policy: degradedPolicy,
+            reasonCode: connectivityReasonCode,
+            message: connectivityMessage,
+        },
         window: {
             days: windowDays,
             currentStart: currentStart.toISOString(),

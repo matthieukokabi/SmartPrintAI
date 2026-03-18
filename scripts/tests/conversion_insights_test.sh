@@ -59,6 +59,8 @@ NODE
 
   local summary="${tmp_dir}/artifact/summary.json"
   assert_eq "$(json_value "$summary" "status")" "ok" "status should be ok with fixture input"
+  assert_eq "$(json_value "$summary" "connectivity.status")" "connected_live" "fixture run connectivity status"
+  assert_eq "$(json_value "$summary" "connectivity.reasonCode")" "fixture_input" "fixture connectivity reason"
   assert_eq "$(json_value "$summary" "totals.generatedCount")" "25" "current generated count"
   assert_eq "$(json_value "$summary" "totals.purchaseCount")" "8" "current purchase count"
   assert_eq "$(json_value "$summary" "sourceBreakdown[0].source")" "homepage_popup" "top source ordering"
@@ -82,8 +84,33 @@ run_case_database_unavailable() {
 
   local summary="${tmp_dir}/artifact/summary.json"
   assert_eq "$(json_value "$summary" "status")" "unavailable" "status should be unavailable without db or fixture"
+  assert_eq "$(json_value "$summary" "connectivity.status")" "degraded_no_db" "degraded connectivity status"
+  assert_eq "$(json_value "$summary" "connectivity.reasonCode")" "missing_database_url" "degraded reason code"
   assert_eq "$(json_value "$summary" "totals.generatedCount")" "0" "generated count should be zero in unavailable mode"
-  assert_eq "$(json_value "$summary" "anomalies[0].id")" "database_unavailable" "unavailable anomaly id"
+  assert_eq "$(json_value "$summary" "anomalies[0].id")" "missing_database_url" "unavailable anomaly id"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
+run_case_database_unavailable_policy_fail() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+
+  set +e
+  env -u DATABASE_URL \
+    CONVERSION_INSIGHTS_DEGRADED_POLICY="fail" \
+    CONVERSION_INSIGHTS_ARTIFACT_DIR="${tmp_dir}/artifact" \
+    CONVERSION_INSIGHTS_REPORT_FILE="${tmp_dir}/report.md" \
+    node --import tsx "$INSIGHT_SCRIPT" >/dev/null 2>&1
+  local status=$?
+  set -e
+
+  if [ "$status" -eq 0 ]; then
+    echo "ASSERTION FAILED: degraded policy fail should return non-zero" >&2
+    exit 1
+  fi
 
   rm -rf "$tmp_dir"
   trap - RETURN
@@ -91,5 +118,6 @@ run_case_database_unavailable() {
 
 run_case_conversion_drop_anomaly
 run_case_database_unavailable
+run_case_database_unavailable_policy_fail
 
 echo "All conversion insight tests passed."
