@@ -18,7 +18,8 @@
     "blog": "/blog",
     "support": "/support"
   },
-  "productDetailDiscovery": {
-    "sourcePath": "/products"
+  "productDetailFixture": {
+    "path": "/products/cmmhtq4e4000343l29gzhn3ca",
+    "fallbackSourcePath": "/products"
   }
 }

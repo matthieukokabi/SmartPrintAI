@@ -3,6 +3,11 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { setTimeout as delay } from 'node:timers/promises'
+import {
+    discoverProductDetailPathFromHtml,
+    resolveProductDetailPath,
+    type ProductDetailResolutionStrategy,
+} from '../src/lib/lighthouse-product-route'
 
 type CategoryKey = 'performance' | 'accessibility' | 'seo'
 type RouteKey = 'home' | 'create' | 'products' | 'productDetail' | 'blog' | 'support'
@@ -15,10 +20,20 @@ type LighthouseBudgetConfig = {
     thresholds: Scores
     maxRegression: Scores
     staticRoutes: Record<Exclude<RouteKey, 'productDetail'>, string>
-    productDetailDiscovery: {
-        sourcePath: string
+    productDetailFixture: {
+        path: string
+        fallbackSourcePath?: string
         fallbackPath?: string
     }
+}
+
+type ProductDetailResolution = {
+    strategy: ProductDetailResolutionStrategy
+    configuredFixturePath: string
+    selectedPath: string
+    discoverySourcePath: string
+    fallbackPath: string | null
+    warning?: string
 }
 
 type RouteTarget = {
@@ -105,30 +120,6 @@ function extractScores(lhr: { categories?: Record<string, { score?: number | nul
     }
 }
 
-function discoverProductDetailPath(html: string): string | null {
-    const patterns = [
-        /href=(["'])(\/products\/[^"'?#]+)\1/i,
-        /href=(["'])(\/(?:en|fr|de|es)\/products\/[^"'?#]+)\1/i,
-        /href=(["'])(https?:\/\/[^"']+\/products\/[^"'?#]+)\1/i,
-    ]
-    for (const pattern of patterns) {
-        const match = pattern.exec(html)
-        if (!match || !match[2]) {
-            continue
-        }
-        const raw = match[2]
-        const url = new URL(raw, 'https://smartprintai.com')
-        const routePath = url.pathname
-        if (routePath === '/products') {
-            continue
-        }
-        if (routePath.startsWith('/products/') || routePath.match(/^\/(en|fr|de|es)\/products\/.+/)) {
-            return routePath
-        }
-    }
-    return null
-}
-
 async function fetchHtml(url: string): Promise<string> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 30_000)
@@ -146,7 +137,10 @@ async function fetchHtml(url: string): Promise<string> {
     }
 }
 
-async function resolveRouteTargets(baseUrl: string, config: LighthouseBudgetConfig): Promise<RouteTarget[]> {
+async function resolveRouteTargets(
+    baseUrl: string,
+    config: LighthouseBudgetConfig,
+): Promise<{ routeTargets: RouteTarget[]; productDetailResolution: ProductDetailResolution }> {
     const staticTargets: RouteTarget[] = [
         { key: 'home', path: normalizePath(config.staticRoutes.home), url: `${baseUrl}${normalizePath(config.staticRoutes.home)}` },
         { key: 'create', path: normalizePath(config.staticRoutes.create), url: `${baseUrl}${normalizePath(config.staticRoutes.create)}` },
@@ -155,29 +149,79 @@ async function resolveRouteTargets(baseUrl: string, config: LighthouseBudgetConf
         { key: 'support', path: normalizePath(config.staticRoutes.support), url: `${baseUrl}${normalizePath(config.staticRoutes.support)}` },
     ]
 
-    const discoveryUrl = `${baseUrl}${normalizePath(config.productDetailDiscovery.sourcePath)}`
-    const discoveryHtml = await fetchHtml(discoveryUrl)
-    const discoveredPath = discoverProductDetailPath(discoveryHtml)
-    const fallbackPath = config.productDetailDiscovery.fallbackPath
-        ? normalizePath(config.productDetailDiscovery.fallbackPath)
-        : null
-    const productDetailPath = discoveredPath || fallbackPath
+    const fixturePath = normalizePath(
+        (process.env.LIGHTHOUSE_PRODUCT_DETAIL_PATH || config.productDetailFixture.path).trim(),
+    )
+    const discoverySourcePath = normalizePath(
+        (
+            process.env.LIGHTHOUSE_PRODUCT_DETAIL_SOURCE_PATH ||
+            config.productDetailFixture.fallbackSourcePath ||
+            '/products'
+        ).trim(),
+    )
+    const configuredFallbackRaw = (
+        process.env.LIGHTHOUSE_PRODUCT_DETAIL_FALLBACK_PATH ||
+        config.productDetailFixture.fallbackPath ||
+        ''
+    ).trim()
+    const configuredFallbackPath = configuredFallbackRaw.length > 0 ? normalizePath(configuredFallbackRaw) : null
 
-    if (!productDetailPath) {
-        throw new Error(
-            `Unable to resolve product detail path from ${discoveryUrl}; set productDetailDiscovery.fallbackPath in ${toRelativePath(CONFIG_PATH)}`
-        )
+    let fixtureAvailable = false
+    let fixtureError: string | null = null
+    try {
+        await fetchHtml(`${baseUrl}${fixturePath}`)
+        fixtureAvailable = true
+    } catch (error) {
+        fixtureError = error instanceof Error ? error.message : String(error)
+    }
+
+    let discoveredPath: string | null = null
+    let discoveryError: string | null = null
+    if (!fixtureAvailable) {
+        try {
+            const discoveryHtml = await fetchHtml(`${baseUrl}${discoverySourcePath}`)
+            discoveredPath = discoverProductDetailPathFromHtml(discoveryHtml)
+            if (!discoveredPath) {
+                discoveryError = 'no matching link found'
+            }
+        } catch (error) {
+            discoveryError = error instanceof Error ? error.message : String(error)
+        }
+    }
+
+    const resolution = resolveProductDetailPath({
+        fixturePath,
+        fixtureAvailable,
+        fixtureError,
+        discoverySourcePath,
+        discoveredPath,
+        discoveryError,
+        fallbackPath: configuredFallbackPath,
+    })
+
+    if (resolution.warning) {
+        console.warn(`[lighthouse] ${resolution.warning}`)
     }
 
     const productDetailTarget: RouteTarget = {
         key: 'productDetail',
-        path: productDetailPath,
-        url: `${baseUrl}${productDetailPath}`,
+        path: resolution.path,
+        url: `${baseUrl}${resolution.path}`,
     }
 
     const allTargets = [...staticTargets]
     allTargets.splice(3, 0, productDetailTarget)
-    return allTargets
+    return {
+        routeTargets: allTargets,
+        productDetailResolution: {
+            strategy: resolution.strategy,
+            configuredFixturePath: fixturePath,
+            selectedPath: resolution.path,
+            discoverySourcePath,
+            fallbackPath: configuredFallbackPath,
+            warning: resolution.warning,
+        },
+    }
 }
 
 function detectChromePath(): string | undefined {
@@ -380,6 +424,7 @@ function buildMarkdownReport(
     baseUrl: string,
     artifactRoot: string,
     summaryFile: string,
+    productDetailResolution: ProductDetailResolution,
     routeResults: RouteAuditResult[],
     failures: string[],
 ): string {
@@ -390,6 +435,18 @@ function buildMarkdownReport(
     lines.push(`Base URL: ${baseUrl}`)
     lines.push(`Artifact root: \`${toRelativePath(artifactRoot)}\``)
     lines.push(`Summary JSON: \`${toRelativePath(summaryFile)}\``)
+    lines.push('')
+    lines.push('## Product Detail Route Resolution')
+    lines.push(`- strategy: \`${productDetailResolution.strategy}\``)
+    lines.push(`- configured fixture: \`${productDetailResolution.configuredFixturePath}\``)
+    lines.push(`- selected route: \`${productDetailResolution.selectedPath}\``)
+    lines.push(`- fallback discovery source: \`${productDetailResolution.discoverySourcePath}\``)
+    if (productDetailResolution.fallbackPath) {
+        lines.push(`- configured fallback route: \`${productDetailResolution.fallbackPath}\``)
+    }
+    if (productDetailResolution.warning) {
+        lines.push(`- warning: ${productDetailResolution.warning}`)
+    }
     lines.push('')
     lines.push('## Route Scores (Median)')
     for (const route of routeResults) {
@@ -434,7 +491,7 @@ async function main(): Promise<void> {
     await mkdir(artifactRoot, { recursive: true })
     await mkdir(path.dirname(reportFile), { recursive: true })
 
-    const routeTargets = await resolveRouteTargets(baseUrl, config)
+    const { routeTargets, productDetailResolution } = await resolveRouteTargets(baseUrl, config)
     await warmupRoutes(routeTargets)
     const routeResults = await runLighthouseAttempts(routeTargets, runsPerRoute, artifactRoot)
 
@@ -451,6 +508,7 @@ async function main(): Promise<void> {
         baseUrl,
         runsPerRoute,
         artifactRoot: toRelativePath(artifactRoot),
+        productDetailResolution,
         routeResults,
         failures,
     }
@@ -458,7 +516,15 @@ async function main(): Promise<void> {
     await writeFile(summaryFile, `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
     await writeFile(
         reportFile,
-        buildMarkdownReport(timestamp.iso, baseUrl, artifactRoot, summaryFile, routeResults, failures),
+        buildMarkdownReport(
+            timestamp.iso,
+            baseUrl,
+            artifactRoot,
+            summaryFile,
+            productDetailResolution,
+            routeResults,
+            failures,
+        ),
         'utf8',
     )
 

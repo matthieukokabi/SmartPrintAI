@@ -51,12 +51,20 @@
     - home (`/`)
     - create (`/create`)
     - products (`/products`)
-    - product detail (discovered from `/products` rendered HTML)
+    - product detail (deterministic fixture route from `config/lighthouse-budget.json` -> `productDetailFixture.path`)
     - blog (`/blog`)
     - support (`/support`)
   - Enforces:
     - minimum score thresholds (`config/lighthouse-budget.json`)
     - trend-regression floors against `docs/reports/LIGHTHOUSE_BASELINE.json`
+  - Product detail fallback behavior:
+    - first tries configured fixture route
+    - if fixture is unavailable, falls back to discovery from `productDetailFixture.fallbackSourcePath`
+    - if discovery fails and `productDetailFixture.fallbackPath` is unset, exits with actionable error
+  - Useful environment overrides:
+    - `LIGHTHOUSE_PRODUCT_DETAIL_PATH`
+    - `LIGHTHOUSE_PRODUCT_DETAIL_SOURCE_PATH`
+    - `LIGHTHOUSE_PRODUCT_DETAIL_FALLBACK_PATH`
   - Outputs timestamped JSON artifacts + report under `docs/reports/artifacts/lighthouse-<timestamp>/`.
   - Baseline refresh workflow:
     - run `LIGHTHOUSE_UPDATE_BASELINE=1 npm run perf:lighthouse:gate` after intentional performance improvements.
