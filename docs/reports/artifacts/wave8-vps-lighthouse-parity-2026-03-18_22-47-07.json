@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-03-18T22:47:07.535Z",
+  "deployedCommit": "43fe596",
+  "checkpointGeneratedAt": "2026-03-18T22:21:09Z",
+  "checkpointCommitSha": "unknown",
+  "checkpointPath": "docs/reports/artifacts/wave5-checkpoints/latest.json",
+  "lighthouseSummaryPath": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_22-16-56-unknown/summary.json",
+  "lighthouseStatus": 0,
+  "lighthouseRuntime": {
+    "status": "ready",
+    "chromePath": "/usr/bin/google-chrome-stable"
+  },
+  "routeScores": [
+    {
+      "key": "home",
+      "scores": {
+        "performance": 0.885,
+        "accessibility": 0.95,
+        "seo": 1
+      }
+    },
+    {
+      "key": "create",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "products",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.96,
+        "seo": 1
+      }
+    },
+    {
+      "key": "productDetail",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "blog",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    },
+    {
+      "key": "support",
+      "scores": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
+  ],
+  "failures": []
+}

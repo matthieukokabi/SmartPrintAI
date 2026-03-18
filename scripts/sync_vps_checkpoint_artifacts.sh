@@ -117,21 +117,6 @@ function ensureRelative(value, label) {
   return normalized
 }
 
-function isoToCompact(iso) {
-  const parsed = Date.parse(iso || '')
-  if (!Number.isFinite(parsed)) {
-    return 'unknown'
-  }
-  const date = new Date(parsed)
-  const yyyy = String(date.getUTCFullYear())
-  const mm = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const dd = String(date.getUTCDate()).padStart(2, '0')
-  const hh = String(date.getUTCHours()).padStart(2, '0')
-  const min = String(date.getUTCMinutes()).padStart(2, '0')
-  const sec = String(date.getUTCSeconds()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}_${hh}-${min}-${sec}`
-}
-
 const renderedSummary = ensureRelative(checkpoint?.stages?.rendered?.summary, 'rendered summary')
 const lighthouseSummary = ensureRelative(checkpoint?.stages?.lighthouse?.summary, 'lighthouse summary')
 const trendSummary = ensureRelative(checkpoint?.stages?.trend?.summary, 'trend summary')
@@ -146,8 +131,6 @@ const snapshotReport = ensureRelative(checkpoint?.snapshot?.report, 'snapshot re
 
 const commitSha = String(checkpoint?.commitSha || 'unknown')
 const generatedAt = typeof checkpoint?.generatedAt === 'string' ? checkpoint.generatedAt : null
-const checkpointTimestamp = isoToCompact(generatedAt)
-const checkpointRunRelative = `docs/reports/artifacts/wave5-checkpoints/checkpoint-${checkpointTimestamp}-${commitSha}.json`
 
 const directories = Array.from(
   new Set([
@@ -167,7 +150,6 @@ const files = Array.from(
     alertsState,
     snapshotJson,
     snapshotReport,
-    checkpointRunRelative,
     'docs/reports/artifacts/wave5-checkpoints/latest.json',
     'docs/reports/artifacts/wave5-checkpoints/latest-snapshot.json',
   ]),
@@ -178,7 +160,6 @@ process.stdout.write(
     {
       commitSha,
       generatedAt,
-      checkpointRunRelative,
       directories,
       files,
     },

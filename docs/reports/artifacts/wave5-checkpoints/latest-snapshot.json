@@ -1,28 +1,28 @@
 {
-  "generatedAt": "2026-03-18T21:26:13.578Z",
-  "commitSha": "44d215e",
-  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_21-21-56-44d215e.json",
-  "overallFlag": "amber",
+  "generatedAt": "2026-03-18T23:02:16.746Z",
+  "commitSha": "43fe596",
+  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_23-02-05-43fe596.json",
+  "overallFlag": "red",
   "flags": {
     "rendered": "green",
-    "lighthouse": "green",
-    "trend": "green",
-    "deterministicRoute": "green",
+    "lighthouse": "red",
+    "trend": "red",
+    "deterministicRoute": "red",
     "trustSchema": "green",
     "legalLinks": "green",
     "conversionPulse": "amber",
-    "deployHealth": "green"
+    "deployHealth": "red"
   },
   "lighthouse": {
-    "routeCount": 6,
+    "routeCount": 0,
     "failureCount": 0,
     "averageScores": {
-      "performance": 0.985,
-      "accessibility": 0.945,
-      "seo": 1
+      "performance": 0,
+      "accessibility": 0,
+      "seo": 0
     },
     "productDetailResolution": {
-      "strategy": "fixture",
+      "strategy": "unknown",
       "resolvedPath": null,
       "sourcePath": null
     }
@@ -36,7 +36,7 @@
     "legalLinksPass": true
   },
   "trend": {
-    "status": "pass",
+    "status": "unknown",
     "findingCount": 0,
     "topFinding": null,
     "warmupRemaining": {
@@ -50,8 +50,8 @@
     "dbConnectivityStatus": "degraded_no_db",
     "dataFreshnessAge": null,
     "stale": true,
-    "reasonCode": "missing_database_url_no_cache",
-    "amberReasonCode": "missing_database_url_no_cache",
+    "reasonCode": "database_connectivity_failed_no_cache",
+    "amberReasonCode": "database_connectivity_failed_no_cache",
     "generatedCount": 0,
     "purchaseCount": 0,
     "conversionRate": 0,
@@ -59,9 +59,9 @@
     "criticalAnomalyCount": 0
   },
   "deployHealth": {
-    "status": "healthy",
+    "status": "degraded",
     "renderedStageStatus": 0,
-    "lighthouseStageStatus": 0
+    "lighthouseStageStatus": 1
   },
   "releaseConfidenceCard": {
     "renderedSemantics": {
@@ -70,22 +70,22 @@
       "failureCount": 0
     },
     "lighthouseDeterministicGate": {
-      "flag": "green",
-      "strategy": "fixture",
+      "flag": "red",
+      "strategy": "unknown",
       "averageScores": {
-        "performance": 0.985,
-        "accessibility": 0.945,
-        "seo": 1
+        "performance": 0,
+        "accessibility": 0,
+        "seo": 0
       }
     },
     "trendStatus": {
-      "flag": "green",
-      "status": "pass",
+      "flag": "red",
+      "status": "unknown",
       "findingCount": 0
     },
     "deployHealth": {
-      "flag": "green",
-      "status": "healthy"
+      "flag": "red",
+      "status": "degraded"
     },
     "conversionPulse": {
       "flag": "amber",
@@ -96,13 +96,13 @@
       "db_connectivity_status": "degraded_no_db",
       "conversion_pulse_mode": "degraded_no_db",
       "data_freshness_age": null,
-      "amber_reason_code": "missing_database_url_no_cache"
+      "amber_reason_code": "database_connectivity_failed_no_cache"
     }
   },
   "sources": {
-    "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_21-21-56-44d215e/summary.json",
-    "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_21-21-56-44d215e/summary.json",
-    "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_21-21-56-44d215e/summary.json",
-    "conversionSummary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_21-21-56-44d215e/summary.json"
+    "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_23-02-05-43fe596/summary.json",
+    "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_23-02-05-43fe596/summary.json",
+    "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_23-02-05-43fe596/summary.json",
+    "conversionSummary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_23-02-05-43fe596/summary.json"
   }
 }

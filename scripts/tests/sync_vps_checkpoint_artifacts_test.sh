@@ -130,7 +130,7 @@ run_case_sync_success() {
   )
 
   assert_file_exists "${tmp_dir}/docs/reports/artifacts/wave5-checkpoints/latest.json" "latest checkpoint should be synced"
-  assert_file_exists "${tmp_dir}/docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_21-48-49-abc1234.json" "run checkpoint should be synced"
+  assert_file_exists "${tmp_dir}/docs/reports/artifacts/wave5-checkpoints/latest-snapshot.json" "latest snapshot should be synced"
   assert_file_exists "${tmp_dir}/docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_21-48-49-abc1234/summary.json" "rendered summary should be synced"
 
   local sync_json

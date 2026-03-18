@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-03-18T21:26:13Z",
-  "commitSha": "44d215e",
+  "generatedAt": "2026-03-18T23:02:16Z",
+  "commitSha": "43fe596",
   "retentionDays": 14,
   "trendHistoryRetention": 60,
   "executionPolicy": {
@@ -13,27 +13,31 @@
   "stages": {
     "rendered": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_21-21-56-44d215e/summary.json"
+      "summary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_23-02-05-43fe596/summary.json"
     },
     "lighthouse": {
-      "status": 0,
-      "summary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_21-21-56-44d215e/summary.json"
+      "status": 1,
+      "runtime": {
+        "status": "ready",
+        "chromePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+      },
+      "summary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_23-02-05-43fe596/summary.json"
     },
     "trend": {
-      "status": 0,
-      "phase": "pass",
-      "summary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_21-21-56-44d215e/summary.json",
-      "report": "docs/reports/WAVE5_TREND_GATE_2026-03-18_21-21-56_44d215e.md"
+      "status": 1,
+      "phase": "unknown",
+      "summary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_23-02-05-43fe596/summary.json",
+      "report": "docs/reports/WAVE5_TREND_GATE_2026-03-18_23-02-05_43fe596.md"
     },
     "conversion": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_21-21-56-44d215e/summary.json",
-      "report": "docs/reports/WAVE6_CONVERSION_INSIGHTS_2026-03-18_21-21-56_44d215e.md"
+      "summary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_23-02-05-43fe596/summary.json",
+      "report": "docs/reports/WAVE6_CONVERSION_INSIGHTS_2026-03-18_23-02-05_43fe596.md"
     },
     "alerts": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave6-alerts-2026-03-18_21-21-56-44d215e/summary.json",
-      "report": "docs/reports/WAVE6_ALERTS_2026-03-18_21-21-56_44d215e.md",
+      "summary": "docs/reports/artifacts/wave6-alerts-2026-03-18_23-02-05-43fe596/summary.json",
+      "report": "docs/reports/WAVE6_ALERTS_2026-03-18_23-02-05_43fe596.md",
       "state": "docs/reports/artifacts/wave6-alert-state/state.json"
     }
   },
@@ -50,7 +54,7 @@
     }
   },
   "snapshot": {
-    "json": "docs/reports/artifacts/wave5-checkpoints/snapshot-2026-03-18_21-21-56-44d215e.json",
-    "report": "docs/reports/WAVE5_QUALITY_SNAPSHOT_2026-03-18_21-21-56_44d215e.md"
+    "json": "docs/reports/artifacts/wave5-checkpoints/snapshot-2026-03-18_23-02-05-43fe596.json",
+    "report": "docs/reports/WAVE5_QUALITY_SNAPSHOT_2026-03-18_23-02-05_43fe596.md"
   }
 }

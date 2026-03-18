@@ -1,0 +1,8 @@
+{
+  "generatedAt": "2026-03-18T22:47:08Z",
+  "deployedCommit": "43fe596",
+  "envFile": "/root/smartprintai/.env.local",
+  "databaseUrlPresent": 1,
+  "databaseUrlLength": 114,
+  "warnings": ["[env-loader] warning: ignored malformed line 12 in /root/smartprintai/.env.local","[env-loader] warning: ignored malformed line 35 in /root/smartprintai/.env.local"]
+}
