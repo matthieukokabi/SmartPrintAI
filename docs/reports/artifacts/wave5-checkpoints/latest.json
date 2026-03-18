@@ -1,37 +1,56 @@
 {
-  "generatedAt": "2026-03-18T20:37:27Z",
-  "commitSha": "342743a",
+  "generatedAt": "2026-03-18T21:26:13Z",
+  "commitSha": "44d215e",
   "retentionDays": 14,
   "trendHistoryRetention": 60,
+  "executionPolicy": {
+    "dbRetry": {
+      "maxAttempts": 3,
+      "baseBackoffSeconds": 5
+    },
+    "strictNonCritical": 0
+  },
   "stages": {
     "rendered": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_20-32-47-342743a/summary.json"
+      "summary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_21-21-56-44d215e/summary.json"
     },
     "lighthouse": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_20-32-47-342743a/summary.json"
+      "summary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_21-21-56-44d215e/summary.json"
     },
     "trend": {
       "status": 0,
-      "phase": "warmup",
-      "summary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_20-32-47-342743a/summary.json",
-      "report": "docs/reports/WAVE5_TREND_GATE_2026-03-18_20-32-47_342743a.md"
+      "phase": "pass",
+      "summary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_21-21-56-44d215e/summary.json",
+      "report": "docs/reports/WAVE5_TREND_GATE_2026-03-18_21-21-56_44d215e.md"
     },
     "conversion": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_20-32-47-342743a/summary.json",
-      "report": "docs/reports/WAVE6_CONVERSION_INSIGHTS_2026-03-18_20-32-47_342743a.md"
+      "summary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_21-21-56-44d215e/summary.json",
+      "report": "docs/reports/WAVE6_CONVERSION_INSIGHTS_2026-03-18_21-21-56_44d215e.md"
     },
     "alerts": {
       "status": 0,
-      "summary": "docs/reports/artifacts/wave6-alerts-2026-03-18_20-32-47-342743a/summary.json",
-      "report": "docs/reports/WAVE6_ALERTS_2026-03-18_20-32-47_342743a.md",
+      "summary": "docs/reports/artifacts/wave6-alerts-2026-03-18_21-21-56-44d215e/summary.json",
+      "report": "docs/reports/WAVE6_ALERTS_2026-03-18_21-21-56_44d215e.md",
       "state": "docs/reports/artifacts/wave6-alert-state/state.json"
     }
   },
+  "warnings": {
+    "conversion": {
+      "present": 0,
+      "status": 0,
+      "hint": "Verify DATABASE_URL/runtime DB reachability or seed CONVERSION_INSIGHTS_CACHE_FILE for fallback."
+    },
+    "alerts": {
+      "present": 0,
+      "status": 0,
+      "hint": "Check QUALITY_ALERT_* inputs and ensure trend/conversion summaries exist before alert stage."
+    }
+  },
   "snapshot": {
-    "json": "docs/reports/artifacts/wave5-checkpoints/snapshot-2026-03-18_20-32-47-342743a.json",
-    "report": "docs/reports/WAVE5_QUALITY_SNAPSHOT_2026-03-18_20-32-47_342743a.md"
+    "json": "docs/reports/artifacts/wave5-checkpoints/snapshot-2026-03-18_21-21-56-44d215e.json",
+    "report": "docs/reports/WAVE5_QUALITY_SNAPSHOT_2026-03-18_21-21-56_44d215e.md"
   }
 }

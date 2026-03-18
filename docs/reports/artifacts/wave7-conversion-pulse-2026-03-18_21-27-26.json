@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-03-18T21:21:37.314Z",
+  "commitSha": "unknown",
+  "status": "ok",
+  "mode": "connected_live",
+  "reasonCode": "live_database",
+  "connectivity": {
+    "status": "connected_live",
+    "policy": "warn",
+    "reasonCode": "live_database",
+    "message": "Runtime database connectivity precheck passed."
+  },
+  "freshness": {
+    "ttlSeconds": 21600,
+    "sourceGeneratedAt": "2026-03-18T21:21:37.314Z",
+    "ageSeconds": 0,
+    "stale": false,
+    "cacheFile": "/root/smartprintai/docs/reports/artifacts/wave7-conversion-pulse-cache/latest.json"
+  },
+  "window": {
+    "days": 7,
+    "currentStart": "2026-03-11T21:21:37.314Z",
+    "currentEnd": "2026-03-18T21:21:37.314Z",
+    "previousStart": "2026-03-04T21:21:37.314Z",
+    "previousEnd": "2026-03-11T21:21:37.314Z"
+  },
+  "totals": {
+    "generatedCount": 14,
+    "purchaseCount": 0,
+    "conversionRate": 0,
+    "previousGeneratedCount": 23,
+    "previousPurchaseCount": 5,
+    "previousConversionRate": 0.2174
+  },
+  "attributionCoverage": {
+    "recordCount": 14,
+    "attributedCount": 0,
+    "legacyCount": 0,
+    "unattributedCount": 14,
+    "unattributedRate": 1
+  },
+  "sourceBreakdown": [
+    {
+      "source": "unattributed",
+      "generatedCount": 14,
+      "purchaseCount": 0,
+      "dropoffCount": 14,
+      "dropoffRate": 1,
+      "conversionRate": 0
+    }
+  ],
+  "pageDropoff": [
+    {
+      "key": "create",
+      "label": "/create",
+      "count": 14,
+      "dropoffFromPrevious": 0,
+      "dropoffRateFromPrevious": 0
+    },
+    {
+      "key": "checkout",
+      "label": "/checkout",
+      "count": 0,
+      "dropoffFromPrevious": 14,
+      "dropoffRateFromPrevious": 1
+    }
+  ],
+  "formStepDropoff": [
+    {
+      "key": "generate_success",
+      "label": "generate_success",
+      "count": 14,
+      "dropoffFromPrevious": 0,
+      "dropoffRateFromPrevious": 0
+    },
+    {
+      "key": "purchase_completed",
+      "label": "purchase_completed",
+      "count": 0,
+      "dropoffFromPrevious": 14,
+      "dropoffRateFromPrevious": 1
+    }
+  ],
+  "anomalies": []
+}

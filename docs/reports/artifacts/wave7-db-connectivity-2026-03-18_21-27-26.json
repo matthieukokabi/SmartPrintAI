@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-03-18T21:27:26.429Z",
+  "conversion": {
+    "status": "ok",
+    "mode": "connected_live",
+    "reasonCode": "live_database",
+    "connectivityStatus": "connected_live",
+    "freshnessAgeSeconds": 0,
+    "stale": false
+  },
+  "card": {
+    "overallFlag": "green",
+    "conversionPulseFlag": "green",
+    "conversionPulse": {
+      "flag": "green",
+      "status": "ok",
+      "conversionRate": 0,
+      "criticalAnomalyCount": 0,
+      "warningAnomalyCount": 0,
+      "db_connectivity_status": "connected_live",
+      "conversion_pulse_mode": "connected_live",
+      "data_freshness_age": 0,
+      "amber_reason_code": null
+    }
+  }
+}

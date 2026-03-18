@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-03-18T21:26:13.578Z",
+  "generatedAt": "2026-03-18T21:27:26.370Z",
   "commitSha": "44d215e",
-  "checkpointFile": "docs/reports/artifacts/wave5-checkpoints/checkpoint-2026-03-18_21-21-56-44d215e.json",
-  "overallFlag": "amber",
+  "checkpointFile": "docs/reports/artifacts/wave7-checkpoint-after-2026-03-18_21-27-26.json",
+  "overallFlag": "green",
   "flags": {
     "rendered": "green",
     "lighthouse": "green",
@@ -10,7 +10,7 @@
     "deterministicRoute": "green",
     "trustSchema": "green",
     "legalLinks": "green",
-    "conversionPulse": "amber",
+    "conversionPulse": "green",
     "deployHealth": "green"
   },
   "lighthouse": {
@@ -45,17 +45,17 @@
     }
   },
   "conversion": {
-    "status": "unavailable",
-    "mode": "degraded_no_db",
-    "dbConnectivityStatus": "degraded_no_db",
-    "dataFreshnessAge": null,
-    "stale": true,
-    "reasonCode": "missing_database_url_no_cache",
-    "amberReasonCode": "missing_database_url_no_cache",
-    "generatedCount": 0,
+    "status": "ok",
+    "mode": "connected_live",
+    "dbConnectivityStatus": "connected_live",
+    "dataFreshnessAge": 0,
+    "stale": false,
+    "reasonCode": "live_database",
+    "amberReasonCode": null,
+    "generatedCount": 14,
     "purchaseCount": 0,
     "conversionRate": 0,
-    "warningAnomalyCount": 1,
+    "warningAnomalyCount": 0,
     "criticalAnomalyCount": 0
   },
   "deployHealth": {
@@ -88,21 +88,21 @@
       "status": "healthy"
     },
     "conversionPulse": {
-      "flag": "amber",
-      "status": "unavailable",
+      "flag": "green",
+      "status": "ok",
       "conversionRate": 0,
       "criticalAnomalyCount": 0,
-      "warningAnomalyCount": 1,
-      "db_connectivity_status": "degraded_no_db",
-      "conversion_pulse_mode": "degraded_no_db",
-      "data_freshness_age": null,
-      "amber_reason_code": "missing_database_url_no_cache"
+      "warningAnomalyCount": 0,
+      "db_connectivity_status": "connected_live",
+      "conversion_pulse_mode": "connected_live",
+      "data_freshness_age": 0,
+      "amber_reason_code": null
     }
   },
   "sources": {
     "lighthouseSummary": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_21-21-56-44d215e/summary.json",
     "renderedSummary": "docs/reports/artifacts/wave5-rendered-semantics-2026-03-18_21-21-56-44d215e/summary.json",
     "trendSummary": "docs/reports/artifacts/wave5-trend-history-2026-03-18_21-21-56-44d215e/summary.json",
-    "conversionSummary": "docs/reports/artifacts/wave6-conversion-insights-2026-03-18_21-21-56-44d215e/summary.json"
+    "conversionSummary": "docs/reports/artifacts/wave7-conversion-pulse-2026-03-18_21-27-26.json"
   }
 }

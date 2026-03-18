@@ -124,5 +124,47 @@
         "seo": 1
       }
     }
+  },
+  {
+    "generatedAt": "2026-03-18T21:21:58.672Z",
+    "commitSha": "44d215e",
+    "summaryPath": "docs/reports/artifacts/wave5-lighthouse-deterministic-2026-03-18_21-21-56-44d215e/summary.json",
+    "overall": {
+      "performance": 0.985,
+      "accessibility": 0.945,
+      "seo": 1
+    },
+    "routes": {
+      "home": {
+        "performance": 0.91,
+        "accessibility": 0.95,
+        "seo": 1
+      },
+      "create": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "products": {
+        "performance": 1,
+        "accessibility": 0.96,
+        "seo": 1
+      },
+      "productDetail": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "blog": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      },
+      "support": {
+        "performance": 1,
+        "accessibility": 0.94,
+        "seo": 1
+      }
+    }
   }
 ]
