@@ -3,6 +3,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 type AlertSeverity = 'warning' | 'critical'
+type AlertSource = 'trend' | 'conversion' | 'conversion_pulse'
+type ConversionPulseMode = 'connected_live' | 'degraded_no_db' | 'stale_cached' | 'unknown'
 
 type TrendSummary = {
     status?: 'pass' | 'warmup' | 'fail'
@@ -17,12 +19,22 @@ type ConversionAnomaly = {
 }
 
 type ConversionSummary = {
+    status?: 'ok' | 'unavailable'
+    mode?: 'connected_live' | 'degraded_no_db' | 'stale_cached'
+    reasonCode?: string
+    connectivity?: {
+        status?: 'connected_live' | 'degraded_no_db' | 'stale_cached'
+        reasonCode?: string
+    }
+    freshness?: {
+        stale?: boolean
+    }
     anomalies?: ConversionAnomaly[]
 }
 
 type AlertCandidate = {
     id: string
-    source: 'trend' | 'conversion'
+    source: AlertSource
     severity: AlertSeverity
     message: string
     reasonHint: string
@@ -31,18 +43,25 @@ type AlertCandidate = {
 type AlertStateEntry = {
     lastEmittedAt: string
     severity: AlertSeverity
-    source: 'trend' | 'conversion'
+    source: AlertSource
     message: string
 }
 
+type AlertConditionState = {
+    firstSeenAt: string
+    lastSeenAt: string
+    reasonCode: string | null
+}
+
 type AlertState = {
-    version: 1
+    version: 2
     alerts: Record<string, AlertStateEntry>
+    conditions: Record<string, AlertConditionState>
 }
 
 type EmittedAlert = {
     id: string
-    source: 'trend' | 'conversion'
+    source: AlertSource
     severity: AlertSeverity
     message: string
     reasonHint: string
@@ -51,7 +70,7 @@ type EmittedAlert = {
 
 type SuppressedAlert = {
     id: string
-    source: 'trend' | 'conversion'
+    source: AlertSource
     severity: AlertSeverity
     message: string
     reasonHint: string
@@ -64,10 +83,19 @@ type AlertSummary = {
     generatedAt: string
     commitSha: string
     cooldownHours: number
+    amberThresholdHours: number
     sources: {
         trendSummary: string | null
         conversionSummary: string | null
         stateFile: string
+    }
+    conversionPulse: {
+        mode: ConversionPulseMode
+        reasonCode: string | null
+        hardOutageActive: boolean
+        amberActive: boolean
+        amberElapsedHours: number | null
+        amberThresholdReached: boolean
     }
     totals: {
         candidateCount: number
@@ -137,6 +165,20 @@ function readCooldownHours(): number {
     return Math.max(1, Math.min(168, Math.round(parsed)))
 }
 
+function readAmberThresholdHours(): number {
+    const rawValue = process.env.QUALITY_ALERT_AMBER_THRESHOLD_HOURS?.trim()
+    if (!rawValue) {
+        return 6
+    }
+
+    const parsed = Number(rawValue)
+    if (!Number.isFinite(parsed)) {
+        return 6
+    }
+
+    return Math.max(1, Math.min(168, Math.round(parsed)))
+}
+
 function readNow(): Date {
     const raw = process.env.QUALITY_ALERT_NOW?.trim()
     if (!raw) {
@@ -149,6 +191,50 @@ function readNow(): Date {
     }
 
     return parsed
+}
+
+function toConversionPulseMode(value: string | undefined | null): ConversionPulseMode {
+    if (value === 'connected_live' || value === 'degraded_no_db' || value === 'stale_cached') {
+        return value
+    }
+    return 'unknown'
+}
+
+function resolveConversionReasonCode(summary: ConversionSummary | null): string | null {
+    if (!summary) {
+        return null
+    }
+
+    if (typeof summary.reasonCode === 'string' && summary.reasonCode.trim().length > 0) {
+        return summary.reasonCode.trim()
+    }
+
+    const connectivityReason = summary.connectivity?.reasonCode
+    if (typeof connectivityReason === 'string' && connectivityReason.trim().length > 0) {
+        return connectivityReason.trim()
+    }
+
+    return null
+}
+
+function resolveConversionPulseState(summary: ConversionSummary | null): {
+    mode: ConversionPulseMode
+    reasonCode: string | null
+    hardOutageActive: boolean
+    amberActive: boolean
+} {
+    const status = summary?.status || 'unknown'
+    const mode = toConversionPulseMode(summary?.mode || summary?.connectivity?.status || null)
+    const reasonCode = resolveConversionReasonCode(summary)
+    const hardOutageActive = mode === 'degraded_no_db' && status !== 'ok'
+    const amberActive = !hardOutageActive && (mode === 'stale_cached' || status === 'unavailable' || summary?.freshness?.stale === true)
+
+    return {
+        mode,
+        reasonCode,
+        hardOutageActive,
+        amberActive,
+    }
 }
 
 function parseAlertId(value: string | undefined, fallback: string): string {
@@ -225,11 +311,34 @@ function buildCandidates(trendSummary: TrendSummary | null, conversionSummary: C
 }
 
 async function loadState(filePath: string): Promise<AlertState> {
-    const parsed = await readJsonIfExists<AlertState>(filePath)
-    if (!parsed || parsed.version !== 1 || typeof parsed.alerts !== 'object' || parsed.alerts === null) {
-        return { version: 1, alerts: {} }
+    const parsed = await readJsonIfExists<
+        | AlertState
+        | {
+              version?: number
+              alerts?: Record<string, AlertStateEntry>
+          }
+    >(filePath)
+
+    if (!parsed || typeof parsed !== 'object' || parsed === null) {
+        return { version: 2, alerts: {}, conditions: {} }
     }
-    return parsed
+
+    const alerts = typeof parsed.alerts === 'object' && parsed.alerts !== null ? parsed.alerts : {}
+    if ((parsed as AlertState).version === 2) {
+        const conditionsRaw = (parsed as AlertState).conditions
+        const conditions = typeof conditionsRaw === 'object' && conditionsRaw !== null ? conditionsRaw : {}
+        return {
+            version: 2,
+            alerts,
+            conditions,
+        }
+    }
+
+    return {
+        version: 2,
+        alerts,
+        conditions: {},
+    }
 }
 
 function formatAlertSeverity(severity: AlertSeverity): string {
@@ -243,8 +352,19 @@ function buildMarkdown(summary: AlertSummary, summaryPath: string): string {
     lines.push(`Generated: ${summary.generatedAt}`)
     lines.push(`Commit: \`${summary.commitSha}\``)
     lines.push(`Cooldown: ${summary.cooldownHours}h`)
+    lines.push(`Amber threshold: ${summary.amberThresholdHours}h`)
     lines.push(`Summary JSON: \`${toRelativePath(summaryPath)}\``)
     lines.push('')
+
+    lines.push('## Conversion Pulse State')
+    lines.push(`- Mode: ${summary.conversionPulse.mode}`)
+    lines.push(`- Reason code: ${summary.conversionPulse.reasonCode || 'n/a'}`)
+    lines.push(`- Hard outage active: ${summary.conversionPulse.hardOutageActive}`)
+    lines.push(`- Amber active: ${summary.conversionPulse.amberActive}`)
+    lines.push(`- Amber elapsed hours: ${summary.conversionPulse.amberElapsedHours ?? 'n/a'}`)
+    lines.push(`- Amber threshold reached: ${summary.conversionPulse.amberThresholdReached}`)
+    lines.push('')
+
     lines.push('## Totals')
     lines.push(`- Candidates: ${summary.totals.candidateCount}`)
     lines.push(`- Emitted: ${summary.totals.emittedCount}`)
@@ -281,6 +401,8 @@ async function main(): Promise<void> {
     const commitSha = readCommitSha()
     const cooldownHours = readCooldownHours()
     const cooldownMs = cooldownHours * 60 * 60 * 1000
+    const amberThresholdHours = readAmberThresholdHours()
+    const amberThresholdMs = amberThresholdHours * 60 * 60 * 1000
     const timestamp = formatTimestampForPath(now)
 
     const trendSummaryPath = process.env.QUALITY_ALERT_TREND_SUMMARY?.trim() || null
@@ -298,8 +420,54 @@ async function main(): Promise<void> {
 
     const trendSummary = await readJsonIfExists<TrendSummary>(trendSummaryPath || undefined)
     const conversionSummary = await readJsonIfExists<ConversionSummary>(conversionSummaryPath || undefined)
-    const candidates = buildCandidates(trendSummary, conversionSummary)
     const state = await loadState(statePath)
+    const conversionPulseState = resolveConversionPulseState(conversionSummary)
+    const pulseCandidates: AlertCandidate[] = []
+    const nowIso = now.toISOString()
+    const amberConditionKey = 'conversion_pulse_amber_watch'
+    let amberElapsedHours: number | null = null
+    let amberThresholdReached = false
+
+    if (conversionPulseState.hardOutageActive) {
+        delete state.conditions[amberConditionKey]
+        pulseCandidates.push({
+            id: 'conversion_pulse_hard_outage',
+            source: 'conversion_pulse',
+            severity: 'critical',
+            message: `Conversion pulse is in hard outage mode (${conversionPulseState.mode})${conversionPulseState.reasonCode ? ` with reason ${conversionPulseState.reasonCode}` : ''}.`,
+            reasonHint: 'Immediate red path: restore checkpoint runtime database connectivity and rerun `npm run ops:quality-checkpoint`.',
+        })
+    } else if (conversionPulseState.amberActive) {
+        const existing = state.conditions[amberConditionKey]
+        const parsedFirstSeen = existing ? new Date(existing.firstSeenAt) : null
+        const hasValidFirstSeen = parsedFirstSeen !== null && !Number.isNaN(parsedFirstSeen.getTime())
+        const firstSeenAt = hasValidFirstSeen ? parsedFirstSeen : now
+        const elapsedMs = Math.max(now.getTime() - firstSeenAt.getTime(), 0)
+        amberElapsedHours = Number((elapsedMs / (60 * 60 * 1000)).toFixed(2))
+        amberThresholdReached = elapsedMs >= amberThresholdMs
+
+        state.conditions[amberConditionKey] = {
+            firstSeenAt: hasValidFirstSeen ? firstSeenAt.toISOString() : nowIso,
+            lastSeenAt: nowIso,
+            reasonCode: conversionPulseState.reasonCode,
+        }
+
+        if (amberThresholdReached) {
+            pulseCandidates.push({
+                id: 'conversion_pulse_amber_prolonged',
+                source: 'conversion_pulse',
+                severity: 'warning',
+                message: `Conversion pulse stayed amber for ${amberElapsedHours}h (threshold ${amberThresholdHours}h).`,
+                reasonHint: conversionPulseState.reasonCode
+                    ? `Investigate persistent amber conversion pulse condition (${conversionPulseState.reasonCode}).`
+                    : 'Investigate persistent amber conversion pulse condition and restore connected_live mode.',
+            })
+        }
+    } else {
+        delete state.conditions[amberConditionKey]
+    }
+
+    const candidates = mergeCandidates([...buildCandidates(trendSummary, conversionSummary), ...pulseCandidates])
 
     const emitted: EmittedAlert[] = []
     const suppressed: SuppressedAlert[] = []
@@ -363,13 +531,22 @@ async function main(): Promise<void> {
     }
 
     const summary: AlertSummary = {
-        generatedAt: now.toISOString(),
+        generatedAt: nowIso,
         commitSha,
         cooldownHours,
+        amberThresholdHours,
         sources: {
             trendSummary: trendSummaryPath,
             conversionSummary: conversionSummaryPath,
             stateFile: toRelativePath(statePath),
+        },
+        conversionPulse: {
+            mode: conversionPulseState.mode,
+            reasonCode: conversionPulseState.reasonCode,
+            hardOutageActive: conversionPulseState.hardOutageActive,
+            amberActive: conversionPulseState.amberActive,
+            amberElapsedHours,
+            amberThresholdReached,
         },
         totals: {
             candidateCount: candidates.length,

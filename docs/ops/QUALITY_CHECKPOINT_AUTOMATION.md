@@ -56,8 +56,10 @@ Per run (timestamp + commit SHA):
   - `CONVERSION_INSIGHTS_DEGRADED_POLICY` (default `warn`, set `fail` to hard-fail when no DB/cache fallback is usable)
 - Alert tuning toggles:
   - `QUALITY_ALERT_COOLDOWN_HOURS` (default `24`, applies only to non-critical alerts)
+  - `QUALITY_ALERT_AMBER_THRESHOLD_HOURS` (default `6`, alert threshold window for prolonged conversion-pulse amber state)
   - `QUALITY_ALERT_NOW` (optional ISO timestamp for deterministic test runs)
-  - Critical alerts bypass cooldown and are emitted every run.
+  - Critical alerts bypass cooldown and are emitted every run (`conversion_pulse_hard_outage`, trend fail, and critical conversion anomalies).
+  - Prolonged amber conversion-pulse alerts (`conversion_pulse_amber_prolonged`) are warning-level and respect cooldown dedupe.
 - Non-critical stage strictness:
   - `QUALITY_CHECKPOINT_STRICT_NON_CRITICAL` (default `0`, set `1` to fail checkpoint on conversion/alerts stage failure)
 
