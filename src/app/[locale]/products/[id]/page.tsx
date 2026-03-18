@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
@@ -200,6 +201,8 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
             >
                 <ArrowLeft className="w-4 h-4" /> {detailCopy.backLabel}
             </Link>
+
+            <TrustSignalStrip locale={locale} className="mb-8" />
 
             <ProductDetailClient
                 product={productForClient}

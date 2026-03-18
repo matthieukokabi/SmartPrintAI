@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { toAbsoluteUrl } from '@/lib/site'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
@@ -81,6 +82,8 @@ export default async function ProductsPage() {
                 </h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </div>
+
+            <TrustSignalStrip locale={DEFAULT_LOCALE} className="mb-8" />
 
             <section className="mb-12 grid gap-3 sm:grid-cols-2">
                 <Link href="/create" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">

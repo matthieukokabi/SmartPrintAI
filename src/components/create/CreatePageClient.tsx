@@ -8,6 +8,7 @@ import StyleSelector from '@/components/create/StyleSelector'
 import GeneratedImage from '@/components/create/GeneratedImage'
 import ProductPicker from '@/components/create/ProductPicker'
 import MockupPreview from '@/components/create/MockupPreview'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { useCart } from '@/store/cart'
 import type { DesignStyle, Product } from '@/types'
@@ -423,6 +424,8 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                 </h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </div>
+
+            <TrustSignalStrip locale={locale} className="mb-8" />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="space-y-8">

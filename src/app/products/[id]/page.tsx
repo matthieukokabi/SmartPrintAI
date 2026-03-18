@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
@@ -167,6 +168,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <Link href="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
                 <ArrowLeft className="w-4 h-4" /> {copy.backLabel}
             </Link>
+
+            <TrustSignalStrip locale={DEFAULT_LOCALE} className="mb-8" />
 
             <ProductDetailClient
                 product={productForClient}

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/shared/ProductCard'
+import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
@@ -192,6 +193,8 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
                 </h1>
                 <p className="text-muted-foreground">{copy.subtitle}</p>
             </div>
+
+            <TrustSignalStrip locale={locale} className="mb-8" />
 
             <section className="mb-12 grid gap-3 sm:grid-cols-2">
                 <Link
