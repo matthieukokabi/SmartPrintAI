@@ -5,6 +5,7 @@ Run a scheduled VPS checkpoint that captures:
 - rendered-head verification summary
 - deterministic Lighthouse gate summary
 - trend gate evaluation with warmup status
+- weekly conversion insight pack (source/page/form-step dropoff + anomaly hints)
 - mission-control quality snapshot (RAG flags + trend deltas)
 
 ## Commands
@@ -19,6 +20,8 @@ Per run (timestamp + commit SHA):
 - `docs/reports/artifacts/wave5-lighthouse-deterministic-<timestamp>-<sha>/summary.json`
 - `docs/reports/artifacts/wave5-trend-history-<timestamp>-<sha>/summary.json`
 - `docs/reports/WAVE5_TREND_GATE_<timestamp>_<sha>.md`
+- `docs/reports/artifacts/wave6-conversion-insights-<timestamp>-<sha>/summary.json`
+- `docs/reports/WAVE6_CONVERSION_INSIGHTS_<timestamp>_<sha>.md`
 - `docs/reports/artifacts/wave5-checkpoints/checkpoint-<timestamp>-<sha>.json`
 - `docs/reports/artifacts/wave5-checkpoints/latest.json`
 - `docs/reports/artifacts/wave5-checkpoints/snapshot-<timestamp>-<sha>.json`
@@ -39,6 +42,9 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
 - Deterministic Lighthouse fixture enforcement toggle:
   - `QUALITY_CHECKPOINT_REQUIRE_FIXTURE` (default `1`, set `0` only for diagnostics)
+- Conversion insight window and input toggles:
+  - `CONVERSION_INSIGHTS_WINDOW_DAYS` (default `7`, clamp `1..31`)
+  - `CONVERSION_INSIGHTS_INPUT_FILE` (optional fixture-mode input for deterministic/local validation)
 
 ## systemd Units
 - Service: `ops/systemd/smartprintai-quality-checkpoint.service`

@@ -38,7 +38,9 @@
     "deploy:vps": "./scripts/deploy_vps.sh",
     "ops:quality-snapshot": "node --import tsx scripts/build_quality_ops_snapshot.ts",
     "ops:quality-checkpoint": "bash scripts/run_quality_checkpoint.sh",
-    "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh"
+    "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh",
+    "ops:conversion-insights": "node --import tsx scripts/build_conversion_insights.ts",
+    "test:conversion:insights": "bash scripts/tests/conversion_insights_test.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
