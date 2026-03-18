@@ -7,7 +7,7 @@ Run a scheduled VPS checkpoint that captures:
 - trend gate evaluation with warmup status
 - weekly conversion insight pack (source/page/form-step dropoff + anomaly hints)
 - tuned ops alerts with warning dedupe/cooldown and immediate critical emission
-- mission-control quality snapshot (RAG flags + trend deltas)
+- mission-control release confidence snapshot (RAG flags + trend deltas + deploy health + conversion pulse)
 
 ## Commands
 - One-off checkpoint:

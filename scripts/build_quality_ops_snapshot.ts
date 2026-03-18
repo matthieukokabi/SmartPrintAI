@@ -17,6 +17,8 @@ type CheckpointSummary = {
         rendered?: CheckpointStage
         lighthouse?: CheckpointStage
         trend?: CheckpointStage
+        conversion?: CheckpointStage
+        alerts?: CheckpointStage
     }
 }
 
@@ -88,6 +90,20 @@ type TrendSummary = {
     findings?: TrendFinding[]
 }
 
+type ConversionAnomaly = {
+    severity?: 'warning' | 'critical'
+}
+
+type ConversionSummary = {
+    status?: 'ok' | 'unavailable'
+    totals?: {
+        generatedCount?: number
+        purchaseCount?: number
+        conversionRate?: number
+    }
+    anomalies?: ConversionAnomaly[]
+}
+
 type Snapshot = {
     generatedAt: string
     commitSha: string
@@ -100,6 +116,8 @@ type Snapshot = {
         deterministicRoute: GateFlag
         trustSchema: GateFlag
         legalLinks: GateFlag
+        conversionPulse: GateFlag
+        deployHealth: GateFlag
     }
     lighthouse: {
         routeCount: number
@@ -132,10 +150,56 @@ type Snapshot = {
             rendered: number
         }
     }
+    conversion: {
+        status: 'ok' | 'unavailable' | 'unknown'
+        generatedCount: number
+        purchaseCount: number
+        conversionRate: number
+        warningAnomalyCount: number
+        criticalAnomalyCount: number
+    }
+    deployHealth: {
+        status: 'healthy' | 'watch' | 'degraded'
+        renderedStageStatus: number | null
+        lighthouseStageStatus: number | null
+    }
+    releaseConfidenceCard: {
+        renderedSemantics: {
+            flag: GateFlag
+            requiredTrustRate: number
+            failureCount: number
+        }
+        lighthouseDeterministicGate: {
+            flag: GateFlag
+            strategy: string
+            averageScores: {
+                performance: number
+                accessibility: number
+                seo: number
+            }
+        }
+        trendStatus: {
+            flag: GateFlag
+            status: 'pass' | 'warmup' | 'fail' | 'unknown'
+            findingCount: number
+        }
+        deployHealth: {
+            flag: GateFlag
+            status: 'healthy' | 'watch' | 'degraded'
+        }
+        conversionPulse: {
+            flag: GateFlag
+            status: 'ok' | 'unavailable' | 'unknown'
+            conversionRate: number
+            criticalAnomalyCount: number
+            warningAnomalyCount: number
+        }
+    }
     sources: {
         lighthouseSummary: string | null
         renderedSummary: string | null
         trendSummary: string | null
+        conversionSummary: string | null
     }
 }
 
@@ -240,7 +304,7 @@ function formatFlag(flag: GateFlag): string {
 
 function buildMarkdown(snapshot: Snapshot, outputJsonPath: string): string {
     const lines: string[] = []
-    lines.push('# Wave 5 Quality Trend Snapshot')
+    lines.push('# Wave 6 Release Confidence Snapshot')
     lines.push('')
     lines.push(`Generated: ${snapshot.generatedAt}`)
     lines.push(`Commit: \`${snapshot.commitSha}\``)
@@ -254,6 +318,8 @@ function buildMarkdown(snapshot: Snapshot, outputJsonPath: string): string {
     lines.push(`- Deterministic route: ${formatFlag(snapshot.flags.deterministicRoute)}`)
     lines.push(`- Trust/schema semantic pass: ${formatFlag(snapshot.flags.trustSchema)}`)
     lines.push(`- Legal/support links pass: ${formatFlag(snapshot.flags.legalLinks)}`)
+    lines.push(`- Deploy health: ${formatFlag(snapshot.flags.deployHealth)}`)
+    lines.push(`- Conversion pulse: ${formatFlag(snapshot.flags.conversionPulse)}`)
     lines.push('')
     lines.push('## Highlights')
     lines.push(
@@ -263,6 +329,10 @@ function buildMarkdown(snapshot: Snapshot, outputJsonPath: string): string {
         `- Trust visibility: ${snapshot.rendered.requiredTrustVisible}/${snapshot.rendered.requiredTrustTotal} (${(snapshot.rendered.requiredTrustRate * 100).toFixed(1)}%)`,
     )
     lines.push(`- Trend status: ${snapshot.trend.status} (findings: ${snapshot.trend.findingCount})`)
+    lines.push(`- Deploy health: ${snapshot.deployHealth.status}`)
+    lines.push(
+        `- Conversion pulse: status=${snapshot.conversion.status}, rate=${snapshot.conversion.conversionRate}, critical=${snapshot.conversion.criticalAnomalyCount}, warning=${snapshot.conversion.warningAnomalyCount}`,
+    )
     if (snapshot.trend.status === 'warmup') {
         lines.push(
             `- Warmup remaining: lighthouse=${snapshot.trend.warmupRemaining.lighthouse}, rendered=${snapshot.trend.warmupRemaining.rendered}`,
@@ -293,10 +363,12 @@ async function main(): Promise<void> {
     const lighthouseSummaryPath = checkpoint.stages?.lighthouse?.summary
     const renderedSummaryPath = checkpoint.stages?.rendered?.summary
     const trendSummaryPath = checkpoint.stages?.trend?.summary
+    const conversionSummaryPath = checkpoint.stages?.conversion?.summary
 
     const lighthouseSummary = await readJsonIfExists<LighthouseSummary>(lighthouseSummaryPath)
     const renderedSummary = await readJsonIfExists<RenderedSummary>(renderedSummaryPath)
     const trendSummary = await readJsonIfExists<TrendSummary>(trendSummaryPath)
+    const conversionSummary = await readJsonIfExists<ConversionSummary>(conversionSummaryPath)
 
     const routeResults = lighthouseSummary?.routeResults || []
     const performanceScores = routeResults.map((route) => route.finalScores?.performance || 0)
@@ -315,6 +387,17 @@ async function main(): Promise<void> {
     const trendStatus = trendSummary?.status || 'unknown'
     const trendFindings = trendSummary?.findings || []
     const topFinding = trendFindings.length > 0 ? trendFindings[0] : null
+
+    const conversionStatus = conversionSummary?.status || 'unknown'
+    const conversionGeneratedCount = conversionSummary?.totals?.generatedCount || 0
+    const conversionPurchaseCount = conversionSummary?.totals?.purchaseCount || 0
+    const conversionRate = conversionSummary?.totals?.conversionRate || 0
+    const conversionCriticalAnomalyCount = (conversionSummary?.anomalies || []).filter(
+        (anomaly) => anomaly.severity === 'critical',
+    ).length
+    const conversionWarningAnomalyCount = (conversionSummary?.anomalies || []).filter(
+        (anomaly) => anomaly.severity === 'warning',
+    ).length
 
     const renderedFailureCount = (renderedSummary?.failures || []).length
     const lighthouseFailureCount = (lighthouseSummary?.failures || []).length
@@ -350,6 +433,30 @@ async function main(): Promise<void> {
 
     const trustSchemaFlag: GateFlag = trustSchemaPass ? 'green' : 'red'
     const legalLinksFlag: GateFlag = legalLinksPass ? 'green' : 'red'
+    const conversionStageStatus = checkpoint.stages?.conversion?.status
+    const conversionFlag: GateFlag = conversionStageStatus === undefined
+        ? 'amber'
+        : !isPassingStatus(conversionStageStatus)
+          ? 'red'
+          : conversionStatus === 'unknown'
+          ? 'amber'
+          : conversionStatus === 'unavailable'
+            ? 'amber'
+            : conversionCriticalAnomalyCount > 0
+              ? 'red'
+              : conversionWarningAnomalyCount > 0
+                ? 'amber'
+                : 'green'
+    const deployHealthFlag: GateFlag = renderedFlag === 'red' || lighthouseFlag === 'red'
+        ? 'red'
+        : deterministicRouteFlag === 'amber' || trendFlag === 'amber'
+          ? 'amber'
+          : 'green'
+    const deployHealthStatus: 'healthy' | 'watch' | 'degraded' = deployHealthFlag === 'green'
+        ? 'healthy'
+        : deployHealthFlag === 'amber'
+          ? 'watch'
+          : 'degraded'
 
     const overallFlag = deriveOverallFlag([
         renderedFlag,
@@ -358,6 +465,8 @@ async function main(): Promise<void> {
         deterministicRouteFlag,
         trustSchemaFlag,
         legalLinksFlag,
+        conversionFlag,
+        deployHealthFlag,
     ])
 
     const snapshot: Snapshot = {
@@ -372,6 +481,8 @@ async function main(): Promise<void> {
             deterministicRoute: deterministicRouteFlag,
             trustSchema: trustSchemaFlag,
             legalLinks: legalLinksFlag,
+            conversionPulse: conversionFlag,
+            deployHealth: deployHealthFlag,
         },
         lighthouse: {
             routeCount: routeResults.length,
@@ -404,10 +515,56 @@ async function main(): Promise<void> {
                 rendered: trendSummary?.warmup?.remaining?.rendered || 0,
             },
         },
+        conversion: {
+            status: conversionStatus,
+            generatedCount: conversionGeneratedCount,
+            purchaseCount: conversionPurchaseCount,
+            conversionRate,
+            warningAnomalyCount: conversionWarningAnomalyCount,
+            criticalAnomalyCount: conversionCriticalAnomalyCount,
+        },
+        deployHealth: {
+            status: deployHealthStatus,
+            renderedStageStatus: checkpoint.stages?.rendered?.status ?? null,
+            lighthouseStageStatus: checkpoint.stages?.lighthouse?.status ?? null,
+        },
+        releaseConfidenceCard: {
+            renderedSemantics: {
+                flag: renderedFlag,
+                requiredTrustRate: Number(requiredTrustRate.toFixed(4)),
+                failureCount: renderedFailureCount,
+            },
+            lighthouseDeterministicGate: {
+                flag: deterministicRouteFlag,
+                strategy: deterministicRouteStrategy,
+                averageScores: {
+                    performance: average(performanceScores),
+                    accessibility: average(accessibilityScores),
+                    seo: average(seoScores),
+                },
+            },
+            trendStatus: {
+                flag: trendFlag,
+                status: trendStatus,
+                findingCount: trendFindings.length,
+            },
+            deployHealth: {
+                flag: deployHealthFlag,
+                status: deployHealthStatus,
+            },
+            conversionPulse: {
+                flag: conversionFlag,
+                status: conversionStatus,
+                conversionRate,
+                criticalAnomalyCount: conversionCriticalAnomalyCount,
+                warningAnomalyCount: conversionWarningAnomalyCount,
+            },
+        },
         sources: {
             lighthouseSummary: lighthouseSummaryPath || null,
             renderedSummary: renderedSummaryPath || null,
             trendSummary: trendSummaryPath || null,
+            conversionSummary: conversionSummaryPath || null,
         },
     }
 
