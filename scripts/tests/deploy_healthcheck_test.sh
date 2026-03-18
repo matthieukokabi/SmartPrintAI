@@ -119,5 +119,6 @@ MOCK_SLEEP
 run_case "immediate_success" "200" "3" "0" "1" "0" "immediate_success=200 (attempt 1/3)"
 run_case "flaky_recovery" "000,200" "3" "0" "2" "1" "flaky_recovery=200 (attempt 2/3)"
 run_case "retry_exhaustion" "503" "3" "1" "3" "2" "ERROR: retry_exhaustion expected 200, got 503 after 3 attempts"
+run_case "network_exhaustion" "000" "2" "1" "2" "1" "ERROR: network_exhaustion expected 200, got 000 after 2 attempts"
 
 echo "All deploy healthcheck retry tests passed."
