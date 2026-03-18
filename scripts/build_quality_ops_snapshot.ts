@@ -91,11 +91,25 @@ type TrendSummary = {
 }
 
 type ConversionAnomaly = {
+    id?: string
     severity?: 'warning' | 'critical'
 }
 
+type ConversionRuntimeMode = 'connected_live' | 'degraded_no_db' | 'stale_cached'
+type ConversionMode = ConversionRuntimeMode | 'unknown'
+
 type ConversionSummary = {
     status?: 'ok' | 'unavailable'
+    mode?: ConversionRuntimeMode
+    reasonCode?: string
+    connectivity?: {
+        status?: ConversionRuntimeMode
+        reasonCode?: string
+    }
+    freshness?: {
+        ageSeconds?: number | null
+        stale?: boolean
+    }
     totals?: {
         generatedCount?: number
         purchaseCount?: number
@@ -152,6 +166,12 @@ type Snapshot = {
     }
     conversion: {
         status: 'ok' | 'unavailable' | 'unknown'
+        mode: ConversionMode
+        dbConnectivityStatus: ConversionMode
+        dataFreshnessAge: number | null
+        stale: boolean
+        reasonCode: string | null
+        amberReasonCode: string | null
         generatedCount: number
         purchaseCount: number
         conversionRate: number
@@ -193,6 +213,10 @@ type Snapshot = {
             conversionRate: number
             criticalAnomalyCount: number
             warningAnomalyCount: number
+            db_connectivity_status: ConversionMode
+            conversion_pulse_mode: ConversionMode
+            data_freshness_age: number | null
+            amber_reason_code: string | null
         }
     }
     sources: {
@@ -302,6 +326,13 @@ function formatFlag(flag: GateFlag): string {
     return 'RED'
 }
 
+function toConversionMode(value: string | undefined | null): ConversionMode {
+    if (value === 'connected_live' || value === 'degraded_no_db' || value === 'stale_cached') {
+        return value
+    }
+    return 'unknown'
+}
+
 function buildMarkdown(snapshot: Snapshot, outputJsonPath: string): string {
     const lines: string[] = []
     lines.push('# Wave 6 Release Confidence Snapshot')
@@ -332,6 +363,9 @@ function buildMarkdown(snapshot: Snapshot, outputJsonPath: string): string {
     lines.push(`- Deploy health: ${snapshot.deployHealth.status}`)
     lines.push(
         `- Conversion pulse: status=${snapshot.conversion.status}, rate=${snapshot.conversion.conversionRate}, critical=${snapshot.conversion.criticalAnomalyCount}, warning=${snapshot.conversion.warningAnomalyCount}`,
+    )
+    lines.push(
+        `- Conversion runtime: mode=${snapshot.conversion.mode}, db=${snapshot.conversion.dbConnectivityStatus}, freshnessAge=${snapshot.conversion.dataFreshnessAge ?? 'n/a'}, amberReason=${snapshot.conversion.amberReasonCode ?? 'n/a'}`,
     )
     if (snapshot.trend.status === 'warmup') {
         lines.push(
@@ -389,6 +423,21 @@ async function main(): Promise<void> {
     const topFinding = trendFindings.length > 0 ? trendFindings[0] : null
 
     const conversionStatus = conversionSummary?.status || 'unknown'
+    const conversionMode = toConversionMode(conversionSummary?.mode || null)
+    const dbConnectivityStatus = toConversionMode(conversionSummary?.connectivity?.status || conversionSummary?.mode || null)
+    const dataFreshnessAgeRaw = conversionSummary?.freshness?.ageSeconds
+    const dataFreshnessAge =
+        typeof dataFreshnessAgeRaw === 'number' && Number.isFinite(dataFreshnessAgeRaw)
+            ? Math.max(0, Math.round(dataFreshnessAgeRaw))
+            : null
+    const dataFreshnessStale = conversionSummary?.freshness?.stale === true
+    const conversionReasonCode =
+        typeof conversionSummary?.reasonCode === 'string' && conversionSummary.reasonCode.length > 0
+            ? conversionSummary.reasonCode
+            : typeof conversionSummary?.connectivity?.reasonCode === 'string' &&
+                conversionSummary.connectivity.reasonCode.length > 0
+              ? conversionSummary.connectivity.reasonCode
+              : null
     const conversionGeneratedCount = conversionSummary?.totals?.generatedCount || 0
     const conversionPurchaseCount = conversionSummary?.totals?.purchaseCount || 0
     const conversionRate = conversionSummary?.totals?.conversionRate || 0
@@ -440,13 +489,36 @@ async function main(): Promise<void> {
           ? 'red'
           : conversionStatus === 'unknown'
           ? 'amber'
-          : conversionStatus === 'unavailable'
-            ? 'amber'
-            : conversionCriticalAnomalyCount > 0
+          : conversionCriticalAnomalyCount > 0
               ? 'red'
-              : conversionWarningAnomalyCount > 0
+              : conversionStatus === 'unavailable'
                 ? 'amber'
-                : 'green'
+                : conversionMode === 'stale_cached' || dataFreshnessStale
+                  ? 'amber'
+                  : conversionWarningAnomalyCount > 0
+                    ? 'amber'
+                    : 'green'
+
+    let conversionAmberReasonCode: string | null = null
+    if (conversionFlag === 'amber') {
+        if (conversionStageStatus === undefined) {
+            conversionAmberReasonCode = 'conversion_stage_missing'
+        } else if (conversionReasonCode) {
+            conversionAmberReasonCode = conversionReasonCode
+        } else if (conversionStatus === 'unknown') {
+            conversionAmberReasonCode = 'conversion_status_unknown'
+        } else if (conversionStatus === 'unavailable') {
+            conversionAmberReasonCode = 'conversion_unavailable'
+        } else if (conversionMode === 'stale_cached') {
+            conversionAmberReasonCode = 'conversion_cache_fallback'
+        } else if (dataFreshnessStale) {
+            conversionAmberReasonCode = 'conversion_data_stale'
+        } else if (conversionWarningAnomalyCount > 0) {
+            conversionAmberReasonCode = 'conversion_warning_anomaly'
+        } else {
+            conversionAmberReasonCode = 'conversion_amber'
+        }
+    }
     const deployHealthFlag: GateFlag = renderedFlag === 'red' || lighthouseFlag === 'red'
         ? 'red'
         : deterministicRouteFlag === 'amber' || trendFlag === 'amber'
@@ -517,6 +589,12 @@ async function main(): Promise<void> {
         },
         conversion: {
             status: conversionStatus,
+            mode: conversionMode,
+            dbConnectivityStatus,
+            dataFreshnessAge,
+            stale: dataFreshnessStale,
+            reasonCode: conversionReasonCode,
+            amberReasonCode: conversionAmberReasonCode,
             generatedCount: conversionGeneratedCount,
             purchaseCount: conversionPurchaseCount,
             conversionRate,
@@ -558,6 +636,10 @@ async function main(): Promise<void> {
                 conversionRate,
                 criticalAnomalyCount: conversionCriticalAnomalyCount,
                 warningAnomalyCount: conversionWarningAnomalyCount,
+                db_connectivity_status: dbConnectivityStatus,
+                conversion_pulse_mode: conversionMode,
+                data_freshness_age: dataFreshnessAge,
+                amber_reason_code: conversionAmberReasonCode,
             },
         },
         sources: {

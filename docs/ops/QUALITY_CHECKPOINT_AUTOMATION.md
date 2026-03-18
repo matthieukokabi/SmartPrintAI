@@ -8,6 +8,7 @@ Run a scheduled VPS checkpoint that captures:
 - weekly conversion insight pack (source/page/form-step dropoff + anomaly hints)
 - tuned ops alerts with warning dedupe/cooldown and immediate critical emission
 - mission-control release confidence snapshot (RAG flags + trend deltas + deploy health + conversion pulse)
+  - conversion pulse card v2 fields: `db_connectivity_status`, `conversion_pulse_mode`, `data_freshness_age`, `amber_reason_code`
 
 ## Commands
 - One-off checkpoint:
