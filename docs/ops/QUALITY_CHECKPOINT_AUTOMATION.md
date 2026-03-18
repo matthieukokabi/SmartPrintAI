@@ -57,6 +57,7 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_ENV_FILE` (default `.env.local`)
   - `SMARTPRINTAI_ENV_FILE` (fallback path alias used by shared env loader)
   - Checkpoint bootstrap requires `DATABASE_URL`; missing env file/vars fails fast with remediation output.
+  - Malformed non-`KEY=VALUE` lines are ignored with explicit warnings (no shell execution).
 - Artifact sync controls:
   - `npm run ops:quality-checkpoint:sync` syncs the latest checkpoint artifact set from VPS in one command.
   - Optional overrides:

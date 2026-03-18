@@ -88,8 +88,28 @@ EOF
   trap - RETURN
 }
 
+run_case_malformed_lines_are_ignored_with_warning() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+
+  cat > "${tmp_dir}/.env.local" <<'EOF'
+DATABASE_URL=postgresql://env-loader:test@localhost:5432/smartprintai
+MALFORMED_TOKEN_ONLY
+EOF
+
+  local output
+  output="$(bash -c "set -euo pipefail; source '$ENV_LOADER'; smartprintai_bootstrap_env '${tmp_dir}/.env.local' DATABASE_URL; printf 'DATABASE_URL=%s' \"\$DATABASE_URL\"" 2>&1)"
+  assert_contains "$output" "warning: ignored malformed line 2" "malformed line warning should be emitted"
+  assert_contains "$output" "DATABASE_URL=postgresql://env-loader:test@localhost:5432/smartprintai" "required variable should still load"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
 run_case_successful_bootstrap
 run_case_missing_env_file
 run_case_missing_required_var_message
+run_case_malformed_lines_are_ignored_with_warning
 
 echo "All env loader contract tests passed."

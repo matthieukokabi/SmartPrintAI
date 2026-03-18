@@ -4,6 +4,8 @@
 
 smartprintai_load_env_file() {
   local env_file="${1:-}"
+  local line_number=0
+  local raw_line trimmed_line key value
   if [ -z "$env_file" ]; then
     echo "[env-loader] missing env file path input." >&2
     return 2
@@ -20,10 +22,44 @@ smartprintai_load_env_file() {
     return 4
   fi
 
-  set -a
-  # shellcheck source=/dev/null
-  . "$env_file"
-  set +a
+  while IFS= read -r raw_line || [ -n "$raw_line" ]; do
+    line_number=$((line_number + 1))
+    trimmed_line="${raw_line#"${raw_line%%[![:space:]]*}"}"
+    trimmed_line="${trimmed_line%"${trimmed_line##*[![:space:]]}"}"
+
+    if [ -z "$trimmed_line" ] || [[ "$trimmed_line" == \#* ]]; then
+      continue
+    fi
+
+    if [[ "$trimmed_line" == export[[:space:]]* ]]; then
+      trimmed_line="${trimmed_line#export }"
+      trimmed_line="${trimmed_line#"${trimmed_line%%[![:space:]]*}"}"
+    fi
+
+    if [[ "$trimmed_line" != *=* ]]; then
+      echo "[env-loader] warning: ignored malformed line ${line_number} in ${env_file}" >&2
+      continue
+    fi
+
+    key="${trimmed_line%%=*}"
+    value="${trimmed_line#*=}"
+    key="${key%"${key##*[![:space:]]}"}"
+    key="${key#"${key%%[![:space:]]*}"}"
+    value="${value#"${value%%[![:space:]]*}"}"
+
+    if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+      echo "[env-loader] warning: ignored invalid key '${key}' on line ${line_number} in ${env_file}" >&2
+      continue
+    fi
+
+    if [[ "$value" == \"*\" && "$value" == *\" ]] || [[ "$value" == \'*\' && "$value" == *\' ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+
+    printf -v "$key" '%s' "$value"
+    export "$key"
+  done < "$env_file"
+
   export SMARTPRINTAI_ENV_FILE_LOADED="$env_file"
 }
 
