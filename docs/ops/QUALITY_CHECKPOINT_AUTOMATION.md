@@ -46,13 +46,27 @@ Per run (timestamp + commit SHA):
   - `QUALITY_CHECKPOINT_INCLUDE_PROD` (default `1`)
 - Deterministic Lighthouse fixture enforcement toggle:
   - `QUALITY_CHECKPOINT_REQUIRE_FIXTURE` (default `1`, set `0` only for diagnostics)
+- DB-dependent conversion stage resilience:
+  - `QUALITY_CHECKPOINT_DB_MAX_RETRIES` (default `3`, includes initial attempt)
+  - `QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS` (default `5`, linear backoff base in seconds)
 - Conversion insight window and input toggles:
   - `CONVERSION_INSIGHTS_WINDOW_DAYS` (default `7`, clamp `1..31`)
   - `CONVERSION_INSIGHTS_INPUT_FILE` (optional fixture-mode input for deterministic/local validation)
+  - `CONVERSION_INSIGHTS_DEGRADED_POLICY` (default `warn`, set `fail` to hard-fail when no DB/cache fallback is usable)
 - Alert tuning toggles:
   - `QUALITY_ALERT_COOLDOWN_HOURS` (default `24`, applies only to non-critical alerts)
   - `QUALITY_ALERT_NOW` (optional ISO timestamp for deterministic test runs)
   - Critical alerts bypass cooldown and are emitted every run.
+- Non-critical stage strictness:
+  - `QUALITY_CHECKPOINT_STRICT_NON_CRITICAL` (default `0`, set `1` to fail checkpoint on conversion/alerts stage failure)
+
+## Exit Codes
+- `0`: success (or success with non-critical warnings when strict mode is disabled)
+- `11`: rendered stage critical failure
+- `12`: Lighthouse stage critical failure
+- `13`: trend stage critical failure
+- `41`: conversion stage failure in strict non-critical mode
+- `42`: alerts stage failure in strict non-critical mode
 
 ## systemd Units
 - Service: `ops/systemd/smartprintai-quality-checkpoint.service`

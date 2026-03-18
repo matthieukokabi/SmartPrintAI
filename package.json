@@ -28,6 +28,7 @@
     "test:quality:trend": "bash scripts/tests/quality_trend_gate_test.sh",
     "test:quality:ci-guardrails": "bash scripts/tests/ci_quality_guardrails_test.sh",
     "test:quality:snapshot": "bash scripts/tests/build_quality_ops_snapshot_test.sh",
+    "test:ops:checkpoint": "bash scripts/tests/run_quality_checkpoint_test.sh",
     "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts src/app/money-pages-schema-trust-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
