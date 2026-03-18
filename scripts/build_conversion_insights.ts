@@ -64,11 +64,20 @@ type ConversionInsightSummary = {
     generatedAt: string
     commitSha: string
     status: InsightStatus
+    mode: ConnectivityStatus
+    reasonCode: string
     connectivity: {
         status: ConnectivityStatus
         policy: DegradedPolicy
         reasonCode: string
         message: string
+    }
+    freshness: {
+        ttlSeconds: number
+        sourceGeneratedAt: string | null
+        ageSeconds: number | null
+        stale: boolean
+        cacheFile: string
     }
     window: {
         days: number
@@ -90,6 +99,11 @@ type ConversionInsightSummary = {
     pageDropoff: FunnelRow[]
     formStepDropoff: FunnelRow[]
     anomalies: Anomaly[]
+}
+
+type CachedSummaryReadResult = {
+    status: 'hit' | 'miss' | 'invalid'
+    summary: ConversionInsightSummary | null
 }
 
 type SessionAttribution = {
@@ -140,6 +154,26 @@ function readDegradedPolicy(): DegradedPolicy {
         return 'fail'
     }
     return 'warn'
+}
+
+function readCacheTtlSeconds(): number {
+    const rawValue = process.env.CONVERSION_INSIGHTS_CACHE_TTL_SECONDS?.trim()
+    if (!rawValue) {
+        return 6 * 60 * 60
+    }
+
+    const parsed = Number(rawValue)
+    if (!Number.isFinite(parsed)) {
+        return 6 * 60 * 60
+    }
+
+    return Math.max(60, Math.min(7 * 24 * 60 * 60, Math.round(parsed)))
+}
+
+function readCacheFilePath(): string {
+    return toAbsolutePath(
+        process.env.CONVERSION_INSIGHTS_CACHE_FILE || 'docs/reports/artifacts/wave7-conversion-pulse-cache/latest.json',
+    )
 }
 
 function readCommitSha(): string {
@@ -263,6 +297,52 @@ async function readFixtureDataset(filePath: string): Promise<ConversionDataset> 
     const raw = await readFile(toAbsolutePath(filePath), 'utf8')
     const parsed = JSON.parse(raw) as unknown
     return normalizeDataset(parsed)
+}
+
+async function readCachedSummary(filePath: string): Promise<CachedSummaryReadResult> {
+    try {
+        const raw = await readFile(toAbsolutePath(filePath), 'utf8')
+        const parsed = JSON.parse(raw) as Partial<ConversionInsightSummary>
+
+        if (
+            typeof parsed !== 'object' ||
+            parsed === null ||
+            typeof parsed.generatedAt !== 'string' ||
+            typeof parsed.status !== 'string' ||
+            !parsed.totals ||
+            !Array.isArray(parsed.pageDropoff) ||
+            !Array.isArray(parsed.formStepDropoff) ||
+            !Array.isArray(parsed.sourceBreakdown) ||
+            !Array.isArray(parsed.anomalies)
+        ) {
+            return { status: 'invalid', summary: null }
+        }
+
+        return { status: 'hit', summary: parsed as ConversionInsightSummary }
+    } catch (error) {
+        if (
+            typeof error === 'object' &&
+            error !== null &&
+            'code' in error &&
+            (error as { code?: string }).code === 'ENOENT'
+        ) {
+            return { status: 'miss', summary: null }
+        }
+        return { status: 'invalid', summary: null }
+    }
+}
+
+function computeAgeSeconds(sourceGeneratedAt: string | null, now: Date): number | null {
+    if (!sourceGeneratedAt) {
+        return null
+    }
+
+    const parsed = Date.parse(sourceGeneratedAt)
+    if (!Number.isFinite(parsed)) {
+        return null
+    }
+
+    return Math.max(0, Math.round((now.getTime() - parsed) / 1000))
 }
 
 async function openLivePrismaClient(): Promise<
@@ -544,8 +624,13 @@ function buildMarkdown(summary: ConversionInsightSummary, summaryPath: string): 
     lines.push(`Generated: ${summary.generatedAt}`)
     lines.push(`Commit: \`${summary.commitSha}\``)
     lines.push(`Status: **${summary.status.toUpperCase()}**`)
+    lines.push(`Mode: **${summary.mode}**`)
+    lines.push(`Reason code: \`${summary.reasonCode}\``)
     lines.push(
         `Connectivity: **${summary.connectivity.status}** (policy=${summary.connectivity.policy}, reason=${summary.connectivity.reasonCode})`,
+    )
+    lines.push(
+        `Freshness: stale=${summary.freshness.stale}, ageSeconds=${summary.freshness.ageSeconds ?? 'n/a'}, ttlSeconds=${summary.freshness.ttlSeconds}`,
     )
     lines.push(`Summary JSON: \`${toRelativePath(summaryPath)}\``)
     lines.push('')
@@ -596,8 +681,11 @@ function buildMarkdown(summary: ConversionInsightSummary, summaryPath: string): 
 
 async function main(): Promise<void> {
     const now = new Date()
+    const nowIso = now.toISOString()
     const windowDays = readWindowDays()
     const degradedPolicy = readDegradedPolicy()
+    const cacheTtlSeconds = readCacheTtlSeconds()
+    const cacheFilePath = readCacheFilePath()
     const windowMs = windowDays * 24 * 60 * 60 * 1000
     const commitSha = readCommitSha()
     const timestamp = formatTimestampForPath(now)
@@ -616,29 +704,55 @@ async function main(): Promise<void> {
     const previousStart = new Date(previousEnd.getTime() - windowMs)
 
     let status: InsightStatus = 'ok'
-    let dataset: ConversionDataset
-    let connectivityStatus: ConnectivityStatus = 'connected_live'
-    let connectivityReasonCode = 'live_database'
+    let mode: ConnectivityStatus = 'connected_live'
+    let reasonCode = 'live_database'
     let connectivityMessage = 'Runtime database connectivity precheck passed.'
+    let sourceGeneratedAt: string | null = nowIso
+    let ageSeconds: number | null = 0
+    let stale = false
+    let dataset: ConversionDataset | null = null
+    let cachedSummary: ConversionInsightSummary | null = null
+
     const fixturePath = process.env.CONVERSION_INSIGHTS_INPUT_FILE?.trim()
     if (fixturePath) {
         dataset = await readFixtureDataset(fixturePath)
-        connectivityStatus = 'connected_live'
-        connectivityReasonCode = 'fixture_input'
+        mode = 'connected_live'
+        reasonCode = 'fixture_input'
         connectivityMessage = 'Fixture input file provided; runtime DB connectivity check skipped.'
     } else {
         const connection = await openLivePrismaClient()
         if (!connection.ok) {
-            status = 'unavailable'
-            connectivityStatus = 'degraded_no_db'
-            connectivityReasonCode = connection.reasonCode
-            connectivityMessage = connection.message
-            dataset = {
-                current: { designs: [], orders: [] },
-                previous: { designs: [], orders: [] },
-            }
-            if (degradedPolicy === 'fail') {
-                throw new Error(`[conversion-insights:${connection.reasonCode}] ${connection.message}`)
+            const cacheRead = await readCachedSummary(cacheFilePath)
+            if (cacheRead.status === 'hit' && cacheRead.summary && cacheRead.summary.status === 'ok') {
+                cachedSummary = cacheRead.summary
+                mode = 'stale_cached'
+                reasonCode = `cache_fallback_${connection.reasonCode}`
+                connectivityMessage = `${connection.message} Using cached conversion pulse summary.`
+                sourceGeneratedAt = cachedSummary.generatedAt || null
+                ageSeconds = computeAgeSeconds(sourceGeneratedAt, now)
+                stale = ageSeconds === null ? true : ageSeconds > cacheTtlSeconds
+            } else {
+                const cacheStateSuffix =
+                    cacheRead.status === 'miss'
+                        ? 'no_cache'
+                        : cacheRead.status === 'invalid'
+                          ? 'cache_invalid'
+                          : 'cache_unusable'
+
+                status = 'unavailable'
+                mode = 'degraded_no_db'
+                reasonCode = `${connection.reasonCode}_${cacheStateSuffix}`
+                connectivityMessage = `${connection.message} No usable cache fallback (${cacheStateSuffix}).`
+                sourceGeneratedAt = null
+                ageSeconds = null
+                stale = true
+                dataset = {
+                    current: { designs: [], orders: [] },
+                    previous: { designs: [], orders: [] },
+                }
+                if (degradedPolicy === 'fail') {
+                    throw new Error(`[conversion-insights:${reasonCode}] ${connectivityMessage}`)
+                }
             }
         } else {
             try {
@@ -649,66 +763,122 @@ async function main(): Promise<void> {
         }
     }
 
-    const currentGeneratedCount = dataset.current.designs.length
-    const currentPurchaseCount = dataset.current.orders.filter((order) =>
-        PURCHASE_STATUSES.has(order.status.trim().toLowerCase()),
-    ).length
+    let summary: ConversionInsightSummary
+    if (cachedSummary) {
+        const fallbackAnomalyId = stale ? 'conversion_pulse_stale_cache' : 'conversion_pulse_cached_fallback'
+        const fallbackAnomaly: Anomaly = {
+            id: fallbackAnomalyId,
+            severity: 'warning',
+            message: stale
+                ? `Conversion pulse is using stale cache (${ageSeconds ?? 'unknown'}s old; ttl ${cacheTtlSeconds}s).`
+                : 'Runtime database is unavailable; conversion pulse is using cached data within freshness TTL.',
+            reasonHint: stale
+                ? 'Restore runtime DB connectivity and rerun the checkpoint to refresh conversion metrics.'
+                : 'Investigate runtime DB connectivity before cache freshness TTL is exceeded.',
+        }
 
-    const previousGeneratedCount = dataset.previous.designs.length
-    const previousPurchaseCount = dataset.previous.orders.filter((order) =>
-        PURCHASE_STATUSES.has(order.status.trim().toLowerCase()),
-    ).length
+        const priorAnomalies = (cachedSummary.anomalies || []).filter(
+            (anomaly) => anomaly.id !== 'conversion_pulse_stale_cache' && anomaly.id !== 'conversion_pulse_cached_fallback',
+        )
 
-    const currentConversionRate = formatRate(currentPurchaseCount, currentGeneratedCount)
-    const previousConversionRate = formatRate(previousPurchaseCount, previousGeneratedCount)
+        summary = {
+            ...cachedSummary,
+            generatedAt: nowIso,
+            commitSha,
+            status: 'ok',
+            mode,
+            reasonCode,
+            connectivity: {
+                status: mode,
+                policy: degradedPolicy,
+                reasonCode,
+                message: connectivityMessage,
+            },
+            freshness: {
+                ttlSeconds: cacheTtlSeconds,
+                sourceGeneratedAt,
+                ageSeconds,
+                stale,
+                cacheFile: cacheFilePath,
+            },
+            anomalies: [...priorAnomalies, fallbackAnomaly],
+        }
+    } else {
+        const safeDataset = dataset || {
+            current: { designs: [], orders: [] },
+            previous: { designs: [], orders: [] },
+        }
 
-    const sourceBreakdown = buildSourceBreakdown(dataset.current.designs, dataset.current.orders)
-    const coverage = buildAttributionCoverage(dataset.current.designs, dataset.current.orders)
-    const { pageDropoff, formStepDropoff } = buildFunnelRows(currentGeneratedCount, currentPurchaseCount)
+        const currentGeneratedCount = safeDataset.current.designs.length
+        const currentPurchaseCount = safeDataset.current.orders.filter((order) =>
+            PURCHASE_STATUSES.has(order.status.trim().toLowerCase()),
+        ).length
 
-    const anomalies = buildAnomalies({
-        status,
-        unavailableReasonCode: connectivityReasonCode,
-        currentGeneratedCount,
-        currentPurchaseCount,
-        currentConversionRate,
-        previousGeneratedCount,
-        previousPurchaseCount,
-        previousConversionRate,
-        coverage,
-        sourceBreakdown,
-    })
+        const previousGeneratedCount = safeDataset.previous.designs.length
+        const previousPurchaseCount = safeDataset.previous.orders.filter((order) =>
+            PURCHASE_STATUSES.has(order.status.trim().toLowerCase()),
+        ).length
 
-    const summary: ConversionInsightSummary = {
-        generatedAt: now.toISOString(),
-        commitSha,
-        status,
-        connectivity: {
-            status: connectivityStatus,
-            policy: degradedPolicy,
-            reasonCode: connectivityReasonCode,
-            message: connectivityMessage,
-        },
-        window: {
-            days: windowDays,
-            currentStart: currentStart.toISOString(),
-            currentEnd: currentEnd.toISOString(),
-            previousStart: previousStart.toISOString(),
-            previousEnd: previousEnd.toISOString(),
-        },
-        totals: {
-            generatedCount: currentGeneratedCount,
-            purchaseCount: currentPurchaseCount,
-            conversionRate: currentConversionRate,
+        const currentConversionRate = formatRate(currentPurchaseCount, currentGeneratedCount)
+        const previousConversionRate = formatRate(previousPurchaseCount, previousGeneratedCount)
+
+        const sourceBreakdown = buildSourceBreakdown(safeDataset.current.designs, safeDataset.current.orders)
+        const coverage = buildAttributionCoverage(safeDataset.current.designs, safeDataset.current.orders)
+        const { pageDropoff, formStepDropoff } = buildFunnelRows(currentGeneratedCount, currentPurchaseCount)
+
+        const anomalies = buildAnomalies({
+            status,
+            unavailableReasonCode: reasonCode,
+            currentGeneratedCount,
+            currentPurchaseCount,
+            currentConversionRate,
             previousGeneratedCount,
             previousPurchaseCount,
             previousConversionRate,
-        },
-        attributionCoverage: coverage,
-        sourceBreakdown,
-        pageDropoff,
-        formStepDropoff,
-        anomalies,
+            coverage,
+            sourceBreakdown,
+        })
+
+        summary = {
+            generatedAt: nowIso,
+            commitSha,
+            status,
+            mode,
+            reasonCode,
+            connectivity: {
+                status: mode,
+                policy: degradedPolicy,
+                reasonCode,
+                message: connectivityMessage,
+            },
+            freshness: {
+                ttlSeconds: cacheTtlSeconds,
+                sourceGeneratedAt,
+                ageSeconds,
+                stale,
+                cacheFile: cacheFilePath,
+            },
+            window: {
+                days: windowDays,
+                currentStart: currentStart.toISOString(),
+                currentEnd: currentEnd.toISOString(),
+                previousStart: previousStart.toISOString(),
+                previousEnd: previousEnd.toISOString(),
+            },
+            totals: {
+                generatedCount: currentGeneratedCount,
+                purchaseCount: currentPurchaseCount,
+                conversionRate: currentConversionRate,
+                previousGeneratedCount,
+                previousPurchaseCount,
+                previousConversionRate,
+            },
+            attributionCoverage: coverage,
+            sourceBreakdown,
+            pageDropoff,
+            formStepDropoff,
+            anomalies,
+        }
     }
 
     await mkdir(path.dirname(summaryPath), { recursive: true })
@@ -716,9 +886,14 @@ async function main(): Promise<void> {
 
     await writeFile(summaryPath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
     await writeFile(reportPath, `${buildMarkdown(summary, summaryPath)}\n`, 'utf8')
+    if (!fixturePath && summary.status === 'ok' && summary.mode === 'connected_live') {
+        await mkdir(path.dirname(cacheFilePath), { recursive: true })
+        await writeFile(cacheFilePath, `${JSON.stringify(summary, null, 2)}\n`, 'utf8')
+    }
 
     console.log(`Conversion insight summary: ${toRelativePath(summaryPath)}`)
     console.log(`Conversion insight report: ${toRelativePath(reportPath)}`)
+    console.log(`Conversion pulse mode: ${summary.mode} (${summary.reasonCode})`)
 }
 
 main().catch((error) => {
