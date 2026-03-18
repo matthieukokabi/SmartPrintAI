@@ -19,6 +19,7 @@
     "sync:products:printful": "tsx scripts/sync_printful_products.ts",
     "sync:products:gelato": "tsx scripts/sync_gelato_products.ts",
     "sync:products:gooten": "tsx scripts/sync_gooten_products.ts",
+    "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
