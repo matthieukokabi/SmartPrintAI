@@ -1,0 +1,18 @@
+[Unit]
+Description=SmartPrintAI quality checkpoint pipeline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/root/smartprintai
+Environment=QUALITY_CHECKPOINT_RETENTION_DAYS=14
+Environment=QUALITY_TREND_HISTORY_RETENTION=60
+ExecStart=/usr/bin/env bash /root/smartprintai/scripts/run_quality_checkpoint.sh
+TimeoutStartSec=45min
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

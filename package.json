@@ -32,7 +32,9 @@
     "prod:live-preflight": "./scripts/live_purchase_preflight.sh",
     "pricing:margin-cheatsheet": "tsx scripts/build_margin_cheatsheet.ts",
     "marketing:weekly-batch": "tsx scripts/generate_weekly_content_batch.ts",
-    "deploy:vps": "./scripts/deploy_vps.sh"
+    "deploy:vps": "./scripts/deploy_vps.sh",
+    "ops:quality-checkpoint": "bash scripts/run_quality_checkpoint.sh",
+    "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",

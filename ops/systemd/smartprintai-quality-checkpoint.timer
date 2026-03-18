@@ -1,0 +1,11 @@
+[Unit]
+Description=Run SmartPrintAI quality checkpoint daily
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=smartprintai-quality-checkpoint.service
+
+[Install]
+WantedBy=timers.target

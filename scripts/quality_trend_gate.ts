@@ -68,6 +68,15 @@ type TrendFinding = {
     threshold: number
 }
 
+type TrendStatus = 'pass' | 'fail' | 'warmup'
+
+type TrendEvaluation = {
+    findings: TrendFinding[]
+    baselineCount: number
+    minBaseline: number
+    warmup: boolean
+}
+
 const CATEGORY_KEYS: Array<keyof Scores> = ['performance', 'accessibility', 'seo']
 
 function nowTimestamp() {
@@ -107,6 +116,17 @@ function stdDev(values: number[]): number {
     const avg = mean(values)
     const variance = mean(values.map((value) => (value - avg) ** 2))
     return Math.sqrt(variance)
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+    if (!value) {
+        return fallback
+    }
+    const parsed = Number(value)
+    if (!Number.isFinite(parsed) || parsed < 1) {
+        return fallback
+    }
+    return Math.floor(parsed)
 }
 
 async function readJsonFile<T>(filePath: string): Promise<T> {
@@ -253,17 +273,29 @@ function upsertHistoryRecord<T extends { generatedAt: string; summaryPath: strin
     return sortByGeneratedAt([...nextHistory, current])
 }
 
-function evaluateLighthouseTrend(history: LighthouseHistoryRecord[], current: LighthouseHistoryRecord): TrendFinding[] {
+function applyHistoryRetention<T>(history: T[], retentionLimit: number): T[] {
+    if (retentionLimit < 1 || history.length <= retentionLimit) {
+        return history
+    }
+    return history.slice(history.length - retentionLimit)
+}
+
+function evaluateLighthouseTrend(history: LighthouseHistoryRecord[], current: LighthouseHistoryRecord): TrendEvaluation {
     const findings: TrendFinding[] = []
-    const windowSize = Number(process.env.QUALITY_TREND_WINDOW || '5')
-    const minBaseline = Number(process.env.QUALITY_TREND_MIN_BASELINE || '3')
+    const windowSize = parsePositiveInteger(process.env.QUALITY_TREND_WINDOW, 5)
+    const minBaseline = parsePositiveInteger(process.env.QUALITY_TREND_MIN_BASELINE, 3)
 
     const baseline = history
         .filter((entry) => entry.summaryPath !== current.summaryPath)
         .slice(-windowSize)
 
     if (baseline.length < minBaseline) {
-        return findings
+        return {
+            findings,
+            baselineCount: baseline.length,
+            minBaseline,
+            warmup: true,
+        }
     }
 
     for (const [routeKey, currentScores] of Object.entries(current.routes)) {
@@ -296,13 +328,18 @@ function evaluateLighthouseTrend(history: LighthouseHistoryRecord[], current: Li
         }
     }
 
-    return findings
+    return {
+        findings,
+        baselineCount: baseline.length,
+        minBaseline,
+        warmup: false,
+    }
 }
 
-function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: RenderedHistoryRecord): TrendFinding[] {
+function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: RenderedHistoryRecord): TrendEvaluation {
     const findings: TrendFinding[] = []
-    const windowSize = Number(process.env.QUALITY_TREND_WINDOW || '5')
-    const minBaseline = Number(process.env.QUALITY_TREND_MIN_BASELINE || '3')
+    const windowSize = parsePositiveInteger(process.env.QUALITY_TREND_WINDOW, 5)
+    const minBaseline = parsePositiveInteger(process.env.QUALITY_TREND_MIN_BASELINE, 3)
 
     if (current.failureCount > 0) {
         findings.push({
@@ -313,7 +350,12 @@ function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: Render
             drop: current.failureCount,
             threshold: 0,
         })
-        return findings
+        return {
+            findings,
+            baselineCount: 0,
+            minBaseline,
+            warmup: false,
+        }
     }
 
     const baseline = history
@@ -321,7 +363,12 @@ function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: Render
         .slice(-windowSize)
 
     if (baseline.length < minBaseline) {
-        return findings
+        return {
+            findings,
+            baselineCount: baseline.length,
+            minBaseline,
+            warmup: true,
+        }
     }
 
     const baselineRates = baseline.map((entry) => entry.requiredTrustRate)
@@ -342,7 +389,12 @@ function evaluateRenderedTrend(history: RenderedHistoryRecord[], current: Render
         })
     }
 
-    return findings
+    return {
+        findings,
+        baselineCount: baseline.length,
+        minBaseline,
+        warmup: false,
+    }
 }
 
 function buildTrendReport(
@@ -353,6 +405,9 @@ function buildTrendReport(
     trendSummaryPath: string,
     lighthouseHistorySize: number,
     renderedHistorySize: number,
+    status: TrendStatus,
+    lighthouseEvaluation: TrendEvaluation,
+    renderedEvaluation: TrendEvaluation,
     lighthouseRecord: LighthouseHistoryRecord,
     renderedRecord: RenderedHistoryRecord,
     findings: TrendFinding[],
@@ -369,7 +424,8 @@ function buildTrendReport(
     lines.push('## History Window')
     lines.push(`- Lighthouse history size: ${lighthouseHistorySize}`)
     lines.push(`- Rendered-head history size: ${renderedHistorySize}`)
-    lines.push(`- Rolling window: ${process.env.QUALITY_TREND_WINDOW || '5'}`)
+    lines.push(`- Rolling window: ${parsePositiveInteger(process.env.QUALITY_TREND_WINDOW, 5)}`)
+    lines.push(`- Minimum baseline required: ${lighthouseEvaluation.minBaseline}`)
     lines.push('')
     lines.push('## Quality Trend Snapshot')
     lines.push(
@@ -379,10 +435,21 @@ function buildTrendReport(
         `- Rendered trust visibility: ${renderedRecord.requiredTrustVisible}/${renderedRecord.requiredTrustTotal} (${(renderedRecord.requiredTrustRate * 100).toFixed(1)}%)`
     )
     lines.push(`- Rendered verification failures: ${renderedRecord.failureCount}`)
+    lines.push(`- Lighthouse baseline samples used: ${lighthouseEvaluation.baselineCount}`)
+    lines.push(`- Rendered baseline samples used: ${renderedEvaluation.baselineCount}`)
+    if (status === 'warmup') {
+        const lighthouseRemaining = Math.max(0, lighthouseEvaluation.minBaseline - lighthouseEvaluation.baselineCount)
+        const renderedRemaining = Math.max(0, renderedEvaluation.minBaseline - renderedEvaluation.baselineCount)
+        lines.push(
+            `- Warmup status: active (need ${lighthouseRemaining} more lighthouse and ${renderedRemaining} more rendered samples)`
+        )
+    }
     lines.push('')
     lines.push('## Result')
-    if (findings.length === 0) {
+    if (status === 'pass') {
         lines.push('- PASS: no statistically significant regressions detected in rolling-window trend analysis.')
+    } else if (status === 'warmup') {
+        lines.push('- WARMUP: insufficient baseline depth for full statistical enforcement; critical failures still enforced.')
     } else {
         lines.push('- FAIL: trend gate detected regressions.')
         for (const finding of findings) {
@@ -419,9 +486,16 @@ async function main(): Promise<void> {
     )
     const lighthouseHistoryPath = path.join(historyRoot, 'lighthouse_history.json')
     const renderedHistoryPath = path.join(historyRoot, 'rendered_head_history.json')
+    const retentionLimit = parsePositiveInteger(process.env.QUALITY_TREND_HISTORY_RETENTION, 60)
 
-    const lighthouseHistory = upsertHistoryRecord(await readHistory<LighthouseHistoryRecord>(lighthouseHistoryPath), lighthouseRecord)
-    const renderedHistory = upsertHistoryRecord(await readHistory<RenderedHistoryRecord>(renderedHistoryPath), renderedRecord)
+    const lighthouseHistory = applyHistoryRetention(
+        upsertHistoryRecord(await readHistory<LighthouseHistoryRecord>(lighthouseHistoryPath), lighthouseRecord),
+        retentionLimit,
+    )
+    const renderedHistory = applyHistoryRetention(
+        upsertHistoryRecord(await readHistory<RenderedHistoryRecord>(renderedHistoryPath), renderedRecord),
+        retentionLimit,
+    )
 
     const shouldWriteHistory = (process.env.QUALITY_TREND_WRITE_HISTORY || '1').trim() !== '0'
     if (shouldWriteHistory) {
@@ -429,9 +503,15 @@ async function main(): Promise<void> {
         await writeHistory(renderedHistoryPath, renderedHistory)
     }
 
-    const lighthouseFindings = evaluateLighthouseTrend(lighthouseHistory, lighthouseRecord)
-    const renderedFindings = evaluateRenderedTrend(renderedHistory, renderedRecord)
-    const findings = [...lighthouseFindings, ...renderedFindings]
+    const lighthouseEvaluation = evaluateLighthouseTrend(lighthouseHistory, lighthouseRecord)
+    const renderedEvaluation = evaluateRenderedTrend(renderedHistory, renderedRecord)
+    const findings = [...lighthouseEvaluation.findings, ...renderedEvaluation.findings]
+    let status: TrendStatus = 'pass'
+    if (findings.length > 0) {
+        status = 'fail'
+    } else if (lighthouseEvaluation.warmup || renderedEvaluation.warmup) {
+        status = 'warmup'
+    }
 
     const artifactRoot = path.join(
         process.cwd(),
@@ -455,12 +535,24 @@ async function main(): Promise<void> {
         generatedAt: timestamp.iso,
         generatedDate: timestamp.date,
         commitSha,
+        status,
         lighthouseSummaryPath: toRelativePath(lighthouseSummaryPath),
         renderedSummaryPath: toRelativePath(renderedSummaryPath),
         lighthouseHistoryPath: toRelativePath(lighthouseHistoryPath),
         renderedHistoryPath: toRelativePath(renderedHistoryPath),
         lighthouseHistorySize: lighthouseHistory.length,
         renderedHistorySize: renderedHistory.length,
+        retentionLimit,
+        warmup: {
+            active: status === 'warmup',
+            minBaseline: lighthouseEvaluation.minBaseline,
+            lighthouseBaselineCount: lighthouseEvaluation.baselineCount,
+            renderedBaselineCount: renderedEvaluation.baselineCount,
+            remaining: {
+                lighthouse: Math.max(0, lighthouseEvaluation.minBaseline - lighthouseEvaluation.baselineCount),
+                rendered: Math.max(0, renderedEvaluation.minBaseline - renderedEvaluation.baselineCount),
+            },
+        },
         findings,
     }
 
@@ -475,6 +567,9 @@ async function main(): Promise<void> {
             toRelativePath(trendSummaryPath),
             lighthouseHistory.length,
             renderedHistory.length,
+            status,
+            lighthouseEvaluation,
+            renderedEvaluation,
             lighthouseRecord,
             renderedRecord,
             findings,
@@ -485,7 +580,7 @@ async function main(): Promise<void> {
     console.log(`Quality trend report: ${toRelativePath(reportPath)}`)
     console.log(`Quality trend artifacts: ${toRelativePath(resolvedArtifactRoot)}`)
 
-    if (findings.length > 0) {
+    if (status === 'fail') {
         for (const finding of findings) {
             console.error(
                 `- ${finding.metric}: current=${finding.current} mean=${finding.baselineMean} stddev=${finding.baselineStdDev} drop=${finding.drop} threshold=${finding.threshold}`

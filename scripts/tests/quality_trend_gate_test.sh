@@ -28,6 +28,12 @@ assert_contains() {
   fi
 }
 
+json_value() {
+  local file_path="$1"
+  local path_expr="$2"
+  node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));const keys=process.argv[2].split('.');let cur=data;for(const key of keys){cur=cur?.[key];}if(cur===undefined){process.exit(2);}process.stdout.write(String(cur));" "$file_path" "$path_expr"
+}
+
 run_case_insufficient_baseline_passes() {
   local tmp_dir
   tmp_dir="$(mktemp -d)"
@@ -97,6 +103,8 @@ JSON
   test -f "${tmp_dir}/history/rendered_head_history.json"
   test -f "${tmp_dir}/artifacts/run-pass/summary.json"
   test -f "${tmp_dir}/report-pass.md"
+  assert_eq "$(json_value "${tmp_dir}/artifacts/run-pass/summary.json" "status")" "warmup" "warmup status for insufficient baseline"
+  assert_eq "$(json_value "${tmp_dir}/artifacts/run-pass/summary.json" "warmup.active")" "true" "warmup active flag"
 
   rm -rf "$tmp_dir"
   trap - RETURN
@@ -233,6 +241,74 @@ JSON
   assert_contains "$output" "create.performance" "regression finding output"
   test -f "${tmp_dir}/artifacts/run-fail/summary.json"
   test -f "${tmp_dir}/report-fail.md"
+  assert_eq "$(json_value "${tmp_dir}/artifacts/run-fail/summary.json" "status")" "fail" "fail status when findings exist"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
+run_case_retention_trims_history() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+
+  mkdir -p "${tmp_dir}/inputs" "${tmp_dir}/history" "${tmp_dir}/artifacts"
+
+  cat > "${tmp_dir}/history/lighthouse_history.json" <<'JSON'
+[
+  { "generatedAt": "2026-03-10T10:00:00.000Z", "commitSha": "h1", "summaryPath": "l1", "overall": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 }, "routes": { "create": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 } } },
+  { "generatedAt": "2026-03-11T10:00:00.000Z", "commitSha": "h2", "summaryPath": "l2", "overall": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 }, "routes": { "create": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 } } },
+  { "generatedAt": "2026-03-12T10:00:00.000Z", "commitSha": "h3", "summaryPath": "l3", "overall": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 }, "routes": { "create": { "performance": 0.9, "accessibility": 0.9, "seo": 0.9 } } }
+]
+JSON
+
+  cat > "${tmp_dir}/history/rendered_head_history.json" <<'JSON'
+[
+  { "generatedAt": "2026-03-10T10:00:00.000Z", "commitSha": "h1", "summaryPath": "r1", "failureCount": 0, "requiredTrustVisible": 5, "requiredTrustTotal": 5, "requiredTrustRate": 1 },
+  { "generatedAt": "2026-03-11T10:00:00.000Z", "commitSha": "h2", "summaryPath": "r2", "failureCount": 0, "requiredTrustVisible": 5, "requiredTrustTotal": 5, "requiredTrustRate": 1 },
+  { "generatedAt": "2026-03-12T10:00:00.000Z", "commitSha": "h3", "summaryPath": "r3", "failureCount": 0, "requiredTrustVisible": 5, "requiredTrustTotal": 5, "requiredTrustRate": 1 }
+]
+JSON
+
+  cat > "${tmp_dir}/inputs/lighthouse-summary.json" <<'JSON'
+{
+  "generatedAt": "2026-03-18T10:00:00.000Z",
+  "generatedDate": "2026-03-18",
+  "artifactRoot": "docs/reports/artifacts/lighthouse-2026-03-18_10-00-00",
+  "routeResults": [
+    { "key": "create", "path": "/create", "finalScores": { "performance": 0.91, "accessibility": 0.95, "seo": 0.97 } }
+  ],
+  "failures": []
+}
+JSON
+
+  cat > "${tmp_dir}/inputs/rendered-summary.json" <<'JSON'
+{
+  "generatedAt": "2026-03-18T10:00:00.000Z",
+  "generatedDate": "2026-03-18",
+  "commitSha": "abc1234",
+  "artifactRoot": "docs/reports/artifacts/wave4-rendered-head-2026-03-18_10-00-00-abc1234",
+  "targets": [
+    { "routeResults": [ { "expectedTrustExpectation": "required", "actualTrustVisible": true } ] }
+  ],
+  "failures": []
+}
+JSON
+
+  QUALITY_TREND_MIN_BASELINE=10 \
+  QUALITY_TREND_HISTORY_RETENTION=2 \
+  QUALITY_TREND_LIGHTHOUSE_SUMMARY="${tmp_dir}/inputs/lighthouse-summary.json" \
+  QUALITY_TREND_RENDERED_SUMMARY="${tmp_dir}/inputs/rendered-summary.json" \
+  QUALITY_TREND_HISTORY_DIR="${tmp_dir}/history" \
+  QUALITY_TREND_ARTIFACT_DIR="${tmp_dir}/artifacts/run-retention" \
+  QUALITY_TREND_REPORT_FILE="${tmp_dir}/report-retention.md" \
+  node --import tsx "$TREND_SCRIPT" >/dev/null
+
+  local lighthouse_count rendered_count
+  lighthouse_count="$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(data.length));" "${tmp_dir}/history/lighthouse_history.json")"
+  rendered_count="$(node -e "const fs=require('fs');const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));process.stdout.write(String(data.length));" "${tmp_dir}/history/rendered_head_history.json")"
+  assert_eq "$lighthouse_count" "2" "lighthouse history retention"
+  assert_eq "$rendered_count" "2" "rendered history retention"
 
   rm -rf "$tmp_dir"
   trap - RETURN
@@ -240,5 +316,6 @@ JSON
 
 run_case_insufficient_baseline_passes
 run_case_statistical_regression_fails
+run_case_retention_trims_history
 
 echo "All quality trend gate tests passed."
