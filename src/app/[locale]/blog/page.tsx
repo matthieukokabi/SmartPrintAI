@@ -5,6 +5,7 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 type LocaleBlogPageProps = {
     params: {
@@ -60,14 +61,21 @@ export function generateMetadata({ params }: LocaleBlogPageProps): Metadata {
 
     const locale = params.locale as SupportedLocale
     const copy = BLOG_UI_COPY[locale]
+    const canonicalPath = buildLocaleCanonical(locale, '/blog')
 
     return {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: buildLocaleCanonical(locale, '/blog'),
+            canonical: canonicalPath,
             languages: buildLocaleAlternates('/blog'),
         },
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: canonicalPath,
+            title: copy.metadataTitle,
+            description: copy.metadataDescription,
+        }),
     }
 }
 

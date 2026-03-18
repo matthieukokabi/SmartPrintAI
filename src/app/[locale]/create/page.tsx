@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import CreatePageClient from '@/components/create/CreatePageClient'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 type LocaleCreatePageProps = {
     params: {
@@ -24,14 +25,21 @@ export function generateMetadata({ params }: LocaleCreatePageProps): Metadata {
 
     const locale = params.locale as SupportedLocale
     const copy = getLocaleCopy(locale).create
+    const canonicalPath = buildLocaleCanonical(locale, '/create')
 
     return {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: buildLocaleCanonical(locale, '/create'),
+            canonical: canonicalPath,
             languages: buildLocaleAlternates('/create'),
         },
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: canonicalPath,
+            title: copy.metadataTitle,
+            description: copy.metadataDescription,
+        }),
     }
 }
 

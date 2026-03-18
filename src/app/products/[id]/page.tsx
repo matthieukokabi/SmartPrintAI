@@ -7,6 +7,7 @@ import { toAbsoluteUrl } from '@/lib/site'
 import ProductDetailClient from '@/components/products/ProductDetailClient'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
@@ -66,6 +67,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
     const description = normalizeProductDescription(product.description, fallbackDescription, 260)
     const imageUrl = toAbsoluteUrl(product.imageUrl || '/favicon.ico')
+    const socialTitle = `${product.name} | SmartPrintAI`
 
     return {
         title: product.name,
@@ -74,19 +76,13 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
             canonical: `/products/${product.id}`,
             languages: buildLocaleAlternates(`/products/${product.id}`),
         },
-        openGraph: {
-            title: `${product.name} | SmartPrintAI`,
-            description,
-            type: 'website',
-            url: `/products/${product.id}`,
-            images: [{ url: imageUrl }],
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: `${product.name} | SmartPrintAI`,
+        ...buildLocalizedSocialMetadata({
+            locale: DEFAULT_LOCALE,
+            path: `/products/${product.id}`,
+            title: socialTitle,
             description,
             images: [imageUrl],
-        },
+        }),
     }
 }
 

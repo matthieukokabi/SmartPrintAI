@@ -5,6 +5,7 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 type LocaleBlogPostPageProps = {
     params: {
@@ -35,25 +36,23 @@ export async function generateMetadata({ params }: LocaleBlogPostPageProps): Pro
         }
     }
 
+    const canonicalPath = buildLocaleCanonical(locale, `/blog/${post.slug}`)
+
     return {
         title: post.title,
         description: post.description,
         keywords: post.keywords.join(', '),
         alternates: {
-            canonical: buildLocaleCanonical(locale, `/blog/${post.slug}`),
+            canonical: canonicalPath,
             languages: buildLocaleAlternates(`/blog/${post.slug}`),
         },
-        openGraph: {
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: canonicalPath,
             title: post.title,
             description: post.description,
             type: 'article',
-            url: `/${locale}/blog/${post.slug}`,
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: post.title,
-            description: post.description,
-        },
+        }),
     }
 }
 

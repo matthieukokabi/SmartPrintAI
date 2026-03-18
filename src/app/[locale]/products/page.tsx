@@ -6,6 +6,7 @@ import ProductCard from '@/components/shared/ProductCard'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { toAbsoluteUrl } from '@/lib/site'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
 
@@ -109,14 +110,21 @@ export function generateMetadata({ params }: LocaleProductsPageProps): Metadata 
 
     const locale = params.locale as SupportedLocale
     const copy = getLocaleCopy(locale).products
+    const canonicalPath = buildLocaleCanonical(locale, '/products')
 
     return {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: buildLocaleCanonical(locale, '/products'),
+            canonical: canonicalPath,
             languages: buildLocaleAlternates('/products'),
         },
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: canonicalPath,
+            title: copy.metadataTitle,
+            description: copy.metadataDescription,
+        }),
     }
 }
 

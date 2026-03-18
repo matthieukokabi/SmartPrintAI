@@ -5,6 +5,7 @@ import ProductCard from '@/components/shared/ProductCard'
 import { toAbsoluteUrl } from '@/lib/site'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
 
@@ -19,6 +20,12 @@ export const metadata: Metadata = {
         canonical: '/products',
         languages: buildLocaleAlternates('/products'),
     },
+    ...buildLocalizedSocialMetadata({
+        locale: DEFAULT_LOCALE,
+        path: '/products',
+        title: copy.metadataTitle,
+        description: copy.metadataDescription,
+    }),
 }
 
 export default async function ProductsPage() {

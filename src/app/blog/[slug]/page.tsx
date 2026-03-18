@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { BLOG_UI_COPY, getBlogSlugs, getLocalizedBlogPostBySlug, getRelatedLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 type BlogPostPageProps = {
     params: {
@@ -35,17 +36,13 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
             canonical: `/blog/${post.slug}`,
             languages: buildLocaleAlternates(`/blog/${post.slug}`),
         },
-        openGraph: {
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: `/blog/${post.slug}`,
             title: post.title,
             description: post.description,
             type: 'article',
-            url: `/blog/${post.slug}`,
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: post.title,
-            description: post.description,
-        },
+        }),
     }
 }
 

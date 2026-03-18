@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { BLOG_UI_COPY, getLocalizedBlogPosts } from '@/content/blogPosts'
 import { toAbsoluteUrl } from '@/lib/site'
 import { DEFAULT_LOCALE, buildLocaleAlternates } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 const locale = DEFAULT_LOCALE
 const copy = BLOG_UI_COPY[locale]
@@ -14,6 +15,12 @@ export const metadata: Metadata = {
         canonical: '/blog',
         languages: buildLocaleAlternates('/blog'),
     },
+    ...buildLocalizedSocialMetadata({
+        locale,
+        path: '/blog',
+        title: copy.metadataTitle,
+        description: copy.metadataDescription,
+    }),
 }
 
 export default function BlogIndexPage() {

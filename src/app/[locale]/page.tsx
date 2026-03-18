@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import HomeLanding from '@/components/home/HomeLanding'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
+import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 
 type LocalePageProps = {
     params: {
@@ -23,14 +24,21 @@ export function generateMetadata({ params }: LocalePageProps): Metadata {
 
     const locale = params.locale as SupportedLocale
     const copy = getLocaleCopy(locale).home
+    const canonicalPath = buildLocaleCanonical(locale, '/')
 
     return {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
-            canonical: buildLocaleCanonical(locale, '/'),
+            canonical: canonicalPath,
             languages: buildLocaleAlternates('/'),
         },
+        ...buildLocalizedSocialMetadata({
+            locale,
+            path: canonicalPath,
+            title: copy.metadataTitle,
+            description: copy.metadataDescription,
+        }),
     }
 }
 
