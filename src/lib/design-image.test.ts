@@ -152,4 +152,114 @@ describe('normalizeGeneratedDesignDataUrl', () => {
         expect(normalized.didCrop).toBe(true)
         expect(internalWhiteOpaqueCount).toBeGreaterThan(0)
     })
+
+    it('removes checkerboard matte islands surrounded by transparent frame', async () => {
+        const width = 128
+        const height = 128
+        const pixels = new Uint8ClampedArray(width * height * 4)
+
+        for (let y = 20; y < 108; y += 1) {
+            for (let x = 20; x < 108; x += 1) {
+                const isLight = (x + y) % 2 === 0
+                const value = isLight ? 236 : 206
+                setPixel(pixels, width, x, y, [value, value, value, 255])
+            }
+        }
+
+        for (let y = 36; y < 94; y += 1) {
+            for (let x = 44; x < 84; x += 1) {
+                setPixel(pixels, width, x, y, [198, 48, 62, 255])
+            }
+        }
+
+        for (let y = 52; y < 76; y += 1) {
+            for (let x = 56; x < 72; x += 1) {
+                setPixel(pixels, width, x, y, [248, 248, 248, 255])
+            }
+        }
+
+        const sourceBuffer = await sharp(Buffer.from(pixels), {
+            raw: {
+                width,
+                height,
+                channels: 4,
+            },
+        }).png().toBuffer()
+
+        const normalized = await normalizeGeneratedDesignDataUrl(toDataUrl(sourceBuffer))
+        const decoded = await decodeDataUrl(normalized.dataUrl)
+
+        let opaqueCheckerboardPixels = 0
+        let opaqueSubjectPixels = 0
+
+        for (let index = 0; index < decoded.data.length; index += 4) {
+            const r = decoded.data[index]
+            const g = decoded.data[index + 1]
+            const b = decoded.data[index + 2]
+            const a = decoded.data[index + 3]
+            if (a < 240) {
+                continue
+            }
+            const maxDelta = Math.max(r, g, b) - Math.min(r, g, b)
+            if (maxDelta <= 8 && r >= 185 && r <= 245) {
+                opaqueCheckerboardPixels += 1
+            }
+            if (r >= 160 && g <= 95 && b <= 95) {
+                opaqueSubjectPixels += 1
+            }
+        }
+
+        expect(normalized.didRemoveBackground).toBe(true)
+        expect(normalized.didCrop).toBe(true)
+        expect(decoded.width).toBeLessThan(width)
+        expect(decoded.height).toBeLessThan(height)
+        expect(opaqueSubjectPixels).toBeGreaterThan(0)
+        expect(opaqueCheckerboardPixels).toBe(0)
+    })
+
+    it('keeps intentional white artwork on transparent background', async () => {
+        const width = 112
+        const height = 112
+        const pixels = new Uint8ClampedArray(width * height * 4)
+
+        for (let y = 32; y < 80; y += 1) {
+            for (let x = 38; x < 74; x += 1) {
+                setPixel(pixels, width, x, y, [255, 255, 255, 255])
+            }
+        }
+
+        for (let y = 44; y < 68; y += 1) {
+            for (let x = 48; x < 64; x += 1) {
+                setPixel(pixels, width, x, y, [12, 12, 12, 255])
+            }
+        }
+
+        const sourceBuffer = await sharp(Buffer.from(pixels), {
+            raw: {
+                width,
+                height,
+                channels: 4,
+            },
+        }).png().toBuffer()
+
+        const normalized = await normalizeGeneratedDesignDataUrl(toDataUrl(sourceBuffer))
+        const decoded = await decodeDataUrl(normalized.dataUrl)
+
+        let whiteOpaquePixels = 0
+        for (let index = 0; index < decoded.data.length; index += 4) {
+            const r = decoded.data[index]
+            const g = decoded.data[index + 1]
+            const b = decoded.data[index + 2]
+            const a = decoded.data[index + 3]
+            if (r >= 250 && g >= 250 && b >= 250 && a >= 240) {
+                whiteOpaquePixels += 1
+            }
+        }
+
+        expect(normalized.didRemoveBackground).toBe(false)
+        expect(normalized.didCrop).toBe(true)
+        expect(decoded.width).toBeLessThan(width)
+        expect(decoded.height).toBeLessThan(height)
+        expect(whiteOpaquePixels).toBeGreaterThan(0)
+    })
 })
