@@ -112,7 +112,7 @@
   - Deterministic coverage for CI guardrail pass/fail behavior (fixture, rendered regressions, trend fail/warmup).
 
 ## CI Integration
-- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + rendered trust harness + deploy retry tests + SEO regression suites + Lighthouse budget gate + trend gate + release guardrail assertions before full test run.
+- `scripts/ci_non_interactive.sh` now runs rendered-head assertions + rendered trust harness + deploy retry tests + SEO regression suites + Lighthouse budget gate + trend gate + mockup-quality smoke (non-critical by default, strict-toggle available) + release guardrail assertions before full test run.
 
 ## Wave 5 Rendered + Semantic Harness
 - `scripts/verify_rendered_head_harness.ts`
