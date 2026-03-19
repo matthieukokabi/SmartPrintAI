@@ -92,6 +92,22 @@ describe('isMockupEligibleProduct', () => {
         ).toBe(false)
     })
 
+    it('returns false for Gooten all-over apparel SKUs flagged as unsupported for AI mockups', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'All-Over Print Zip-Up Hoodies',
+                printfulId: 'gooten:282',
+                printArea: {
+                    providerProductId: '282',
+                    providerDefaultSku: 'AllOverPrintZipUpHoodies-FM-BL-S',
+                    variantMapping: {
+                        's:black': 'AllOverPrintZipUpHoodies-FM-BL-S',
+                    },
+                },
+            })
+        ).toBe(false)
+    })
+
     it('returns false for Gooten-prefixed IDs when provider SKU mapping metadata is missing', () => {
         expect(
             isMockupEligibleProduct({

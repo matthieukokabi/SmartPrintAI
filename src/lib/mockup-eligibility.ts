@@ -14,6 +14,10 @@ const MOCKUP_UNSUPPORTED_NAME_PATTERNS = [
 ]
 
 const GOOTEN_MOCKUP_UNSUPPORTED_PROVIDER_PRODUCT_IDS = new Set([
+    // All-over apparel templates produce split/template-like previews for logo-style AI designs.
+    '280', // All-Over Print Pullover Hoodies
+    '281', // All-Over Print Sweatshirts
+    '282', // All-Over Print Zip-Up Hoodies
     // Drinkware SKUs currently render wrap-template panels in AI preview.
     '311', // Insulated Stainless Steel Mugs
     '388', // Klean Kanteen Eco Insulated Water Bottles With Loop Cap
