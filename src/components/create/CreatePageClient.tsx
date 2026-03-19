@@ -491,6 +491,27 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                     {generateError && (
                         <p className="text-sm text-red-300 -mt-4">{generateError}</p>
                     )}
+
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5 space-y-3">
+                        <p className="text-sm font-semibold text-foreground">{copy.promptGuideTitle}</p>
+                        <ul className="space-y-2 text-xs text-muted-foreground">
+                            {copy.promptGuideChecklist.map((item) => (
+                                <li key={item} className="flex items-start gap-2">
+                                    <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-purple-400/80" />
+                                    <span>{item}</span>
+                                </li>
+                            ))}
+                        </ul>
+                        <div>
+                            <p className="text-xs font-semibold text-foreground/90">{copy.promptGuideExampleLabel}</p>
+                            <ul className="mt-2 space-y-1.5 text-xs text-muted-foreground">
+                                {copy.promptGuideExamples.map((example) => (
+                                    <li key={example}>{example}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+
                     <StyleSelector selected={style} onSelect={handleStyleChange} label={copy.styleLabel} />
 
                     {imageUrl && (

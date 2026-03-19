@@ -115,6 +115,10 @@ type CreatePageCopy = {
     promptGeneratingLabel: string
     promptGenerateLabel: string
     promptTip: string
+    promptGuideTitle: string
+    promptGuideChecklist: string[]
+    promptGuideExampleLabel: string
+    promptGuideExamples: string[]
     styleLabel: string
     chooseProductLabel: string
     loadingProductsLabel: string
@@ -359,6 +363,19 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             promptGenerateLabel: 'Generate Design',
             promptTip:
                 'Tip: Artistic and abstract designs work best. For text-based designs, try "minimalist text on solid background" style.',
+            promptGuideTitle: 'Prompt guide for clean mockups',
+            promptGuideChecklist: [
+                'Start with subject + style + mood (example: "vintage tiger mascot, bold comic shading").',
+                'Add print constraints: "transparent background, no white box or frame, centered composition".',
+                'For mugs and bottles, ask for a simple high-contrast icon/logo with clean edges.',
+                'If you need text, keep it short and specify the exact wording.',
+            ],
+            promptGuideExampleLabel: 'High-performing examples',
+            promptGuideExamples: [
+                '"Minimalist mountain logo, flat vector style, transparent background, no frame, centered."',
+                '"Cute corgi line-art badge, 2-color palette, transparent background, clean cutout edges."',
+                '"Cyber tiger emblem, neon blue/orange, transparent background, no text, centered composition."',
+            ],
             styleLabel: 'Style',
             chooseProductLabel: 'Choose a Product',
             loadingProductsLabel: 'Loading products...',
@@ -582,6 +599,19 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             promptGenerateLabel: 'Generer le design',
             promptTip:
                 "Astuce: les styles artistiques et abstraits fonctionnent tres bien. Pour du texte, essayez 'texte minimaliste sur fond uni'.",
+            promptGuideTitle: 'Guide prompt pour mockups propres',
+            promptGuideChecklist: [
+                'Commencez par sujet + style + ambiance (ex: "mascotte tigre vintage, ombrage comic").',
+                'Ajoutez les contraintes print: "fond transparent, sans cadre/bloc blanc, composition centree".',
+                'Pour mugs et bouteilles, demandez un logo/icone simple, contraste fort, bords nets.',
+                'Si vous ajoutez du texte, gardez-le court et precisez la phrase exacte.',
+            ],
+            promptGuideExampleLabel: 'Exemples performants',
+            promptGuideExamples: [
+                '"Logo montagne minimaliste, style vectoriel plat, fond transparent, sans cadre, centre."',
+                '"Badge corgi line-art, palette 2 couleurs, fond transparent, bords de decoupe nets."',
+                '"Embleme tigre cyber, neon bleu/orange, fond transparent, sans texte, composition centree."',
+            ],
             styleLabel: 'Style',
             chooseProductLabel: 'Choisir un produit',
             loadingProductsLabel: 'Chargement des produits...',
@@ -805,6 +835,19 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             promptGenerateLabel: 'Design erstellen',
             promptTip:
                 'Tipp: Artistische und abstrakte Designs funktionieren am besten. Fuer Text nutze "minimalistischer Text auf einfarbigem Hintergrund".',
+            promptGuideTitle: 'Prompt-Leitfaden fuer saubere Mockups',
+            promptGuideChecklist: [
+                'Starte mit Motiv + Stil + Stimmung (z.B. "vintage tiger mascot, bold comic shading").',
+                'Fuege Print-Regeln hinzu: "transparenter Hintergrund, kein weisser Rahmen/Block, zentrierte Komposition".',
+                'Fuer Tassen und Flaschen: simples kontrastreiches Icon/Logo mit klaren Kanten anfordern.',
+                'Wenn Text noetig ist, kurz halten und den exakten Wortlaut nennen.',
+            ],
+            promptGuideExampleLabel: 'Starke Beispiele',
+            promptGuideExamples: [
+                '"Minimalistisches Berglogo, flacher Vektorstil, transparenter Hintergrund, ohne Rahmen, zentriert."',
+                '"Niedliches Corgi-Lineart-Badge, 2-Farben-Palette, transparenter Hintergrund, klare Cutout-Kanten."',
+                '"Cyber-Tiger-Emblem, Neon Blau/Orange, transparenter Hintergrund, kein Text, zentrierte Komposition."',
+            ],
             styleLabel: 'Stil',
             chooseProductLabel: 'Produkt waehlen',
             loadingProductsLabel: 'Produkte werden geladen...',
@@ -1028,6 +1071,19 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             promptGenerateLabel: 'Generar diseno',
             promptTip:
                 'Tip: Los estilos artisticos y abstractos funcionan mejor. Para texto, prueba "texto minimalista sobre fondo solido".',
+            promptGuideTitle: 'Guia de prompt para mockups limpios',
+            promptGuideChecklist: [
+                'Empieza con sujeto + estilo + tono (ej: "mascota tigre vintage, sombreado comic marcado").',
+                'Agrega restricciones de impresion: "fondo transparente, sin marco/cuadro blanco, composicion centrada".',
+                'Para tazas y botellas, pide icono/logo simple de alto contraste con bordes limpios.',
+                'Si necesitas texto, mantenlo corto y define la frase exacta.',
+            ],
+            promptGuideExampleLabel: 'Ejemplos que suelen funcionar',
+            promptGuideExamples: [
+                '"Logo minimalista de montana, estilo vectorial plano, fondo transparente, sin marco, centrado."',
+                '"Insignia corgi line-art, paleta de 2 colores, fondo transparente, bordes de recorte limpios."',
+                '"Emblema tigre cyber, neon azul/naranja, fondo transparente, sin texto, composicion centrada."',
+            ],
             styleLabel: 'Estilo',
             chooseProductLabel: 'Elegir producto',
             loadingProductsLabel: 'Cargando productos...',

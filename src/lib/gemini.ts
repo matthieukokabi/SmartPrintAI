@@ -51,11 +51,15 @@ function parseSourceImageDataUrl(sourceImageDataUrl: string): ImageInlineData {
     return { mimeType, data }
 }
 
+export function buildPrintReadyPrompt(prompt: string, stylePrompt: string): string {
+    return `${prompt}. ${stylePrompt}. Transparent background only with alpha (no white or solid background). No white box, no frame, no poster backdrop. Keep the main subject large, centered, and tightly composed with clean cutout edges for product mockups. High quality print-ready design. No text unless specifically requested. Square format.`
+}
+
 export async function generateImage(options: GenerateImageOptions): Promise<string> {
     const { prompt, style = 'artistic', sourceImageDataUrl } = options
     const stylePrompt = STYLE_PROMPTS[style] || STYLE_PROMPTS.artistic
 
-    const fullPrompt = `${prompt}. ${stylePrompt}. Transparent or white background. High quality print-ready design. No text unless specifically requested. Square format.`
+    const fullPrompt = buildPrintReadyPrompt(prompt, stylePrompt)
 
     const model = genAI.getGenerativeModel({
         model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
