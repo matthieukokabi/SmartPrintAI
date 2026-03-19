@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { generateImage } from '@/lib/gemini'
+import { normalizeGeneratedDesignDataUrl } from '@/lib/design-image'
 import { uploadBase64Image } from '@/lib/storage'
 import { prisma } from '@/lib/prisma'
 import { sendMakeDesignAutoPost } from '@/lib/make'
@@ -132,7 +133,22 @@ export async function POST(req: NextRequest) {
             style,
             ...(sourceImageDataUrl ? { sourceImageDataUrl } : {}),
         })
-        const imageUrl = await uploadBase64Image(base64Image)
+        let processedImage = base64Image
+        if (process.env.DESIGN_BACKGROUND_CLEANUP_DISABLED !== '1') {
+            try {
+                const normalized = await normalizeGeneratedDesignDataUrl(base64Image)
+                processedImage = normalized.dataUrl
+                logApiInfo(route, requestId, 'design_image_cleanup_applied', {
+                    didRemoveBackground: normalized.didRemoveBackground,
+                    didCrop: normalized.didCrop,
+                })
+            } catch (cleanupError) {
+                const message = cleanupError instanceof Error ? cleanupError.message : 'unknown'
+                logApiWarn(route, requestId, 'design_image_cleanup_failed', { message })
+            }
+        }
+
+        const imageUrl = await uploadBase64Image(processedImage)
 
         const design = await prisma.design.create({
             data: {

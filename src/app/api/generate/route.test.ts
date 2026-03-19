@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   rateLimitRequest: vi.fn(),
   generateImage: vi.fn(),
+  normalizeGeneratedDesignDataUrl: vi.fn(),
   uploadBase64Image: vi.fn(),
   prisma: {
     design: {
@@ -19,6 +20,10 @@ vi.mock('@/lib/rate-limit', () => ({
 
 vi.mock('@/lib/gemini', () => ({
   generateImage: mocks.generateImage,
+}))
+
+vi.mock('@/lib/design-image', () => ({
+  normalizeGeneratedDesignDataUrl: mocks.normalizeGeneratedDesignDataUrl,
 }))
 
 vi.mock('@/lib/storage', () => ({
@@ -56,6 +61,11 @@ describe('/api/generate POST', () => {
       resetInSec: 600,
     })
     mocks.generateImage.mockResolvedValue('base64-image')
+    mocks.normalizeGeneratedDesignDataUrl.mockResolvedValue({
+      dataUrl: 'normalized-base64-image',
+      didRemoveBackground: true,
+      didCrop: true,
+    })
     mocks.uploadBase64Image.mockResolvedValue('https://cdn.smartprintai.com/designs/design-1.png')
     mocks.prisma.design.create.mockResolvedValue({
       id: 'design_1',
@@ -185,7 +195,8 @@ describe('/api/generate POST', () => {
       prompt: 'funny french bulldog in sunglasses',
       style: 'pop-art',
     })
-    expect(mocks.uploadBase64Image).toHaveBeenCalledWith('base64-image')
+    expect(mocks.normalizeGeneratedDesignDataUrl).toHaveBeenCalledWith('base64-image')
+    expect(mocks.uploadBase64Image).toHaveBeenCalledWith('normalized-base64-image')
     expect(mocks.sendMakeDesignAutoPost).toHaveBeenCalledWith({
       requestId: 'req-generate-ok',
       designId: 'design_1',
@@ -195,5 +206,17 @@ describe('/api/generate POST', () => {
       sessionId: 'sess_1',
       createdAtIso: '2026-03-11T10:00:00.000Z',
     })
+  })
+
+  it('falls back to original image when cleanup fails', async () => {
+    mocks.normalizeGeneratedDesignDataUrl.mockRejectedValueOnce(new Error('cleanup failed'))
+
+    const res = await POST(createRequest(JSON.stringify({
+      prompt: 'clean logo for hoodie',
+      style: 'minimalist',
+    })))
+
+    expect(res.status).toBe(200)
+    expect(mocks.uploadBase64Image).toHaveBeenCalledWith('base64-image')
   })
 })
