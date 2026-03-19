@@ -13,6 +13,18 @@ const MOCKUP_UNSUPPORTED_NAME_PATTERNS = [
     /^adidas\b/i,
 ]
 
+const GOOTEN_MOCKUP_UNSUPPORTED_PROVIDER_PRODUCT_IDS = new Set([
+    // Drinkware SKUs currently render wrap-template panels in AI preview.
+    '311', // Insulated Stainless Steel Mugs
+    '388', // Klean Kanteen Eco Insulated Water Bottles With Loop Cap
+    '389', // Klean Kanteen Eco Tumblers with Cafe Cap
+    '390', // Klean Kanteen TKWide Insulated Water Bottles With Loop Cap
+    '403', // Marka Copper Tumblers With Stainless Steel Straw
+    '408', // Stainless Steel Travel Mugs
+    '411', // Stainless Steel Travel Mugs with Handle
+    '412', // Jumbo Mugs
+])
+
 export function isMockupEligibleProduct(product: MockupEligibilityProduct): boolean {
     const name = (product.name || '').trim()
     const printfulId = (product.printfulId || '').trim()
@@ -28,6 +40,11 @@ export function isMockupEligibleProduct(product: MockupEligibilityProduct): bool
     if (printfulId.startsWith('gooten:')) {
         const providerProductId =
             typeof printArea?.providerProductId === 'string' ? printArea.providerProductId.trim() : ''
+        const resolvedProviderProductId = providerProductId || printfulId.slice('gooten:'.length).trim()
+        if (resolvedProviderProductId && GOOTEN_MOCKUP_UNSUPPORTED_PROVIDER_PRODUCT_IDS.has(resolvedProviderProductId)) {
+            return false
+        }
+
         const defaultSku = typeof printArea?.providerDefaultSku === 'string' ? printArea.providerDefaultSku.trim() : ''
         const mapping =
             typeof printArea?.variantMapping === 'object' && printArea.variantMapping !== null

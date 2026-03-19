@@ -76,6 +76,22 @@ describe('isMockupEligibleProduct', () => {
         ).toBe(true)
     })
 
+    it('returns false for Gooten drinkware SKUs flagged as unsupported for AI mockups', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Insulated Stainless Steel Mugs',
+                printfulId: 'gooten:311',
+                printArea: {
+                    providerProductId: '311',
+                    providerDefaultSku: 'StainlessSteelMug-10oz',
+                    variantMapping: {
+                        default: 'StainlessSteelMug-10oz',
+                    },
+                },
+            })
+        ).toBe(false)
+    })
+
     it('returns false for Gooten-prefixed IDs when provider SKU mapping metadata is missing', () => {
         expect(
             isMockupEligibleProduct({
