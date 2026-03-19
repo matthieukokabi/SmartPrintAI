@@ -3,6 +3,7 @@
 ## Purpose
 Run a scheduled VPS checkpoint that captures:
 - rendered-head verification summary
+- SEO/UI regression gate summary (`npm run test:seo:gates`)
 - deterministic Lighthouse gate summary
 - trend gate evaluation with warmup status
 - weekly conversion insight pack (source/page/form-step dropoff + anomaly hints)
@@ -98,6 +99,7 @@ Per run (timestamp + commit SHA):
 - `0`: success (or success with non-critical warnings when strict mode is disabled)
 - `14`: env bootstrap failure before stage execution (missing env loader/file/required vars)
 - `11`: rendered stage critical failure
+- `15`: SEO/UI regression gates critical failure
 - `12`: Lighthouse stage critical failure
 - `13`: trend stage critical failure
 - `41`: conversion stage failure in strict non-critical mode

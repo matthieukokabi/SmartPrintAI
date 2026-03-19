@@ -71,6 +71,8 @@ case "$script_name" in
 {"failures":[],"targets":[]}
 JSON
     ;;
+  test:seo:gates)
+    ;;
   perf:lighthouse:gate)
     mkdir -p "$LIGHTHOUSE_ARTIFACT_DIR"
     cat > "${LIGHTHOUSE_ARTIFACT_DIR}/summary.json" <<JSON
@@ -168,6 +170,7 @@ run_case_conversion_retry_success() {
   local checkpoint_file
   checkpoint_file="$(latest_checkpoint_file "$tmp_dir")"
   assert_eq "$(json_value "$checkpoint_file" "stages.lighthouse.runtime.status")" "ready" "lighthouse runtime should be preflight-ready"
+  assert_eq "$(json_value "$checkpoint_file" "stages.seoGates.status")" "0" "seo gates stage should pass"
   assert_eq "$(json_value "$checkpoint_file" "stages.conversion.status")" "0" "conversion should pass after retry"
   assert_eq "$(json_value "$checkpoint_file" "stages.mockupQuality.status")" "0" "mockup quality stage should pass"
   assert_eq "$(json_value "$checkpoint_file" "executionPolicy.dbRetry.maxAttempts")" "3" "retry policy max attempts"
@@ -300,11 +303,34 @@ run_case_critical_stage_exit_code() {
   trap - RETURN
 }
 
+run_case_seo_gates_critical_exit_code() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+  setup_fixture_repo "$tmp_dir"
+
+  set +e
+  CHECKPOINT_TEST_STATE_DIR="${tmp_dir}/state" \
+  CHECKPOINT_TEST_SLEEP_LOG="${tmp_dir}/state/sleep.log" \
+  CHECKPOINT_TEST_FAIL_ALWAYS_SCRIPT="test:seo:gates" \
+  QUALITY_CHECKPOINT_RETENTION_DAYS=0 \
+  PATH="${tmp_dir}/bin:${PATH}" \
+  bash "${tmp_dir}/scripts/run_quality_checkpoint.sh" >/dev/null 2>&1
+  local status=$?
+  set -e
+
+  assert_eq "$status" "15" "seo gates critical stage should map to dedicated exit code"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
 run_case_conversion_retry_success
 run_case_non_critical_warning_continues
 run_case_non_critical_strict_exit
 run_case_mockup_warning_continues
 run_case_mockup_strict_exit
 run_case_critical_stage_exit_code
+run_case_seo_gates_critical_exit_code
 
 echo "All quality checkpoint tests passed."

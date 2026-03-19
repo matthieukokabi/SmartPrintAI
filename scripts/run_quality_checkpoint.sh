@@ -81,6 +81,7 @@ fi
 EXIT_CRITICAL_RENDERED=11
 EXIT_CRITICAL_LIGHTHOUSE=12
 EXIT_CRITICAL_TREND=13
+EXIT_CRITICAL_SEO_GATES=15
 EXIT_NON_CRITICAL_CONVERSION=41
 EXIT_NON_CRITICAL_ALERTS=42
 EXIT_NON_CRITICAL_MOCKUP_QUALITY=43
@@ -139,6 +140,9 @@ stage_hint() {
     rendered)
       printf '%s' "Check rendered harness connectivity/HTML assertions and re-run with SEO_VERIFY_INCLUDE_PROD=1."
       ;;
+    seo_gates)
+      printf '%s' "Run npm run test:seo:gates locally and inspect create/metadata/security regression snapshots."
+      ;;
     lighthouse)
       printf '%s' "Review Lighthouse runtime preflight, fixture resolution, and rerun perf:lighthouse:gate."
       ;;
@@ -161,6 +165,7 @@ stage_hint() {
 }
 
 rendered_status=0
+seo_gates_status=0
 lighthouse_status=0
 trend_status=0
 conversion_status=0
@@ -175,6 +180,9 @@ run_stage "rendered" env \
   SEO_VERIFY_COMMIT_SHA="$COMMIT_SHA" \
   SEO_VERIFY_ARTIFACT_DIR="$RENDERED_ARTIFACT_DIR" \
   npm run seo:verify:rendered || rendered_status=$?
+
+run_stage "seo_gates" \
+  npm run test:seo:gates || seo_gates_status=$?
 
 if [ ! -x "$QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER" ]; then
   lighthouse_runtime_status="resolver_missing"
@@ -264,6 +272,9 @@ cat > "$CHECKPOINT_FILE" <<JSON
     "rendered": {
       "status": ${rendered_status},
       "summary": "${rendered_summary}"
+    },
+    "seoGates": {
+      "status": ${seo_gates_status}
     },
     "lighthouse": {
       "status": ${lighthouse_status},
@@ -358,6 +369,10 @@ fi
 if [ "$rendered_status" -ne 0 ]; then
   echo "[checkpoint] critical failure: rendered stage failed (exit ${rendered_status}). $(stage_hint rendered)" >&2
   exit "$EXIT_CRITICAL_RENDERED"
+fi
+if [ "$seo_gates_status" -ne 0 ]; then
+  echo "[checkpoint] critical failure: seo gates stage failed (exit ${seo_gates_status}). $(stage_hint seo_gates)" >&2
+  exit "$EXIT_CRITICAL_SEO_GATES"
 fi
 if [ "$lighthouse_status" -ne 0 ]; then
   echo "[checkpoint] critical failure: lighthouse stage failed (exit ${lighthouse_status}). $(stage_hint lighthouse)" >&2
