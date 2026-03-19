@@ -18,6 +18,7 @@ import {
     extractGootenSpaceIdOptionsFromError,
     getGootenClient,
 } from '@/lib/gooten'
+import { isGootenPreviewUrl, waitForRemoteImageAvailability } from '@/lib/remote-image'
 
 type MockupPayload = {
     designId: string
@@ -253,8 +254,26 @@ export async function POST(req: NextRequest) {
             },
         })
         if (cached) {
-            logApiInfo(route, requestId, 'cache_hit')
-            return respond({ mockupUrl: cached.mockupUrl })
+            if (isGootenPreviewUrl(cached.mockupUrl)) {
+                const cachedAvailability = await waitForRemoteImageAvailability(cached.mockupUrl, {
+                    maxAttempts: 1,
+                    delayMs: 0,
+                })
+
+                if (!cachedAvailability.ready) {
+                    logApiWarn(route, requestId, 'gooten_cached_mockup_unavailable', {
+                        productId,
+                        status: cachedAvailability.lastStatus,
+                    })
+                    await prisma.mockup.delete({ where: { id: cached.id } }).catch(() => null)
+                } else {
+                    logApiInfo(route, requestId, 'cache_hit')
+                    return respond({ mockupUrl: cached.mockupUrl })
+                }
+            } else {
+                logApiInfo(route, requestId, 'cache_hit')
+                return respond({ mockupUrl: cached.mockupUrl })
+            }
         }
 
         const [design, product] = await Promise.all([
@@ -487,6 +506,28 @@ export async function POST(req: NextRequest) {
 
         if (!mockupUrl) {
             throw new Error('No mockup URL returned from provider')
+        }
+
+        if (provider === 'gooten') {
+            const availability = await waitForRemoteImageAvailability(mockupUrl)
+            if (!availability.ready) {
+                const retryAfterSec = 8
+                logApiWarn(route, requestId, 'gooten_mockup_not_ready', {
+                    productId,
+                    status: availability.lastStatus,
+                    attempts: availability.attempts,
+                    retryAfterSec,
+                })
+                const response = respond(
+                    {
+                        error: 'Mockup provider is still rendering this preview. Retrying shortly.',
+                        retryAfterSec,
+                    },
+                    { status: 429 }
+                )
+                response.headers.set('retry-after', String(retryAfterSec))
+                return response
+            }
         }
 
         await prisma.mockup.create({
