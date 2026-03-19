@@ -36,6 +36,7 @@ CONVERSION_REPORT_FILE="docs/reports/WAVE6_CONVERSION_INSIGHTS_${TIMESTAMP}_${CO
 ALERT_ARTIFACT_DIR="docs/reports/artifacts/wave6-alerts-${TIMESTAMP}-${COMMIT_SHA}"
 ALERT_REPORT_FILE="docs/reports/WAVE6_ALERTS_${TIMESTAMP}_${COMMIT_SHA}.md"
 ALERT_STATE_FILE="docs/reports/artifacts/wave6-alert-state/state.json"
+MOCKUP_QUALITY_ARTIFACT_DIR="docs/reports/artifacts/wave9-mockup-quality-${TIMESTAMP}-${COMMIT_SHA}"
 CHECKPOINT_DIR="docs/reports/artifacts/wave5-checkpoints"
 CHECKPOINT_FILE="${CHECKPOINT_DIR}/checkpoint-${TIMESTAMP}-${COMMIT_SHA}.json"
 SNAPSHOT_FILE="${CHECKPOINT_DIR}/snapshot-${TIMESTAMP}-${COMMIT_SHA}.json"
@@ -46,6 +47,7 @@ lighthouse_summary="${LIGHTHOUSE_ARTIFACT_DIR}/summary.json"
 trend_summary="${TREND_ARTIFACT_DIR}/summary.json"
 conversion_summary="${CONVERSION_ARTIFACT_DIR}/summary.json"
 alert_summary="${ALERT_ARTIFACT_DIR}/summary.json"
+mockup_quality_summary="${MOCKUP_QUALITY_ARTIFACT_DIR}/summary.json"
 
 RETENTION_DAYS="${QUALITY_CHECKPOINT_RETENTION_DAYS:-14}"
 QUALITY_TREND_HISTORY_RETENTION="${QUALITY_TREND_HISTORY_RETENTION:-60}"
@@ -56,6 +58,7 @@ QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER="${QUALITY_CHECKPOINT_LIGHTHOUSE_RESOLVER
 QUALITY_CHECKPOINT_DB_MAX_RETRIES_RAW="${QUALITY_CHECKPOINT_DB_MAX_RETRIES:-3}"
 QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS_RAW="${QUALITY_CHECKPOINT_DB_RETRY_BACKOFF_SECONDS:-5}"
 QUALITY_CHECKPOINT_STRICT_NON_CRITICAL="${QUALITY_CHECKPOINT_STRICT_NON_CRITICAL:-0}"
+QUALITY_CHECKPOINT_MOCKUP_BASE_URL="${QUALITY_CHECKPOINT_MOCKUP_BASE_URL:-https://smartprintai.com}"
 mkdir -p "$CHECKPOINT_DIR"
 
 normalize_positive_int() {
@@ -80,6 +83,7 @@ EXIT_CRITICAL_LIGHTHOUSE=12
 EXIT_CRITICAL_TREND=13
 EXIT_NON_CRITICAL_CONVERSION=41
 EXIT_NON_CRITICAL_ALERTS=42
+EXIT_NON_CRITICAL_MOCKUP_QUALITY=43
 
 run_stage() {
   local stage_name="$1"
@@ -147,6 +151,9 @@ stage_hint() {
     alerts)
       printf '%s' "Check QUALITY_ALERT_* inputs and ensure trend/conversion summaries exist before alert stage."
       ;;
+    mockup_quality)
+      printf '%s' "Inspect docs/reports/artifacts/wave9-mockup-quality-* summary and rerun npm run ops:mockup-quality:smoke."
+      ;;
     *)
       printf '%s' "Review stage logs and rerun checkpoint with verbose artifacts."
       ;;
@@ -158,6 +165,7 @@ lighthouse_status=0
 trend_status=0
 conversion_status=0
 alert_status=0
+mockup_quality_status=0
 lighthouse_runtime_status="unknown"
 lighthouse_runtime_path=""
 
@@ -207,6 +215,11 @@ run_stage_with_retry "conversion" "$QUALITY_CHECKPOINT_DB_MAX_RETRIES" "$QUALITY
   CONVERSION_INSIGHTS_REPORT_FILE="$CONVERSION_REPORT_FILE" \
   npm run ops:conversion-insights || conversion_status=$?
 
+run_stage "mockup_quality" env \
+  MOCKUP_SMOKE_BASE_URL="$QUALITY_CHECKPOINT_MOCKUP_BASE_URL" \
+  MOCKUP_SMOKE_REPORT_FILE="$mockup_quality_summary" \
+  npm run ops:mockup-quality:smoke || mockup_quality_status=$?
+
 run_stage "alerts" env \
   QUALITY_ALERT_COMMIT_SHA="$COMMIT_SHA" \
   QUALITY_ALERT_TREND_SUMMARY="$trend_summary" \
@@ -223,11 +236,15 @@ fi
 
 conversion_warning=0
 alerts_warning=0
+mockup_quality_warning=0
 if [ "$conversion_status" -ne 0 ]; then
   conversion_warning=1
 fi
 if [ "$alert_status" -ne 0 ]; then
   alerts_warning=1
+fi
+if [ "$mockup_quality_status" -ne 0 ]; then
+  mockup_quality_warning=1
 fi
 
 cat > "$CHECKPOINT_FILE" <<JSON
@@ -272,6 +289,10 @@ cat > "$CHECKPOINT_FILE" <<JSON
       "summary": "${alert_summary}",
       "report": "${ALERT_REPORT_FILE}",
       "state": "${ALERT_STATE_FILE}"
+    },
+    "mockupQuality": {
+      "status": ${mockup_quality_status},
+      "summary": "${mockup_quality_summary}"
     }
   },
   "warnings": {
@@ -284,6 +305,11 @@ cat > "$CHECKPOINT_FILE" <<JSON
       "present": ${alerts_warning},
       "status": ${alert_status},
       "hint": "$(stage_hint alerts)"
+    },
+    "mockupQuality": {
+      "present": ${mockup_quality_warning},
+      "status": ${mockup_quality_status},
+      "hint": "$(stage_hint mockup_quality)"
     }
   },
   "snapshot": {
@@ -308,6 +334,7 @@ if [ "$RETENTION_DAYS" -ge 1 ] 2>/dev/null; then
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave5-trend-history-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave6-conversion-insights-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find docs/reports/artifacts -maxdepth 1 -type d -name 'wave6-alerts-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
+  find docs/reports/artifacts -maxdepth 1 -type d -name 'wave9-mockup-quality-*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
   find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name 'checkpoint-*.json' -mtime +"$RETENTION_DAYS" -delete
   find "$CHECKPOINT_DIR" -maxdepth 1 -type f -name 'snapshot-*.json' -mtime +"$RETENTION_DAYS" -delete
   find docs/reports -maxdepth 1 -type f -name 'WAVE5_TREND_GATE_*.md' -mtime +"$RETENTION_DAYS" -delete
@@ -323,6 +350,9 @@ if [ "$conversion_status" -ne 0 ]; then
 fi
 if [ "$alert_status" -ne 0 ]; then
   echo "[checkpoint] warning: alerts stage failed (exit ${alert_status}). $(stage_hint alerts)" >&2
+fi
+if [ "$mockup_quality_status" -ne 0 ]; then
+  echo "[checkpoint] warning: mockup quality stage failed (exit ${mockup_quality_status}). $(stage_hint mockup_quality)" >&2
 fi
 
 if [ "$rendered_status" -ne 0 ]; then
@@ -345,6 +375,9 @@ if [ "$QUALITY_CHECKPOINT_STRICT_NON_CRITICAL" = "1" ]; then
   if [ "$alert_status" -ne 0 ]; then
     exit "$EXIT_NON_CRITICAL_ALERTS"
   fi
-elif [ "$conversion_status" -ne 0 ] || [ "$alert_status" -ne 0 ]; then
+  if [ "$mockup_quality_status" -ne 0 ]; then
+    exit "$EXIT_NON_CRITICAL_MOCKUP_QUALITY"
+  fi
+elif [ "$conversion_status" -ne 0 ] || [ "$alert_status" -ne 0 ] || [ "$mockup_quality_status" -ne 0 ]; then
   echo "[checkpoint] completed with non-critical warnings (strict mode disabled)." >&2
 fi

@@ -108,6 +108,16 @@ JSON
 JSON
     printf '# snapshot\n' > "$QUALITY_SNAPSHOT_REPORT"
     ;;
+  ops:mockup-quality:smoke)
+    if [ -z "${MOCKUP_SMOKE_REPORT_FILE:-}" ]; then
+      echo "MOCKUP_SMOKE_REPORT_FILE is required for mockup quality stage" >&2
+      exit 95
+    fi
+    mkdir -p "$(dirname "$MOCKUP_SMOKE_REPORT_FILE")"
+    cat > "$MOCKUP_SMOKE_REPORT_FILE" <<JSON
+{"baseUrl":"https://smartprintai.com","passed":true,"results":[{"target":"hoodie","analysis":{"suspiciousMatte":false}},{"target":"cap","analysis":{"suspiciousMatte":false}}]}
+JSON
+    ;;
   *)
     echo "unknown script: ${script_name}" >&2
     exit 96
@@ -159,6 +169,7 @@ run_case_conversion_retry_success() {
   checkpoint_file="$(latest_checkpoint_file "$tmp_dir")"
   assert_eq "$(json_value "$checkpoint_file" "stages.lighthouse.runtime.status")" "ready" "lighthouse runtime should be preflight-ready"
   assert_eq "$(json_value "$checkpoint_file" "stages.conversion.status")" "0" "conversion should pass after retry"
+  assert_eq "$(json_value "$checkpoint_file" "stages.mockupQuality.status")" "0" "mockup quality stage should pass"
   assert_eq "$(json_value "$checkpoint_file" "executionPolicy.dbRetry.maxAttempts")" "3" "retry policy max attempts"
   assert_eq "$(cat "${tmp_dir}/state/attempt_ops_conversion_insights.txt")" "2" "conversion stage should run twice"
   assert_eq "$(wc -l < "${tmp_dir}/state/sleep.log" | tr -d ' ')" "1" "sleep should be called once"
@@ -187,6 +198,7 @@ run_case_non_critical_warning_continues() {
   local checkpoint_file
   checkpoint_file="$(latest_checkpoint_file "$tmp_dir")"
   assert_eq "$(json_value "$checkpoint_file" "stages.conversion.status")" "19" "conversion status should capture repeated failure"
+  assert_eq "$(json_value "$checkpoint_file" "stages.mockupQuality.status")" "0" "mockup quality should remain passing in conversion warning case"
   assert_eq "$(json_value "$checkpoint_file" "warnings.conversion.present")" "1" "conversion warning should be present"
   assert_eq "$(json_value "$checkpoint_file" "executionPolicy.strictNonCritical")" "0" "strict non-critical policy should be disabled"
   assert_eq "$(cat "${tmp_dir}/state/attempt_ops_conversion_insights.txt")" "2" "conversion should exhaust retries"
@@ -220,6 +232,52 @@ run_case_non_critical_strict_exit() {
   trap - RETURN
 }
 
+run_case_mockup_warning_continues() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+  setup_fixture_repo "$tmp_dir"
+
+  CHECKPOINT_TEST_STATE_DIR="${tmp_dir}/state" \
+  CHECKPOINT_TEST_SLEEP_LOG="${tmp_dir}/state/sleep.log" \
+  CHECKPOINT_TEST_FAIL_ALWAYS_SCRIPT="ops:mockup-quality:smoke" \
+  QUALITY_CHECKPOINT_STRICT_NON_CRITICAL=0 \
+  QUALITY_CHECKPOINT_RETENTION_DAYS=0 \
+  PATH="${tmp_dir}/bin:${PATH}" \
+  bash "${tmp_dir}/scripts/run_quality_checkpoint.sh" >/dev/null
+
+  local checkpoint_file
+  checkpoint_file="$(latest_checkpoint_file "$tmp_dir")"
+  assert_eq "$(json_value "$checkpoint_file" "stages.mockupQuality.status")" "19" "mockup quality status should capture stage failure"
+  assert_eq "$(json_value "$checkpoint_file" "warnings.mockupQuality.present")" "1" "mockup quality warning should be present"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
+run_case_mockup_strict_exit() {
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  trap 'rm -rf "$tmp_dir"' RETURN
+  setup_fixture_repo "$tmp_dir"
+
+  set +e
+  CHECKPOINT_TEST_STATE_DIR="${tmp_dir}/state" \
+  CHECKPOINT_TEST_SLEEP_LOG="${tmp_dir}/state/sleep.log" \
+  CHECKPOINT_TEST_FAIL_ALWAYS_SCRIPT="ops:mockup-quality:smoke" \
+  QUALITY_CHECKPOINT_STRICT_NON_CRITICAL=1 \
+  QUALITY_CHECKPOINT_RETENTION_DAYS=0 \
+  PATH="${tmp_dir}/bin:${PATH}" \
+  bash "${tmp_dir}/scripts/run_quality_checkpoint.sh" >/dev/null 2>&1
+  local status=$?
+  set -e
+
+  assert_eq "$status" "43" "strict non-critical mode should fail on mockup quality stage outage"
+
+  rm -rf "$tmp_dir"
+  trap - RETURN
+}
+
 run_case_critical_stage_exit_code() {
   local tmp_dir
   tmp_dir="$(mktemp -d)"
@@ -245,6 +303,8 @@ run_case_critical_stage_exit_code() {
 run_case_conversion_retry_success
 run_case_non_critical_warning_continues
 run_case_non_critical_strict_exit
+run_case_mockup_warning_continues
+run_case_mockup_strict_exit
 run_case_critical_stage_exit_code
 
 echo "All quality checkpoint tests passed."

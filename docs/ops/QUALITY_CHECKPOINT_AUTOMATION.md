@@ -6,6 +6,7 @@ Run a scheduled VPS checkpoint that captures:
 - deterministic Lighthouse gate summary
 - trend gate evaluation with warmup status
 - weekly conversion insight pack (source/page/form-step dropoff + anomaly hints)
+- `/create` mockup-quality smoke summary (generated design + black Gooten hoodie/cap matte-artifact detection)
 - tuned ops alerts with warning dedupe/cooldown and immediate critical emission
 - mission-control release confidence snapshot (RAG flags + trend deltas + deploy health + conversion pulse)
   - conversion pulse card v2 fields: `db_connectivity_status`, `conversion_pulse_mode`, `data_freshness_age`, `amber_reason_code`
@@ -17,6 +18,8 @@ Run a scheduled VPS checkpoint that captures:
   - `bash scripts/resolve_lighthouse_chrome_path.sh`
 - Env bootstrap contract test:
   - `npm run test:ops:env-loader`
+- Mockup-quality smoke check:
+  - `npm run ops:mockup-quality:smoke`
 - Artifact sync contract test:
   - `npm run test:ops:artifact-sync`
 - Install daily systemd timer on VPS:
@@ -33,6 +36,7 @@ Per run (timestamp + commit SHA):
 - `docs/reports/artifacts/wave6-alerts-<timestamp>-<sha>/summary.json`
 - `docs/reports/WAVE6_ALERTS_<timestamp>_<sha>.md`
 - `docs/reports/artifacts/wave6-alert-state/state.json`
+- `docs/reports/artifacts/wave9-mockup-quality-<timestamp>-<sha>/summary.json`
 - `docs/reports/artifacts/wave5-checkpoints/checkpoint-<timestamp>-<sha>.json`
 - `docs/reports/artifacts/wave5-checkpoints/latest.json`
 - `docs/reports/artifacts/wave5-checkpoints/snapshot-<timestamp>-<sha>.json`
@@ -76,6 +80,11 @@ Per run (timestamp + commit SHA):
   - `CONVERSION_INSIGHTS_WINDOW_DAYS` (default `7`, clamp `1..31`)
   - `CONVERSION_INSIGHTS_INPUT_FILE` (optional fixture-mode input for deterministic/local validation)
   - `CONVERSION_INSIGHTS_DEGRADED_POLICY` (default `warn`, set `fail` to hard-fail when no DB/cache fallback is usable)
+- Mockup-quality smoke toggles:
+  - `QUALITY_CHECKPOINT_MOCKUP_BASE_URL` (default `https://smartprintai.com`)
+  - `MOCKUP_SMOKE_PROMPT` (optional override for generated-design prompt seed)
+  - `MOCKUP_SMOKE_HOODIE_PRODUCT_ID` / `MOCKUP_SMOKE_CAP_PRODUCT_ID` (optional deterministic product-id pinning)
+  - `MOCKUP_SMOKE_MAX_ATTEMPTS` (default `4`, internal `/api/mockup` retry loop for transient provider `429`)
 - Alert tuning toggles:
   - `QUALITY_ALERT_COOLDOWN_HOURS` (default `24`, applies only to non-critical alerts)
   - `QUALITY_ALERT_AMBER_THRESHOLD_HOURS` (default `6`, alert threshold window for prolonged conversion-pulse amber state)
@@ -83,7 +92,7 @@ Per run (timestamp + commit SHA):
   - Critical alerts bypass cooldown and are emitted every run (`conversion_pulse_hard_outage`, trend fail, and critical conversion anomalies).
   - Prolonged amber conversion-pulse alerts (`conversion_pulse_amber_prolonged`) are warning-level and respect cooldown dedupe.
 - Non-critical stage strictness:
-  - `QUALITY_CHECKPOINT_STRICT_NON_CRITICAL` (default `0`, set `1` to fail checkpoint on conversion/alerts stage failure)
+  - `QUALITY_CHECKPOINT_STRICT_NON_CRITICAL` (default `0`, set `1` to fail checkpoint on conversion/alerts/mockup-quality stage failure)
 
 ## Exit Codes
 - `0`: success (or success with non-critical warnings when strict mode is disabled)
@@ -93,6 +102,7 @@ Per run (timestamp + commit SHA):
 - `13`: trend stage critical failure
 - `41`: conversion stage failure in strict non-critical mode
 - `42`: alerts stage failure in strict non-critical mode
+- `43`: mockup-quality stage failure in strict non-critical mode
 
 ## One-Command Artifact Sync Workflow
 1. Run checkpoint on VPS:
