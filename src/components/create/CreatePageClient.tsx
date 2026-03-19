@@ -15,6 +15,7 @@ import type { DesignStyle, Product } from '@/types'
 import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import { ShoppingCart, Check } from 'lucide-react'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { getCreateProductPromptGuidance } from '@/lib/create-product-guidance'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
@@ -161,6 +162,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     }, [mockupEligibleProducts, selectedProduct])
 
     const product = mockupEligibleProducts.find((p) => p.id === selectedProduct)
+    const productPromptGuidance = product ? getCreateProductPromptGuidance(product) : null
 
     useEffect(() => {
         if (!product) return
@@ -560,6 +562,21 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                             ))}
                                         </div>
                                     </div>
+
+                                    {productPromptGuidance && (
+                                        <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 space-y-2">
+                                            <p className="text-xs font-semibold text-foreground">{productPromptGuidance.title}</p>
+                                            <ul className="space-y-1.5 text-xs text-muted-foreground">
+                                                {productPromptGuidance.checklist.map((item) => (
+                                                    <li key={item} className="flex items-start gap-2">
+                                                        <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-purple-400/80" />
+                                                        <span>{item}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <p className="text-[11px] text-muted-foreground/80">{productPromptGuidance.example}</p>
+                                        </div>
+                                    )}
 
                                     <button
                                         onClick={handleAddToCart}
