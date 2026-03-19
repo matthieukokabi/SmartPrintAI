@@ -7,6 +7,14 @@ type HeaderEntry = {
 
 type NextConfigLike = {
     headers?: () => Promise<HeaderEntry[]>
+    images?: {
+        remotePatterns?: Array<{
+            protocol?: string
+            hostname?: string
+            pathname?: string
+            port?: string
+        }>
+    }
 }
 
 function parseCspDirectives(value: string): Map<string, string> {
@@ -93,5 +101,20 @@ describe('Wave 3 security headers regression', () => {
         expect(directives.get('script-src')).toBe("'self' 'unsafe-inline' 'unsafe-eval' https:")
         expect(directives.has('script-src-elem')).toBe(false)
         expect(directives.has('script-src-attr')).toBe(false)
+    })
+
+    it('allows Gooten preview host used by product mockups', async () => {
+        const nextConfig = await loadNextConfig()
+        const remotePatterns = nextConfig.images?.remotePatterns || []
+
+        expect(remotePatterns).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    protocol: 'https',
+                    hostname: 's3.amazonaws.com',
+                    pathname: '/gooten-imgmanip/**',
+                }),
+            ])
+        )
     })
 })

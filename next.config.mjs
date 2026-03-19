@@ -34,6 +34,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'files.cdn.printful.com' },
       { protocol: 'https', hostname: 'az412349.cdn.gooten.com' },
       { protocol: 'https', hostname: 'appassets.azureedge.net' },
+      { protocol: 'https', hostname: 's3.amazonaws.com', pathname: '/gooten-imgmanip/**' },
       { protocol: 'https', hostname: 'smartprintai.com' },
       { protocol: 'https', hostname: 'www.smartprintai.com' },
       { protocol: 'http', hostname: 'localhost', port: '9000' },
