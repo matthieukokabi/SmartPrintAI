@@ -32,7 +32,7 @@
     "test:ops:artifact-sync": "bash scripts/tests/sync_vps_checkpoint_artifacts_test.sh",
     "test:ops:env-loader": "bash scripts/tests/env_loader_test.sh",
     "test:ops:lighthouse-runtime": "bash scripts/tests/resolve_lighthouse_chrome_path_test.sh",
-    "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts src/app/money-pages-schema-trust-regression.test.ts",
+    "test:seo:gates": "vitest run src/app/metadata-regression.test.ts src/app/security-headers-regression.test.ts src/app/internal-links-regression.test.ts src/app/money-pages-schema-trust-regression.test.ts src/app/create-guidance-regression.test.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/e2e_smoke.ts",
