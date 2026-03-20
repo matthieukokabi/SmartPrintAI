@@ -210,7 +210,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Launch first $100 Google Shopping test (prereq done 2026-03-11: product feed endpoint `/google/merchant-feed.xml`, setup runbook `docs/marketing/GOOGLE_MERCHANT_FEED_SETUP.md`; campaign launch still manual in Google Ads)
 - [ ] Launch first Google Performance Max campaign using Merchant Center products (conversion objective + ROAS target)
 - [ ] Launch branded Google Search campaign to protect brand queries and capture high-intent traffic
-- [ ] Add weekly Google Ads optimization checklist (search-term negatives, product-group cuts, bid/ROAS adjustments)
+- [x] Add weekly Google Ads optimization checklist (search-term negatives, product-group cuts, bid/ROAS adjustments) (2026-03-20: added `docs/marketing/GOOGLE_ADS_WEEKLY_OPTIMIZATION_CHECKLIST.md` with weekly KPI intake, search-term negative workflow, product-group bid/ROAS decision rules, conversion integrity checks, and weekly change-log template for Shopping + Performance Max + branded Search operations)
 - [x] Set up email list capture offer (first-order discount popup) (2026-03-11: homepage discount modal in `en/fr/de/es`, lead capture API `/api/marketing/lead`, rate-limited submission, internal lead notification + customer coupon email via Resend, env vars documented)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [x] Set up Make.com automations (completed 2026-03-12: all 5 flows validated from VPS with `200 Accepted` via shared fast-route webhook on free Make plan; secured daily digest route verified `200`; runbook `docs/marketing/MAKE_AUTOMATIONS_SETUP.md`; optional future upgrade: split into dedicated always-on scenarios on paid plan)
