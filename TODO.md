@@ -199,11 +199,18 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### P2 - Marketing Execution (Month 1)
 - [ ] Publish 5 TikToks per week
+- [ ] Create Instagram Business account and publish 5 Reels per week (behind-the-scenes, prompt tips, product reveals)
+- [ ] Create Facebook Page and connect it to Instagram for cross-posting + social proof
 - [ ] Create Pinterest account and start daily product/mockup pins
+- [ ] Create YouTube Shorts channel and publish 3 short-form videos per week
+- [ ] Maintain a weekly social content calendar across TikTok/Instagram/Pinterest/YouTube
 - [x] Build reusable weekly content batch workflow (90 min/week) (2026-03-11: added generator script `npm run marketing:weekly-batch` + docs `docs/marketing/WEEKLY_CONTENT_BATCH_WORKFLOW.md` with 90-minute operating cadence and quality gate)
 
 ### P2 - Marketing Execution (Month 2)
 - [ ] Launch first $100 Google Shopping test (prereq done 2026-03-11: product feed endpoint `/google/merchant-feed.xml`, setup runbook `docs/marketing/GOOGLE_MERCHANT_FEED_SETUP.md`; campaign launch still manual in Google Ads)
+- [ ] Launch first Google Performance Max campaign using Merchant Center products (conversion objective + ROAS target)
+- [ ] Launch branded Google Search campaign to protect brand queries and capture high-intent traffic
+- [ ] Add weekly Google Ads optimization checklist (search-term negatives, product-group cuts, bid/ROAS adjustments)
 - [x] Set up email list capture offer (first-order discount popup) (2026-03-11: homepage discount modal in `en/fr/de/es`, lead capture API `/api/marketing/lead`, rate-limited submission, internal lead notification + customer coupon email via Resend, env vars documented)
 - [ ] Outreach to 5 nano-influencers for product exchange
 - [x] Set up Make.com automations (completed 2026-03-12: all 5 flows validated from VPS with `200 Accepted` via shared fast-route webhook on free Make plan; secured daily digest route verified `200`; runbook `docs/marketing/MAKE_AUTOMATIONS_SETUP.md`; optional future upgrade: split into dedicated always-on scenarios on paid plan)
