@@ -27,6 +27,7 @@ const GOOTEN_MOCKUP_UNSUPPORTED_PROVIDER_PRODUCT_IDS = new Set([
     '408', // Stainless Steel Travel Mugs
     '411', // Stainless Steel Travel Mugs with Handle
     '412', // Jumbo Mugs
+    '372', // Stainless Steel Can Holders
 ])
 
 export function isMockupEligibleProduct(product: MockupEligibilityProduct): boolean {

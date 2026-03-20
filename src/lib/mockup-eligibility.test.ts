@@ -92,6 +92,22 @@ describe('isMockupEligibleProduct', () => {
         ).toBe(false)
     })
 
+    it('returns false for Gooten stainless steel can holders flagged as unsupported for AI mockups', () => {
+        expect(
+            isMockupEligibleProduct({
+                name: 'Stainless Steel Can Holders',
+                printfulId: 'gooten:372',
+                printArea: {
+                    providerProductId: '372',
+                    providerDefaultSku: 'SteelCanHolder-White-12oz',
+                    variantMapping: {
+                        default: 'SteelCanHolder-White-12oz',
+                    },
+                },
+            })
+        ).toBe(false)
+    })
+
     it('returns false for Gooten all-over apparel SKUs flagged as unsupported for AI mockups', () => {
         expect(
             isMockupEligibleProduct({
