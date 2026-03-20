@@ -195,6 +195,7 @@ describe('/api/generate POST', () => {
       prompt: 'funny french bulldog in sunglasses',
       style: 'pop-art',
     })
+    expect(mocks.rateLimitRequest).toHaveBeenCalledWith(expect.any(NextRequest), 'generate', 60, 600)
     expect(mocks.normalizeGeneratedDesignDataUrl).toHaveBeenCalledWith('base64-image')
     expect(mocks.uploadBase64Image).toHaveBeenCalledWith('normalized-base64-image')
     expect(mocks.sendMakeDesignAutoPost).toHaveBeenCalledWith({

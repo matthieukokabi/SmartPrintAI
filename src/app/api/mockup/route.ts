@@ -31,8 +31,8 @@ type ProductColor = {
     printfulVariantId: number
 }
 
-const MOCKUP_RATE_LIMIT_LIMIT = 180
-const MOCKUP_RATE_LIMIT_WINDOW_SEC = 600
+const MOCKUP_RATE_LIMIT_LIMIT = Number(process.env.MOCKUP_RATE_LIMIT || 480)
+const MOCKUP_RATE_LIMIT_WINDOW_SEC = Number(process.env.MOCKUP_RATE_LIMIT_WINDOW_SEC || 600)
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null

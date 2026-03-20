@@ -157,6 +157,7 @@ describe('/api/mockup POST', () => {
     await expect(res.json()).resolves.toEqual({
       error: 'Rate limit exceeded. Please try again shortly.',
     })
+    expect(mocks.rateLimitRequest).toHaveBeenCalledWith(expect.any(NextRequest), 'mockup', 480, 600)
     expect(mocks.prisma.design.findUnique).not.toHaveBeenCalled()
     expect(mocks.prisma.product.findUnique).not.toHaveBeenCalled()
   })

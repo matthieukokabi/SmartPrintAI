@@ -28,6 +28,9 @@ const ALLOWED_STYLES = new Set<DesignStyle>([
 const SOURCE_IMAGE_DATA_URL_REGEX = /^data:(image\/(?:png|jpeg|jpg|webp));base64,[A-Za-z0-9+/=]+$/i
 const MAX_SOURCE_IMAGE_DATA_URL_LENGTH = 900_000
 
+const GENERATE_RATE_LIMIT = Number(process.env.GENERATE_RATE_LIMIT || 60)
+const GENERATE_RATE_LIMIT_WINDOW_SEC = Number(process.env.GENERATE_RATE_LIMIT_WINDOW_SEC || 600)
+
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
 }
@@ -101,7 +104,7 @@ export async function POST(req: NextRequest) {
 
     logApiInfo(route, requestId, 'request_received')
 
-    const limiter = await rateLimitRequest(req, 'generate', 20, 600)
+    const limiter = await rateLimitRequest(req, 'generate', GENERATE_RATE_LIMIT, GENERATE_RATE_LIMIT_WINDOW_SEC)
     if (!limiter.allowed) {
         logApiWarn(route, requestId, 'rate_limited', { resetInSec: limiter.resetInSec })
         const response = respond({ error: 'Rate limit exceeded. Please try again shortly.' }, { status: 429 })
