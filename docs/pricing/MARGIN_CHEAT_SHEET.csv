@@ -1,0 +1,46 @@
+productId,name,provider,catalogType,category,basePrice,sellPrice,customerShippingCharge,providerShippingCost,aiGenerationCost,stripeFeeEstimate,shippingSpread,grossMargin,totalRevenue,totalCost,netEarnings,netEarningsPct
+cmmtjnv8y0008qwl21blw0rsv,All-Over Print Zip-Up Hoodies,gooten,ready_to_buy,apparel,51.40,113.08,5.99,5.99,0.00,3.75,0.00,61.68,119.07,61.14,57.93,48.65
+cmmtjreet000oqwl2x138srq7,Klean Kanteen TKWide Insulated Water Bottles With Loop Cap,gooten,ready_to_buy,apparel,51.40,113.08,5.99,5.99,0.00,3.75,0.00,61.68,119.07,61.14,57.93,48.65
+cmmhtq4pb000443l2lim67qn2,adidas Quarter Zip Pullover,printful,ready_to_buy,accessories,47.95,105.49,5.99,5.99,0.00,3.53,0.00,57.54,111.48,57.47,54.01,48.45
+cmmtjnf3f0006qwl2outzyuu1,All-Over Print Pullover Hoodies,gooten,ready_to_buy,apparel,47.90,105.38,5.99,5.99,0.00,3.53,0.00,57.48,111.37,57.42,53.95,48.44
+cmmtjrkl8000pqwl2sgjrhftq,Klean Kanteen Eco Insulated Water Bottles With Loop Cap,gooten,ready_to_buy,apparel,45.90,100.98,5.99,5.99,0.00,3.40,0.00,55.08,106.97,55.29,51.68,48.31
+cmmtjm69v0000qwl291yf1vir,Klean Kanteen Eco Tumblers with Cafe Cap,gooten,ready_to_buy,apparel,41.40,91.08,5.99,5.99,0.00,3.12,0.00,49.68,97.07,50.51,46.56,47.97
+cmmhtq5zm000743l2ihcauamf,adidas Space-Dyed Polo Shirt,printful,ready_to_buy,apparel,40.50,89.10,5.99,5.99,0.00,3.06,0.00,48.60,95.09,49.55,45.54,47.89
+cmmtjnpmj0007qwl2x9er74zl,Hoodies (Zip-up),gooten,ai_customizable,apparel,35.90,78.98,5.99,5.99,0.04,2.76,0.00,43.08,84.97,44.69,40.28,47.40
+cmmhtq5bq000643l2f4iptp59,adidas Premium Polo Shirt,printful,ready_to_buy,apparel,32.50,71.50,5.99,5.99,0.00,2.55,0.00,39.00,77.49,41.04,36.45,47.04
+cmmtjmswh0004qwl285pxvbc4,All-Over Print Sweatshirts,gooten,ready_to_buy,apparel,31.40,69.08,5.99,5.99,0.00,2.48,0.00,37.68,75.07,39.87,35.20,46.89
+cmmhtq7jt000b43l219lzhg6n,All-Over Print Backpack,printful,ai_customizable,accessories,28.95,63.69,5.99,5.99,0.04,2.32,0.00,34.74,69.68,37.30,32.38,46.47
+cmmhtq9ma000h43l2gkyhn57s,All-Over Print Boxy Football Jersey,printful,ai_customizable,accessories,28.95,63.69,5.99,5.99,0.04,2.32,0.00,34.74,69.68,37.30,32.38,46.47
+cmmhtq6v1000a43l20atonrvd,All-Over Print American Football Jersey,printful,ai_customizable,accessories,28.50,62.70,5.99,5.99,0.04,2.29,0.00,34.20,68.69,36.82,31.87,46.40
+cmmtjn6ue0005qwl2h2dp3vae,Hoodies (No-Zip/Pullover),gooten,ai_customizable,apparel,25.90,56.98,5.99,5.99,0.04,2.13,0.00,31.08,62.97,34.06,28.91,45.91
+cmmhtq51a000543l2um1zc4s5,adidas Dad Hat,printful,ready_to_buy,accessories,22.50,49.50,5.99,5.99,0.00,1.91,0.00,27.00,55.49,30.40,25.09,45.22
+cmmtjqrq4000lqwl2uabumkdw,Stainless Steel Travel Mugs,gooten,ready_to_buy,apparel,20.40,44.88,5.99,5.99,0.00,1.78,0.00,24.48,50.87,28.17,22.70,44.62
+cmmtjmfil0002qwl2hg37lapt,Men's Poly Buttoned Polo,gooten,ai_customizable,apparel,20.40,44.88,5.99,5.99,0.04,1.78,0.00,24.48,50.87,28.21,22.66,44.54
+cmmtjobbf000aqwl2nlshbk16,Hoodies (Youth Sizes),gooten,ai_customizable,apparel,19.99,43.98,5.99,5.99,0.04,1.75,0.00,23.99,49.97,27.77,22.20,44.43
+cmmhtq98t000g43l2xdqtt78t,All-Over Print Biker Shorts,printful,ready_to_buy,accessories,19.95,43.89,5.99,5.99,0.00,1.75,0.00,23.94,49.88,27.69,22.19,44.49
+cmmhtq3ip000143l2rahu7sa0,Area Rug,printful,ai_customizable,accessories,18.95,41.69,5.99,5.99,0.04,1.68,0.00,22.74,47.68,26.66,21.02,44.09
+cmmtjqks7000kqwl2l2j8vtqh,Stainless Steel Travel Mugs with Handle,gooten,ready_to_buy,apparel,18.90,41.58,5.99,5.99,0.00,1.68,0.00,22.68,47.57,26.57,21.00,44.15
+cmmtjq67c000iqwl2v0ef6kn3,Insulated Stainless Steel Mugs,gooten,ready_to_buy,apparel,18.40,40.48,5.99,5.99,0.00,1.65,0.00,22.08,46.47,26.04,20.43,43.96
+cmmtjqzed000mqwl2m9v5ceqi,Stainless Steel Can Holders,gooten,ai_customizable,apparel,18.40,40.48,5.99,5.99,0.04,1.65,0.00,22.08,46.47,26.08,20.39,43.88
+cmmtjr64u000nqwl2sevnor9s,Marka Copper Tumblers With Stainless Steel Straw,gooten,ready_to_buy,apparel,17.40,38.28,5.99,5.99,0.00,1.58,0.00,20.88,44.27,24.97,19.30,43.60
+cmmtjp918000eqwl2tugo8128,Richardson 256 - Umpqua Snapback Cap,gooten,ai_customizable,accessories,17.40,38.28,5.99,5.99,0.04,1.58,0.00,20.88,44.27,25.01,19.26,43.51
+cmmtjo3hv0009qwl2kjhcf13o,Sweatshirts (Youth Sizes),gooten,ai_customizable,apparel,16.90,37.18,5.99,5.99,0.04,1.55,0.00,20.28,43.17,24.48,18.69,43.29
+cmml0yjgp0000zbl20eiab841,Pet Hoodie,printful,ai_customizable,apparel,16.50,36.30,5.99,5.99,0.04,1.53,0.00,19.80,42.29,24.06,18.23,43.11
+cmmtjmn0e0003qwl2274wmuxl,Sweatshirts,gooten,ai_customizable,apparel,15.90,34.98,5.99,5.99,0.04,1.49,0.00,19.08,40.97,23.42,17.55,42.84
+cmmtjosuu000cqwl275g3jaqv,Snapback Caps,gooten,ai_customizable,accessories,15.40,33.88,5.99,5.99,0.04,1.46,0.00,18.48,39.87,22.89,16.98,42.59
+cmmtjojjq000bqwl248v798oq,Dad Caps,gooten,ai_customizable,accessories,14.90,32.78,5.99,5.99,0.04,1.42,0.00,17.88,38.77,22.35,16.42,42.35
+cmmtjpq33000gqwl2aibjksol,Richardson 168 - 7 Panel Trucker Cap,gooten,ai_customizable,accessories,14.40,31.68,5.99,5.99,0.04,1.39,0.00,17.28,37.67,21.82,15.85,42.08
+cmmtjphoq000fqwl21arx8nwp,Richardson 113 - Foamie Trucker Cap,gooten,ai_customizable,accessories,13.90,30.58,5.99,5.99,0.04,1.36,0.00,16.68,36.57,21.29,15.28,41.78
+cmmtjm9q80001qwl2ofzl25tn,Tie-Dye T-Shirts,gooten,ai_customizable,apparel,13.90,30.58,5.99,5.99,0.04,1.36,0.00,16.68,36.57,21.29,15.28,41.78
+cmmhtq42c000243l2wzpfy5v8,Unisex Performance Crew Neck T-Shirt | A4 N3142,printful,ai_customizable,apparel,13.50,29.70,5.99,5.99,0.04,1.34,0.00,16.20,35.69,20.87,14.82,41.52
+cmmtjqdwj000jqwl2z7xml83n,Jumbo Mugs,gooten,ready_to_buy,drinkware,13.40,29.48,5.99,5.99,0.00,1.33,0.00,16.08,35.47,20.72,14.75,41.58
+cmmtjp0fh000dqwl2it0jgyio,Trucker Caps,gooten,ai_customizable,accessories,13.40,29.48,5.99,5.99,0.04,1.33,0.00,16.08,35.47,20.76,14.71,41.47
+cmmtjpwxo000hqwl2v3rapxr5,Beanies,gooten,ai_customizable,accessories,12.40,27.28,5.99,5.99,0.04,1.26,0.00,14.88,33.27,19.69,13.58,40.82
+cmmhtq8cy000d43l21rnb6iph,All-Over Print Basic Pillow,printful,ai_customizable,home,11.95,26.29,5.99,5.99,0.04,1.24,0.00,14.34,32.28,19.22,13.06,40.46
+cmmhtq6kl000943l2cgapj5e3,All-Over Print Drawstring Bag,printful,ai_customizable,accessories,11.95,26.29,5.99,5.99,0.04,1.24,0.00,14.34,32.28,19.22,13.06,40.46
+cmmhtq8nq000e43l253jfkcrf,All-Over Print Basic Pillow Case,printful,ai_customizable,home,10.50,23.10,5.99,5.99,0.04,1.14,0.00,12.60,29.09,17.67,11.42,39.26
+cmmhtq8y7000f43l2dvac3xqo,All-Over Print Beanie,printful,ai_customizable,accessories,10.50,23.10,5.99,5.99,0.04,1.14,0.00,12.60,29.09,17.67,11.42,39.26
+cmmhtq38g000043l273fc9glv,Luggage Tag,printful,ai_customizable,accessories,10.50,23.10,5.99,5.99,0.04,1.14,0.00,12.60,29.09,17.67,11.42,39.26
+cmmhtq7uo000c43l2hrqdt4ef,All-Over Print Bandana,printful,ai_customizable,accessories,7.95,17.49,5.99,5.99,0.04,0.98,0.00,9.54,23.48,14.96,8.52,36.29
+cmmhtq6b4000843l27hn0qxqw,Rubber Case for AirPods®,printful,ai_customizable,accessories,7.95,17.49,5.99,5.99,0.04,0.98,0.00,9.54,23.48,14.96,8.52,36.29
+cmmhtq4e4000343l29gzhn3ca,Acrylic Ornaments,printful,ai_customizable,accessories,6.50,14.50,5.99,5.99,0.04,0.89,0.00,8.00,20.49,13.42,7.07,34.50
