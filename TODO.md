@@ -39,6 +39,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Final production secret audit (.env.local) (2026-03-11 masked check on VPS: required keys present, suspicious bare-token lines none)
 - [ ] Run one real live purchase on production and confirm payment settlement end-to-end (deferred by request until core implementation is complete)
 - [x] Add production live-purchase preflight automation (2026-03-13: shipped `npm run prod:live-preflight` + checklist `docs/PROD_LIVE_PURCHASE_CHECKLIST.md` to validate all non-owner prerequisites before the real payment run)
+- [x] Re-run production live-purchase preflight before owner checkout (2026-03-20: executed `npm run prod:live-preflight` against `https://smartprintai.com`; all endpoint checks passed (`/`, `/create`, `/products`, `/blog`, `/api/products`, `/google/merchant-feed.xml`), non-existent `session_id` returned expected `404`, and live checkout URL generation via `/api/checkout` succeeded)
 - [x] Masked secret audit run on 2026-03-09 (Stripe currently in test mode; `PRINTFUL_WEBHOOK_SECRET` subsequently configured and verified)
 - [x] Stripe live keys applied on VPS and verified (`checkout_http=200`, signed webhook `200`)
 - [x] Fixed production key-rotation script bug that wrote blank keys (hidden prompt newlines no longer pollute captured values) (2026-03-11)
