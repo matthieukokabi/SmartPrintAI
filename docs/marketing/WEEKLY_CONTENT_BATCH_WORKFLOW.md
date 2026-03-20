@@ -58,3 +58,6 @@ At the end of each week:
 - Keep top 20% winning concepts.
 - Rewrite the bottom 30% with new hooks.
 - Re-run `npm run marketing:weekly-batch` and ship next batch.
+
+## Calendar template
+Use [SOCIAL_CONTENT_CALENDAR_TEMPLATE.md](./SOCIAL_CONTENT_CALENDAR_TEMPLATE.md) to convert batch output into a channel-by-channel weekly schedule with UTM links and a Sunday performance review block.

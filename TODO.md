@@ -203,7 +203,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [ ] Create Facebook Page and connect it to Instagram for cross-posting + social proof
 - [ ] Create Pinterest account and start daily product/mockup pins
 - [ ] Create YouTube Shorts channel and publish 3 short-form videos per week
-- [ ] Maintain a weekly social content calendar across TikTok/Instagram/Pinterest/YouTube
+- [x] Maintain a weekly social content calendar across TikTok/Instagram/Pinterest/YouTube (2026-03-20: added reusable planner `docs/marketing/SOCIAL_CONTENT_CALENDAR_TEMPLATE.md` with per-channel weekly matrix, UTM naming standard, minimum posting targets, and weekly performance review section; linked from `docs/marketing/WEEKLY_CONTENT_BATCH_WORKFLOW.md` for batch-to-calendar execution)
 - [x] Build reusable weekly content batch workflow (90 min/week) (2026-03-11: added generator script `npm run marketing:weekly-batch` + docs `docs/marketing/WEEKLY_CONTENT_BATCH_WORKFLOW.md` with 90-minute operating cadence and quality gate)
 
 ### P2 - Marketing Execution (Month 2)
