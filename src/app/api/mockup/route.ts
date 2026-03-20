@@ -31,6 +31,9 @@ type ProductColor = {
     printfulVariantId: number
 }
 
+const MOCKUP_RATE_LIMIT_LIMIT = 180
+const MOCKUP_RATE_LIMIT_WINDOW_SEC = 600
+
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
 }
@@ -221,16 +224,6 @@ export async function POST(req: NextRequest) {
 
     logApiInfo(route, requestId, 'request_received')
 
-    const limiter = await rateLimitRequest(req, 'mockup', 60, 600)
-    if (!limiter.allowed) {
-        logApiWarn(route, requestId, 'rate_limited', { resetInSec: limiter.resetInSec })
-        const response = respond({ error: 'Rate limit exceeded. Please try again shortly.' }, { status: 429 })
-        response.headers.set('retry-after', String(limiter.resetInSec))
-        response.headers.set('x-ratelimit-limit', String(limiter.limit))
-        response.headers.set('x-ratelimit-remaining', String(limiter.remaining))
-        return response
-    }
-
     try {
         let rawPayload: unknown
         try {
@@ -274,6 +267,17 @@ export async function POST(req: NextRequest) {
                 logApiInfo(route, requestId, 'cache_hit')
                 return respond({ mockupUrl: cached.mockupUrl })
             }
+        }
+
+        // Count only cache misses toward route quota so existing previews stay instantly available.
+        const limiter = await rateLimitRequest(req, 'mockup', MOCKUP_RATE_LIMIT_LIMIT, MOCKUP_RATE_LIMIT_WINDOW_SEC)
+        if (!limiter.allowed) {
+            logApiWarn(route, requestId, 'rate_limited', { resetInSec: limiter.resetInSec })
+            const response = respond({ error: 'Rate limit exceeded. Please try again shortly.' }, { status: 429 })
+            response.headers.set('retry-after', String(limiter.resetInSec))
+            response.headers.set('x-ratelimit-limit', String(limiter.limit))
+            response.headers.set('x-ratelimit-remaining', String(limiter.remaining))
+            return response
         }
 
         const [design, product] = await Promise.all([
