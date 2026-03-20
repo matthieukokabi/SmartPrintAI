@@ -8,6 +8,8 @@ const EDGE_BACKGROUND_RATIO_MIN = 0.4
 const EDGE_TRANSPARENT_RATIO_MIN = 0.55
 const EDGE_NEUTRAL_BRIGHTNESS_MIN = 145
 const EDGE_NEUTRAL_SATURATION_MAX = 0.22
+const EDGE_DARK_BACKGROUND_BRIGHTNESS_MAX = 58
+const EDGE_DARK_BACKGROUND_SATURATION_MAX = 0.18
 const EDGE_ANCHOR_BUCKET_SIZE = 12
 const EDGE_ANCHOR_MAX_COUNT = 2
 const EDGE_ANCHOR_DISTANCE_MAX = 42
@@ -85,7 +87,18 @@ function isNeutralLightBackground(r: number, g: number, b: number): boolean {
     return colorBrightness(r, g, b) >= EDGE_NEUTRAL_BRIGHTNESS_MIN && colorSaturation(r, g, b) <= EDGE_NEUTRAL_SATURATION_MAX
 }
 
+function isNeutralDarkBackground(r: number, g: number, b: number): boolean {
+    return (
+        colorBrightness(r, g, b) <= EDGE_DARK_BACKGROUND_BRIGHTNESS_MAX &&
+        colorSaturation(r, g, b) <= EDGE_DARK_BACKGROUND_SATURATION_MAX
+    )
+}
+
 function isCandidateBackgroundColor(r: number, g: number, b: number): boolean {
+    return isNearWhite(r, g, b) || isNeutralLightBackground(r, g, b) || isNeutralDarkBackground(r, g, b)
+}
+
+function isUnanchoredCandidateBackgroundColor(r: number, g: number, b: number): boolean {
     return isNearWhite(r, g, b) || isNeutralLightBackground(r, g, b)
 }
 
@@ -181,13 +194,18 @@ function isBackgroundPixel(
     const r = pixels[offset]
     const g = pixels[offset + 1]
     const b = pixels[offset + 2]
-    if (allowUnanchoredCandidate && isCandidateBackgroundColor(r, g, b)) {
+    if (allowUnanchoredCandidate && isUnanchoredCandidateBackgroundColor(r, g, b)) {
         return true
     }
 
     const saturation = colorSaturation(r, g, b)
     const brightness = colorBrightness(r, g, b)
-    if (saturation > EDGE_ANCHOR_SATURATION_MAX || brightness < EDGE_ANCHOR_BRIGHTNESS_MIN) {
+    if (saturation > EDGE_ANCHOR_SATURATION_MAX) {
+        return false
+    }
+
+    const allowDarkAnchors = anchors.some((anchor) => colorBrightness(anchor.r, anchor.g, anchor.b) < EDGE_ANCHOR_BRIGHTNESS_MIN)
+    if (!allowDarkAnchors && brightness < EDGE_ANCHOR_BRIGHTNESS_MIN) {
         return false
     }
 

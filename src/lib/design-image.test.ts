@@ -282,6 +282,71 @@ describe('normalizeGeneratedDesignDataUrl', () => {
         expect(remainingNeutralCheckerboardPixels).toBe(0)
     })
 
+    it('removes full-frame dark matte behind centered subject', async () => {
+        const width = 128
+        const height = 128
+        const pixels = new Uint8ClampedArray(width * height * 4)
+
+        for (let y = 0; y < height; y += 1) {
+            for (let x = 0; x < width; x += 1) {
+                const block = (Math.floor(x / 10) + Math.floor(y / 10)) % 2 === 0
+                const value = block ? 18 : 36
+                setPixel(pixels, width, x, y, [value, value, value, 255])
+            }
+        }
+
+        for (let y = 22; y < 110; y += 1) {
+            for (let x = 28; x < 100; x += 1) {
+                setPixel(pixels, width, x, y, [230, 138, 44, 255])
+            }
+        }
+
+        for (let y = 38; y < 100; y += 1) {
+            for (let x = 46; x < 86; x += 1) {
+                setPixel(pixels, width, x, y, [42, 168, 218, 255])
+            }
+        }
+
+        const sourceBuffer = await sharp(Buffer.from(pixels), {
+            raw: {
+                width,
+                height,
+                channels: 4,
+            },
+        }).png().toBuffer()
+
+        const normalized = await normalizeGeneratedDesignDataUrl(toDataUrl(sourceBuffer))
+        const decoded = await decodeDataUrl(normalized.dataUrl)
+
+        let remainingDarkMattePixels = 0
+        let opaqueSubjectPixels = 0
+
+        for (let index = 0; index < decoded.data.length; index += 4) {
+            const r = decoded.data[index]
+            const g = decoded.data[index + 1]
+            const b = decoded.data[index + 2]
+            const a = decoded.data[index + 3]
+            if (a < 240) {
+                continue
+            }
+
+            const maxDelta = Math.max(r, g, b) - Math.min(r, g, b)
+            if (maxDelta <= 8 && r <= 60) {
+                remainingDarkMattePixels += 1
+            }
+            if ((r >= 190 && g >= 90 && b <= 90) || (b >= 150 && g >= 120 && r <= 80)) {
+                opaqueSubjectPixels += 1
+            }
+        }
+
+        expect(normalized.didRemoveBackground).toBe(true)
+        expect(normalized.didCrop).toBe(true)
+        expect(decoded.width).toBeLessThan(width)
+        expect(decoded.height).toBeLessThan(height)
+        expect(opaqueSubjectPixels).toBeGreaterThan(0)
+        expect(remainingDarkMattePixels).toBe(0)
+    })
+
     it('keeps intentional white artwork on transparent background', async () => {
         const width = 112
         const height = 112
