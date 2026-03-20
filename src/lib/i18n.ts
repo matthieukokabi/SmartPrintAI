@@ -103,6 +103,10 @@ type ProductDetailPageCopy = {
     availableSizesLabel: string
     colorsLabel: string
     designButtonLabel: string
+    readyToBuyOnlyLabel: string
+    readyToBuyAddToCartLabel: string
+    readyToBuyAddedToCartLabel: string
+    readyToBuyGoToCartLabel: string
 }
 
 type CreatePageCopy = {
@@ -351,6 +355,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Available Sizes',
             colorsLabel: 'Colors',
             designButtonLabel: 'Design This Product with AI',
+            readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
+            readyToBuyAddToCartLabel: 'Add to Cart',
+            readyToBuyAddedToCartLabel: 'Added to Cart',
+            readyToBuyGoToCartLabel: 'Go to Cart',
         },
         create: {
             metadataTitle: 'Create Your Design',
@@ -586,6 +594,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Tailles disponibles',
             colorsLabel: 'Couleurs',
             designButtonLabel: 'Designer ce produit avec IA',
+            readyToBuyOnlyLabel: "Ce produit est vendu tel quel et n'est pas disponible en mode design IA.",
+            readyToBuyAddToCartLabel: 'Ajouter au panier',
+            readyToBuyAddedToCartLabel: 'Ajoute au panier',
+            readyToBuyGoToCartLabel: 'Aller au panier',
         },
         create: {
             metadataTitle: 'Creer votre design',
@@ -822,6 +834,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Verfuegbare Groessen',
             colorsLabel: 'Farben',
             designButtonLabel: 'Dieses Produkt mit KI designen',
+            readyToBuyOnlyLabel: 'Dieses Produkt wird unveraendert verkauft und ist nicht im KI-Design-Modus verfuegbar.',
+            readyToBuyAddToCartLabel: 'In den Warenkorb',
+            readyToBuyAddedToCartLabel: 'Zum Warenkorb hinzugefuegt',
+            readyToBuyGoToCartLabel: 'Zum Warenkorb',
         },
         create: {
             metadataTitle: 'Erstelle dein Design',
@@ -1058,6 +1074,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             availableSizesLabel: 'Tallas disponibles',
             colorsLabel: 'Colores',
             designButtonLabel: 'Disenar este producto con IA',
+            readyToBuyOnlyLabel: 'Este producto se vende tal cual y no esta disponible en modo de diseno con IA.',
+            readyToBuyAddToCartLabel: 'Anadir al carrito',
+            readyToBuyAddedToCartLabel: 'Anadido al carrito',
+            readyToBuyGoToCartLabel: 'Ir al carrito',
         },
         create: {
             metadataTitle: 'Crea tu diseno',

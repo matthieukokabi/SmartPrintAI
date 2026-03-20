@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     },
     design: {
       findMany: vi.fn(),
+      upsert: vi.fn(),
     },
     order: {
       create: vi.fn(),
@@ -326,6 +327,92 @@ describe('/api/webhooks/stripe POST', () => {
         requestId: 'req-gelato-ok',
         orderId: 'order_gelato_1',
         printfulOrderId: 'gel_order_123',
+      })
+    )
+  })
+
+  it('creates fallback design for ready-to-buy items when design record is missing', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-ready',
+        designId: 'ready_prod-ready',
+        size: 'L',
+        color: 'Black',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_ready_buy',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 7799,
+          amount_subtotal: 7200,
+          shipping_cost: { amount_total: 599 },
+          customer_email: 'ready@example.com',
+          customer_details: { email: 'ready@example.com' },
+          shipping_details: {
+            name: 'Ready Buyer',
+            address: {
+              line1: 'Commerce St 12',
+              city: 'Austin',
+              country: 'US',
+              postal_code: '73301',
+              state: 'TX',
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-ready',
+        name: 'adidas Premium Polo Shirt',
+        printfulId: '123',
+        sellPrice: 72,
+        imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+        colors: [{ name: 'Black', printfulVariantId: 9876 }],
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([])
+    mocks.prisma.design.upsert.mockResolvedValue({
+      id: 'ready_prod-ready',
+      imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+    })
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_ready_1', total: 77.99 })
+    mocks.printful.createOrder.mockResolvedValue({ id: 'pf_ready_123' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-ready-buy' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+
+    expect(mocks.prisma.design.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'ready_prod-ready' },
+        create: expect.objectContaining({
+          id: 'ready_prod-ready',
+          sessionId: 'cs_test_ready_buy',
+          prompt: '[ready-to-buy] adidas Premium Polo Shirt',
+          style: 'ready_to_buy',
+          imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+        }),
+      })
+    )
+
+    expect(mocks.printful.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        items: [
+          expect.objectContaining({
+            variantId: 9876,
+            imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+          }),
+        ],
       })
     )
   })

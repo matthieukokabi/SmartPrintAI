@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Shirt } from 'lucide-react'
 import { resolveColorHexFromName } from '@/lib/product-colors'
+import { useCart } from '@/store/cart'
 
 type ProductColor = {
     name: string
@@ -27,12 +28,16 @@ type ProductDetail = {
 type Props = {
     product: ProductDetail
     createPath?: string
+    cartPath?: string
     canDesignWithAI?: boolean
     copy?: {
         availableSizesLabel: string
         colorsLabel: string
         designButtonLabel: string
         readyToBuyOnlyLabel: string
+        readyToBuyAddToCartLabel: string
+        readyToBuyAddedToCartLabel: string
+        readyToBuyGoToCartLabel: string
         fallbackPreviewNote?: string
     }
 }
@@ -42,6 +47,9 @@ const defaultCopy = {
     colorsLabel: 'Colors',
     designButtonLabel: 'Design This Product with AI',
     readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
+    readyToBuyAddToCartLabel: 'Add to Cart',
+    readyToBuyAddedToCartLabel: 'Added to Cart',
+    readyToBuyGoToCartLabel: 'Go to Cart',
     fallbackPreviewNote:
         'Color-specific preview is not available for this item yet. Your selected color will still be used for ordering.',
 }
@@ -55,6 +63,7 @@ function colorDotStyle(name: string, hex: string) {
 export default function ProductDetailClient({
     product,
     createPath = '/create',
+    cartPath = '/cart',
     canDesignWithAI = true,
     copy = defaultCopy,
 }: Props) {
@@ -63,6 +72,8 @@ export default function ProductDetailClient({
 
     const [selectedColor, setSelectedColor] = useState(initialColor)
     const [selectedSize, setSelectedSize] = useState(initialSize)
+    const [added, setAdded] = useState(false)
+    const addItem = useCart((s) => s.addItem)
 
     const selectedColorData = useMemo(
         () => product.colors.find((color) => color.name === selectedColor) ?? product.colors[0],
@@ -86,6 +97,27 @@ export default function ProductDetailClient({
         `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
         `&size=${encodeURIComponent(selectedSize)}`
+
+    const handleReadyToBuyAddToCart = () => {
+        const readyDesignId = `ready_${product.id}`
+        const selectedPreview = imageUrl || product.imageUrl
+
+        addItem({
+            id: `${readyDesignId}:${selectedSize}:${selectedColor}`,
+            productId: product.id,
+            productName: product.name,
+            designId: readyDesignId,
+            imageUrl: selectedPreview,
+            mockupUrl: selectedPreview,
+            size: selectedSize,
+            color: selectedColor,
+            quantity: 1,
+            price: product.sellPrice,
+        })
+
+        setAdded(true)
+        setTimeout(() => setAdded(false), 1400)
+    }
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -173,8 +205,23 @@ export default function ProductDetailClient({
                         {copy.designButtonLabel}
                     </Link>
                 ) : (
-                    <div className="rounded-xl border border-border bg-card/40 px-4 py-3 text-center text-sm text-muted-foreground">
-                        {copy.readyToBuyOnlyLabel}
+                    <div className="space-y-3">
+                        <button
+                            type="button"
+                            onClick={handleReadyToBuyAddToCart}
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
+                        >
+                            {added ? copy.readyToBuyAddedToCartLabel : copy.readyToBuyAddToCartLabel}
+                        </button>
+                        <Link
+                            href={cartPath}
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card/40 text-sm text-foreground hover:bg-card/60 transition-colors w-full justify-center"
+                        >
+                            {copy.readyToBuyGoToCartLabel}
+                        </Link>
+                        <div className="rounded-xl border border-border bg-card/40 px-4 py-3 text-center text-sm text-muted-foreground">
+                            {copy.readyToBuyOnlyLabel}
+                        </div>
                     </div>
                 )}
             </div>

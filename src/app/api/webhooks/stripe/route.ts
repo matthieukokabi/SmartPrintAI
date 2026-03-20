@@ -10,6 +10,7 @@ import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } 
 import { detectProductProvider } from '@/lib/product-provider'
 import { gelato } from '@/lib/gelato'
 import { getGootenClient } from '@/lib/gooten'
+import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 
 type CheckoutItem = {
     productId: string
@@ -186,10 +187,45 @@ export async function POST(req: NextRequest) {
 
         for (const item of items) {
             const product = productById.get(item.productId)
-            const design = designById.get(item.designId)
-            if (!product || !design) {
+            if (!product) {
                 logApiWarn(route, requestId, 'order_mapping_missing_refs')
                 return respond({ ok: true })
+            }
+
+            let design = designById.get(item.designId)
+            if (!design) {
+                const aiEligible = isMockupEligibleProduct({
+                    name: product.name,
+                    printfulId: product.printfulId,
+                    printArea: product.printArea,
+                })
+
+                if (aiEligible) {
+                    logApiWarn(route, requestId, 'order_mapping_missing_refs')
+                    return respond({ ok: true })
+                }
+
+                const fallbackImageUrl = isNonEmptyString(product.imageUrl, 2048)
+                    ? product.imageUrl.trim()
+                    : `${(process.env.NEXT_PUBLIC_APP_URL || 'https://smartprintai.com').replace(/\/$/, '')}/favicon.ico`
+
+                design = await prisma.design.upsert({
+                    where: { id: item.designId },
+                    update: {},
+                    create: {
+                        id: item.designId,
+                        sessionId: session.id,
+                        prompt: `[ready-to-buy] ${product.name}`,
+                        style: 'ready_to_buy',
+                        imageUrl: fallbackImageUrl,
+                        status: 'ready',
+                    },
+                })
+                designById.set(item.designId, design)
+                logApiInfo(route, requestId, 'ready_to_buy_design_upserted', {
+                    productId: product.id,
+                    designId: item.designId,
+                })
             }
 
             const provider = detectProductProvider(product.printfulId)

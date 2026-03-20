@@ -173,12 +173,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <ProductDetailClient
                 product={productForClient}
+                cartPath="/cart"
                 canDesignWithAI={canDesignWithAI}
                 copy={{
                     availableSizesLabel: copy.availableSizesLabel,
                     colorsLabel: copy.colorsLabel,
                     designButtonLabel: copy.designButtonLabel,
-                    readyToBuyOnlyLabel: 'This product is sold as-is and is not available in AI design mode.',
+                    readyToBuyOnlyLabel: copy.readyToBuyOnlyLabel,
+                    readyToBuyAddToCartLabel: copy.readyToBuyAddToCartLabel,
+                    readyToBuyAddedToCartLabel: copy.readyToBuyAddedToCartLabel,
+                    readyToBuyGoToCartLabel: copy.readyToBuyGoToCartLabel,
                 }}
             />
         </div>

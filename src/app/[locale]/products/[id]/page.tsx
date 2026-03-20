@@ -50,13 +50,6 @@ type LocaleProductPageProps = {
 export const dynamic = 'force-dynamic'
 export const dynamicParams = false
 
-const readyToBuyOnlyLabelByLocale: Record<SupportedLocale, string> = {
-    en: 'This product is sold as-is and is not available in AI design mode.',
-    fr: "Ce produit est vendu tel quel et n'est pas disponible en mode design IA.",
-    de: 'Dieses Produkt wird unveraendert verkauft und ist nicht im KI-Design-Modus verfuegbar.',
-    es: 'Este producto se vende tal cual y no esta disponible en modo de diseno con IA.',
-}
-
 export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
 }
@@ -156,6 +149,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         printArea: product.printArea,
     })
     const productPath = buildLocaleCanonical(locale, `/products/${product.id}`)
+    const cartPath = buildLocaleCanonical(locale, '/cart')
 
     const productSchema = {
         '@context': 'https://schema.org',
@@ -206,12 +200,16 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
 
             <ProductDetailClient
                 product={productForClient}
+                cartPath={cartPath}
                 canDesignWithAI={canDesignWithAI}
                 copy={{
                     availableSizesLabel: detailCopy.availableSizesLabel,
                     colorsLabel: detailCopy.colorsLabel,
                     designButtonLabel: detailCopy.designButtonLabel,
-                    readyToBuyOnlyLabel: readyToBuyOnlyLabelByLocale[locale],
+                    readyToBuyOnlyLabel: detailCopy.readyToBuyOnlyLabel,
+                    readyToBuyAddToCartLabel: detailCopy.readyToBuyAddToCartLabel,
+                    readyToBuyAddedToCartLabel: detailCopy.readyToBuyAddedToCartLabel,
+                    readyToBuyGoToCartLabel: detailCopy.readyToBuyGoToCartLabel,
                 }}
             />
         </div>
