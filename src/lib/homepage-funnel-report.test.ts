@@ -9,6 +9,7 @@ import {
   aggregateHomepageFunnel,
   buildHomepageFunnelReport,
   classifyDeviceType,
+  isFunnelEventName,
   isHomepageEventName,
   type HomepageFunnelEventRecord,
 } from './homepage-funnel-report'
@@ -42,7 +43,10 @@ describe('homepage funnel report helpers', () => {
   it('validates homepage event names', () => {
     expect(isHomepageEventName('homepage_viewed')).toBe(true)
     expect(isHomepageEventName('create_flow_started')).toBe(true)
+    expect(isHomepageEventName('create_prompt_started')).toBe(false)
+    expect(isFunnelEventName('create_prompt_started')).toBe(true)
     expect(isHomepageEventName('purchase')).toBe(false)
+    expect(isFunnelEventName('purchase')).toBe(false)
   })
 
   it('aggregates funnel totals, rates, and drop-off', () => {

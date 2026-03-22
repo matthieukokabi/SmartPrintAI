@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  CREATE_ENTRY_EVENT_NAMES,
   HOMEPAGE_EVENT_NAMES,
+  trackCreateEntrypointResolved,
+  trackCreateFlowAbandonedEarly,
   trackCreateFlowStarted,
+  trackCreateGenerationStarted,
+  trackCreatePageViewed,
+  trackCreateProductSelected,
+  trackCreatePromptInputFocused,
+  trackCreatePromptStarted,
+  trackCreateTemplateSelected,
   trackEvent,
   trackHomepageCtaClicked,
   trackHomepageScrollDepthReached,
@@ -51,6 +60,14 @@ describe('homepage analytics helpers', () => {
     expect(HOMEPAGE_EVENT_NAMES.scrollDepthReached).toBe('homepage_scroll_depth_reached')
     expect(HOMEPAGE_EVENT_NAMES.toCreateClicked).toBe('homepage_to_create_clicked')
     expect(HOMEPAGE_EVENT_NAMES.createFlowStarted).toBe('create_flow_started')
+    expect(CREATE_ENTRY_EVENT_NAMES.pageViewed).toBe('create_page_viewed')
+    expect(CREATE_ENTRY_EVENT_NAMES.entrypointResolved).toBe('create_entrypoint_resolved')
+    expect(CREATE_ENTRY_EVENT_NAMES.promptInputFocused).toBe('create_prompt_input_focused')
+    expect(CREATE_ENTRY_EVENT_NAMES.promptStarted).toBe('create_prompt_started')
+    expect(CREATE_ENTRY_EVENT_NAMES.generationStarted).toBe('create_generation_started')
+    expect(CREATE_ENTRY_EVENT_NAMES.productSelected).toBe('create_product_selected')
+    expect(CREATE_ENTRY_EVENT_NAMES.templateSelected).toBe('create_template_selected')
+    expect(CREATE_ENTRY_EVENT_NAMES.flowAbandonedEarly).toBe('create_flow_abandoned_early')
   })
 
   it('dispatches helper events through gtag', () => {
@@ -64,6 +81,28 @@ describe('homepage analytics helpers', () => {
     trackHomepageScrollDepthReached({ scroll_depth_percent: 50, page_variant: 'variant_a' })
     trackHomepageToCreateClicked({ cta_location: 'hero_primary_create', destination: '/create' })
     trackCreateFlowStarted({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
+    trackCreatePageViewed({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
+    trackCreateEntrypointResolved({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
+    trackCreatePromptInputFocused({ entrypoint: 'homepage', locale: 'en', page_variant: 'variant_a' })
+    trackCreatePromptStarted({ entrypoint: 'homepage', locale: 'en', page_variant: 'variant_a', prompt_length_bucket: '11_30' })
+    trackCreateGenerationStarted({
+      entrypoint: 'homepage',
+      locale: 'en',
+      page_variant: 'variant_a',
+      prompt_length_bucket: '11_30',
+      template_type: 'artistic',
+      has_reference_image: false,
+    })
+    trackCreateTemplateSelected({ entrypoint: 'homepage', locale: 'en', page_variant: 'variant_a', template_type: 'photorealistic' })
+    trackCreateProductSelected({ entrypoint: 'homepage', locale: 'en', page_variant: 'variant_a', product_type: 'apparel', product_id: 'prod_1' })
+    trackCreateFlowAbandonedEarly({
+      entrypoint: 'homepage',
+      referrer_path: '/',
+      locale: 'en',
+      page_variant: 'variant_a',
+      last_completed_step: 'prompt_started',
+      prompt_length_bucket: '11_30',
+    })
 
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', expect.objectContaining({ page_variant: 'variant_a' }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_cta_clicked', expect.objectContaining({ cta_location: 'hero_primary_create' }))
@@ -71,6 +110,14 @@ describe('homepage analytics helpers', () => {
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_scroll_depth_reached', expect.objectContaining({ scroll_depth_percent: 50 }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_to_create_clicked', expect.objectContaining({ destination: '/create' }))
     expect(gtag).toHaveBeenCalledWith('event', 'create_flow_started', expect.objectContaining({ entrypoint: 'homepage', page_variant: 'variant_a' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_page_viewed', expect.objectContaining({ entrypoint: 'homepage', page_variant: 'variant_a' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_entrypoint_resolved', expect.objectContaining({ entrypoint: 'homepage' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_prompt_input_focused', expect.objectContaining({ entrypoint: 'homepage' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_prompt_started', expect.objectContaining({ prompt_length_bucket: '11_30' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_generation_started', expect.objectContaining({ template_type: 'artistic' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_template_selected', expect.objectContaining({ template_type: 'photorealistic' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_product_selected', expect.objectContaining({ product_id: 'prod_1' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_flow_abandoned_early', expect.objectContaining({ last_completed_step: 'prompt_started' }))
 
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
   })

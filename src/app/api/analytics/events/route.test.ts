@@ -94,4 +94,28 @@ describe('/api/analytics/events POST', () => {
       })
     )
   })
+
+  it('accepts create entry funnel events', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'create_prompt_started',
+        params: { entrypoint: 'homepage', prompt_length_bucket: '11_30' },
+        path: '/create',
+        pageVariant: 'variant_b',
+        locale: 'en',
+      })
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'create_prompt_started',
+        path: '/create',
+        pageVariant: 'variant_b',
+      })
+    )
+  })
 })

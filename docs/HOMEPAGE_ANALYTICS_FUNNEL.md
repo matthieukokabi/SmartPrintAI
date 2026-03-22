@@ -4,6 +4,8 @@ Date: 2026-03-22
 ## Scope
 This instrumentation measures homepage conversion behavior and progression into `/create` without invasive tracking.
 
+It also tracks the first interaction stages inside `/create` so early post-click abandonment can be measured and improved.
+
 ## Hero Experiment Assignment
 Homepage hero copy is assigned in middleware for deterministic A/B testing:
 
@@ -45,6 +47,7 @@ Interpretation rule:
 ## Experiment Operations
 Commands:
 - `npm run analytics:funnel:report`: full funnel + experiment decision report.
+- `npm run analytics:create:entry-report`: create-entry stage funnel report (post-click interaction/readiness).
 - `npm run analytics:hero:readiness`: concise readiness-focused output showing what is still missing.
 - `npm run analytics:hero:snapshot`: append a dated snapshot row for historical tracking.
 
@@ -99,6 +102,38 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - Fires: when `/create` client loads.
 - Properties: `entrypoint` (`homepage` | `other` | `unknown`), `referrer_path`, `locale`, `page_variant`.
 
+7. `create_page_viewed`
+- Fires: when `/create` entry UI loads.
+- Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`.
+
+8. `create_entrypoint_resolved`
+- Fires: once when `/create` resolves source classification.
+- Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`.
+
+9. `create_prompt_input_focused`
+- Fires: first time prompt textarea is focused per create-page view.
+- Properties: `entrypoint`, `locale`, `page_variant`.
+
+10. `create_prompt_started`
+- Fires: first time prompt content becomes non-empty per create-page view.
+- Properties: `entrypoint`, `locale`, `page_variant`, `prompt_length_bucket`.
+
+11. `create_generation_started`
+- Fires: first prompt submission/generation start per create-page view.
+- Properties: `entrypoint`, `locale`, `page_variant`, `prompt_length_bucket`, `template_type`, `has_reference_image`.
+
+12. `create_template_selected`
+- Fires: first style/template change per create-page view.
+- Properties: `entrypoint`, `locale`, `page_variant`, `template_type`.
+
+13. `create_product_selected`
+- Fires: first product selection after generation per create-page view.
+- Properties: `entrypoint`, `locale`, `page_variant`, `product_type`, `product_id`.
+
+14. `create_flow_abandoned_early`
+- Fires: when user leaves `/create` without starting generation.
+- Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`, `last_completed_step`, `prompt_length_bucket`.
+
 ## Where Events Fire
 1. Homepage tracker:
 - [`src/components/home/HomeFunnelAnalytics.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/home/HomeFunnelAnalytics.tsx)
@@ -112,15 +147,34 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - [`src/components/layout/Navbar.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/layout/Navbar.tsx)
 - [`src/components/layout/Footer.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/layout/Footer.tsx)
 
-4. Create flow start:
+4. Create flow start + entry instrumentation:
 - [`src/components/create/CreatePageClient.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/create/CreatePageClient.tsx)
+- [`src/components/create/PromptInput.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/create/PromptInput.tsx)
 
 5. Event sink API route:
 - [`src/app/api/analytics/events/route.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/app/api/analytics/events/route.ts)
 
 6. Aggregation/reporting utilities:
 - [`src/lib/homepage-funnel-report.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/lib/homepage-funnel-report.ts)
+- [`src/lib/create-entry-funnel-report.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/lib/create-entry-funnel-report.ts)
 - [`scripts/report_homepage_funnel.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/scripts/report_homepage_funnel.ts)
+- [`scripts/report_create_entry_funnel.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/scripts/report_create_entry_funnel.ts)
+
+## Create Entry Report Readout
+`npm run analytics:create:entry-report` outputs:
+- create page views
+- prompt interaction and prompt-start rates
+- generation-start rate
+- template/product selection rates
+- early abandonment rate
+- biggest early drop-off stage (`before_prompt_focus`, `before_prompt_start`, `before_generation_start`)
+
+Artifact output:
+- `docs/reports/artifacts/create-entry-funnel/latest.json`
+
+Interpretation:
+- Treat `biggestEarlyDropoffStep` as the first friction point to optimize.
+- Do one focused `/create` entry iteration at a time (copy/clarity first), then re-measure.
 
 ## Guardrails
 - Section impressions are deduped with per-view `Set`.

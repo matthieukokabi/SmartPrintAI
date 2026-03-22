@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import PromptInput from '@/components/create/PromptInput'
@@ -16,13 +16,26 @@ import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import { ShoppingCart, Check } from 'lucide-react'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { getCreateProductPromptGuidance } from '@/lib/create-product-guidance'
-import { trackCreateFlowStarted } from '@/lib/analytics'
+import {
+    trackCreateEntrypointResolved,
+    trackCreateFlowAbandonedEarly,
+    trackCreateFlowStarted,
+    trackCreateGenerationStarted,
+    trackCreatePageViewed,
+    trackCreateProductSelected,
+    trackCreatePromptInputFocused,
+    trackCreatePromptStarted,
+    trackCreateTemplateSelected,
+} from '@/lib/analytics'
 import { HOMEPAGE_HERO_VARIANT_COOKIE, normalizeHomepageHeroVariant } from '@/lib/homepage-experiment'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
     copy: LocaleCopy['create']
 }
+
+type CreateEntrypoint = 'homepage' | 'other' | 'unknown'
+type CreatePromptLengthBucket = '0_2' | '3_10' | '11_30' | '31_80' | '81_plus'
 
 function colorDotStyle(hex: string) {
     const safeHex = /^#[0-9a-f]{6}$/i.test(hex) ? hex : '#ffffff'
@@ -59,6 +72,22 @@ function isHomepagePath(path: string | undefined): boolean {
         return false
     }
     return /^\/(?:en|fr|de|es)?$/.test(path)
+}
+
+function toPromptLengthBucket(promptLength: number): CreatePromptLengthBucket {
+    if (promptLength <= 2) {
+        return '0_2'
+    }
+    if (promptLength <= 10) {
+        return '3_10'
+    }
+    if (promptLength <= 30) {
+        return '11_30'
+    }
+    if (promptLength <= 80) {
+        return '31_80'
+    }
+    return '81_plus'
 }
 
 function readHomepageVariantFromDocumentCookie(): string | undefined {
@@ -187,22 +216,97 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [added, setAdded] = useState(false)
 
     const addItem = useCart((s) => s.addItem)
+    const entryContextRef = useRef<{
+        entrypoint: CreateEntrypoint
+        referrerPath: string
+        homepageVariant?: string
+    }>({
+        entrypoint: 'unknown',
+        referrerPath: 'direct',
+        homepageVariant: undefined,
+    })
+    const createEntryStageRef = useRef({
+        promptFocused: false,
+        promptStarted: false,
+        generationStarted: false,
+        productSelected: false,
+        templateSelected: false,
+    })
+    const promptLengthBucketRef = useRef<CreatePromptLengthBucket>(toPromptLengthBucket(initialPrompt.trim().length))
+
+    const getCreateAnalyticsContext = () => ({
+        entrypoint: entryContextRef.current.entrypoint,
+        referrer_path: entryContextRef.current.referrerPath,
+        locale,
+        page_variant: entryContextRef.current.homepageVariant,
+    })
 
     useEffect(() => {
         const referrerPath = normalizeReferrerPath(document.referrer)
-        const entrypoint = isHomepagePath(referrerPath)
+        const entrypoint: CreateEntrypoint = isHomepagePath(referrerPath)
             ? 'homepage'
             : referrerPath
                 ? 'other'
                 : 'unknown'
         const homepageVariant = readHomepageVariantFromDocumentCookie()
+        const normalizedReferrerPath = referrerPath || 'direct'
 
-        trackCreateFlowStarted({
+        entryContextRef.current = {
             entrypoint,
-            referrer_path: referrerPath || 'direct',
+            referrerPath: normalizedReferrerPath,
+            homepageVariant,
+        }
+
+        trackCreatePageViewed({
+            entrypoint,
+            referrer_path: normalizedReferrerPath,
             locale,
             page_variant: homepageVariant,
         })
+        trackCreateEntrypointResolved({
+            entrypoint,
+            referrer_path: normalizedReferrerPath,
+            locale,
+            page_variant: homepageVariant,
+        })
+
+        trackCreateFlowStarted({
+            entrypoint,
+            referrer_path: normalizedReferrerPath,
+            locale,
+            page_variant: homepageVariant,
+        })
+
+        const stageState = createEntryStageRef.current
+        return () => {
+            if (stageState.generationStarted) {
+                return
+            }
+
+            let lastCompletedStep: 'page_viewed' | 'prompt_focused' | 'prompt_started' | 'template_selected' | 'product_selected' = 'page_viewed'
+            if (stageState.promptFocused) {
+                lastCompletedStep = 'prompt_focused'
+            }
+            if (stageState.promptStarted) {
+                lastCompletedStep = 'prompt_started'
+            }
+            if (stageState.templateSelected) {
+                lastCompletedStep = 'template_selected'
+            }
+            if (stageState.productSelected) {
+                lastCompletedStep = 'product_selected'
+            }
+
+            const context = entryContextRef.current
+            trackCreateFlowAbandonedEarly({
+                entrypoint: context.entrypoint,
+                referrer_path: context.referrerPath,
+                locale,
+                page_variant: context.homepageVariant,
+                last_completed_step: lastCompletedStep,
+                prompt_length_bucket: promptLengthBucketRef.current,
+            })
+        }
     }, [locale])
 
     useEffect(() => {
@@ -333,6 +437,25 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     }, [designId, selectedProduct, selectedColor])
 
     const handleGenerate = async (prompt: string) => {
+        const promptLengthBucket = toPromptLengthBucket(prompt.trim().length)
+        promptLengthBucketRef.current = promptLengthBucket
+        if (!createEntryStageRef.current.promptStarted && prompt.trim().length > 0) {
+            trackCreatePromptStarted({
+                ...getCreateAnalyticsContext(),
+                prompt_length_bucket: promptLengthBucket,
+            })
+            createEntryStageRef.current.promptStarted = true
+        }
+        if (!createEntryStageRef.current.generationStarted) {
+            trackCreateGenerationStarted({
+                ...getCreateAnalyticsContext(),
+                prompt_length_bucket: promptLengthBucket,
+                template_type: style,
+                has_reference_image: Boolean(referenceImageDataUrl),
+            })
+            createEntryStageRef.current.generationStarted = true
+        }
+
         setIsGenerating(true)
         setImageUrl(null)
         setDesignId(null)
@@ -438,14 +561,48 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
     const handlePromptInputFocus = () => {
         clearGenerationError()
+        if (createEntryStageRef.current.promptFocused) {
+            return
+        }
+        trackCreatePromptInputFocused(getCreateAnalyticsContext())
+        createEntryStageRef.current.promptFocused = true
+    }
+
+    const handlePromptStarted = (promptLength: number) => {
+        const promptLengthBucket = toPromptLengthBucket(promptLength)
+        promptLengthBucketRef.current = promptLengthBucket
+        if (createEntryStageRef.current.promptStarted) {
+            return
+        }
+        trackCreatePromptStarted({
+            ...getCreateAnalyticsContext(),
+            prompt_length_bucket: promptLengthBucket,
+        })
+        createEntryStageRef.current.promptStarted = true
     }
 
     const handleStyleChange = (nextStyle: DesignStyle) => {
         clearGenerationError()
+        if (!createEntryStageRef.current.templateSelected) {
+            trackCreateTemplateSelected({
+                ...getCreateAnalyticsContext(),
+                template_type: nextStyle,
+            })
+            createEntryStageRef.current.templateSelected = true
+        }
         setStyle(nextStyle)
     }
 
     const handleProductSelect = (productId: string) => {
+        if (!createEntryStageRef.current.productSelected) {
+            const selectedProductData = mockupEligibleProducts.find((candidate) => candidate.id === productId)
+            trackCreateProductSelected({
+                ...getCreateAnalyticsContext(),
+                product_id: productId,
+                product_type: selectedProductData?.category || 'unknown',
+            })
+            createEntryStageRef.current.productSelected = true
+        }
         setSelectedProduct(productId)
     }
 
@@ -540,9 +697,18 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                         )}
                     </div>
 
-                    <div onFocusCapture={handlePromptInputFocus}>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4">
+                        <div className="space-y-1.5">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-purple-200/85">
+                                {copy.entryStepLabel}
+                            </p>
+                            <p className="text-sm font-semibold text-foreground">{copy.entryStepTitle}</p>
+                            <p className="text-xs text-muted-foreground">{copy.entryStepHint}</p>
+                        </div>
                         <PromptInput
                             onGenerate={handleGenerate}
+                            onPromptFocus={handlePromptInputFocus}
+                            onPromptStarted={handlePromptStarted}
                             isLoading={isGenerating}
                             initialPrompt={initialPrompt}
                             copy={{

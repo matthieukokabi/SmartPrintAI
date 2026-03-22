@@ -5,6 +5,8 @@ import { Sparkles, Loader2 } from 'lucide-react'
 
 interface Props {
     onGenerate: (prompt: string) => void
+    onPromptFocus?: () => void
+    onPromptStarted?: (promptLength: number) => void
     isLoading: boolean
     initialPrompt?: string
     copy: {
@@ -15,8 +17,38 @@ interface Props {
     }
 }
 
-export default function PromptInput({ onGenerate, isLoading, initialPrompt = '', copy }: Props) {
+export default function PromptInput({
+    onGenerate,
+    onPromptFocus,
+    onPromptStarted,
+    isLoading,
+    initialPrompt = '',
+    copy,
+}: Props) {
     const [prompt, setPrompt] = useState(initialPrompt)
+    const [hasStarted, setHasStarted] = useState(initialPrompt.trim().length > 0)
+
+    const trackPromptStarted = (trimmedLength: number) => {
+        if (hasStarted || trimmedLength <= 0) {
+            return
+        }
+        setHasStarted(true)
+        onPromptStarted?.(trimmedLength)
+    }
+
+    const handlePromptChange = (nextValue: string) => {
+        setPrompt(nextValue)
+        trackPromptStarted(nextValue.trim().length)
+    }
+
+    const handleGenerate = () => {
+        const trimmed = prompt.trim()
+        if (trimmed.length < 3) {
+            return
+        }
+        trackPromptStarted(trimmed.length)
+        onGenerate(trimmed)
+    }
 
     return (
         <div className="space-y-4">
@@ -25,7 +57,8 @@ export default function PromptInput({ onGenerate, isLoading, initialPrompt = '',
                 <div className="relative">
                     <textarea
                         value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        onChange={(e) => handlePromptChange(e.target.value)}
+                        onFocus={onPromptFocus}
                         placeholder={copy.placeholder}
                         rows={3}
                         maxLength={500}
@@ -34,7 +67,7 @@ export default function PromptInput({ onGenerate, isLoading, initialPrompt = '',
                     <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">{prompt.length}/500</span>
                         <button
-                            onClick={() => prompt.trim().length >= 3 && onGenerate(prompt.trim())}
+                            onClick={handleGenerate}
                             disabled={isLoading || prompt.trim().length < 3}
                             className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
                         >

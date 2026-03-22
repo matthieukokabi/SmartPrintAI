@@ -115,6 +115,9 @@ type CreatePageCopy = {
     titleLead: string
     titleAccent: string
     subtitle: string
+    entryStepLabel: string
+    entryStepTitle: string
+    entryStepHint: string
     promptPlaceholder: string
     promptGeneratingLabel: string
     promptGenerateLabel: string
@@ -365,7 +368,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             metadataDescription: 'Describe your idea and generate custom AI artwork ready for print-on-demand products.',
             titleLead: 'Create Your',
             titleAccent: 'Design',
-            subtitle: 'Describe it, pick a product, add to cart',
+            subtitle: 'Step 1 describe your design. Step 2 pick a product. Step 3 add to cart.',
+            entryStepLabel: 'Step 1',
+            entryStepTitle: 'Describe exactly what should be printed.',
+            entryStepHint: 'Include subject, style, and "transparent background" for cleaner mockups.',
             promptPlaceholder: "Describe your design... e.g., 'A majestic lion made of galaxies and stars'",
             promptGeneratingLabel: 'Generating...',
             promptGenerateLabel: 'Generate Design',
@@ -605,7 +611,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Decrivez votre idee et generez un visuel IA pret pour des produits print-on-demand.',
             titleLead: 'Creez votre',
             titleAccent: 'design',
-            subtitle: 'Decrivez, choisissez un produit, ajoutez au panier',
+            subtitle: 'Etape 1 decrivez le design. Etape 2 choisissez le produit. Etape 3 ajoutez au panier.',
+            entryStepLabel: 'Etape 1',
+            entryStepTitle: 'Decrivez exactement ce qui doit etre imprime.',
+            entryStepHint: 'Ajoutez sujet + style + "fond transparent" pour des mockups plus propres.',
             promptPlaceholder: "Decrivez votre design... ex: 'Un lion majestueux compose de galaxies et d'etoiles'",
             promptGeneratingLabel: 'Generation...',
             promptGenerateLabel: 'Generer le design',
@@ -845,7 +854,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Beschreibe deine Idee und erzeuge KI-Grafiken fuer Print-on-Demand Produkte.',
             titleLead: 'Erstelle dein',
             titleAccent: 'Design',
-            subtitle: 'Beschreiben, Produkt waehlen, in den Warenkorb legen',
+            subtitle: 'Schritt 1 Design beschreiben. Schritt 2 Produkt waehlen. Schritt 3 in den Warenkorb legen.',
+            entryStepLabel: 'Schritt 1',
+            entryStepTitle: 'Beschreibe genau, was gedruckt werden soll.',
+            entryStepHint: 'Motiv + Stil + "transparenter Hintergrund" liefern sauberere Mockups.',
             promptPlaceholder: "Beschreibe dein Design... z.B. 'Ein majestaetischer Loewe aus Galaxien und Sternen'",
             promptGeneratingLabel: 'Wird erstellt...',
             promptGenerateLabel: 'Design erstellen',
@@ -1085,7 +1097,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Describe tu idea y genera arte con IA listo para productos print-on-demand.',
             titleLead: 'Crea tu',
             titleAccent: 'diseno',
-            subtitle: 'Describe, elige un producto y anade al carrito',
+            subtitle: 'Paso 1 describe el diseno. Paso 2 elige el producto. Paso 3 anade al carrito.',
+            entryStepLabel: 'Paso 1',
+            entryStepTitle: 'Describe exactamente lo que se debe imprimir.',
+            entryStepHint: 'Incluye sujeto + estilo + "fondo transparente" para mockups mas limpios.',
             promptPlaceholder: "Describe tu diseno... ej: 'Un leon majestuoso hecho de galaxias y estrellas'",
             promptGeneratingLabel: 'Generando...',
             promptGenerateLabel: 'Generar diseno',

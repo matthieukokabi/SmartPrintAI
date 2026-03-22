@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
-import { appendHomepageEventRecord, isHomepageEventName } from '@/lib/homepage-funnel-report'
+import { appendHomepageEventRecord, isFunnelEventName } from '@/lib/homepage-funnel-report'
 
 const ROUTE = '/api/analytics/events'
 const RATE_LIMIT = {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const eventNameRaw = toShortString(payload.eventName)
-    if (!eventNameRaw || !isHomepageEventName(eventNameRaw)) {
+    if (!eventNameRaw || !isFunnelEventName(eventNameRaw)) {
         logApiWarn(ROUTE, requestId, 'invalid_event_name')
         return jsonWithRequestId(requestId, { error: 'Invalid eventName' }, { status: 400 })
     }

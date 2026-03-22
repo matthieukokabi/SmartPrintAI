@@ -1,11 +1,11 @@
 import { mkdir, readFile, appendFile } from 'node:fs/promises'
 import path from 'node:path'
-import { HOMEPAGE_EVENT_NAMES, type HomepageEventName } from '@/lib/analytics'
+import { CREATE_ENTRY_EVENT_NAMES, HOMEPAGE_EVENT_NAMES, type FunnelEventName, type HomepageEventName } from '@/lib/analytics'
 
 export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown'
 
 export type HomepageFunnelEventRecord = {
-    eventName: HomepageEventName
+    eventName: FunnelEventName
     params: Record<string, unknown>
     path: string
     pageVariant: string | null
@@ -150,6 +150,10 @@ export type HomepageFunnelReport = {
 }
 
 const HOMEPAGE_EVENT_NAME_SET = new Set<HomepageEventName>(Object.values(HOMEPAGE_EVENT_NAMES))
+const FUNNEL_EVENT_NAME_SET = new Set<FunnelEventName>([
+    ...Object.values(HOMEPAGE_EVENT_NAMES),
+    ...Object.values(CREATE_ENTRY_EVENT_NAMES),
+])
 const HERO_EXPERIMENT_VARIANTS: HeroExperimentVariantKey[] = ['variant_a', 'variant_b']
 const DEFAULT_HERO_EXPERIMENT_THRESHOLDS: HeroExperimentThresholds = {
     minTotalHomepageViews: 200,
@@ -251,6 +255,10 @@ export function isHomepageEventName(eventName: string): eventName is HomepageEve
     return HOMEPAGE_EVENT_NAME_SET.has(eventName as HomepageEventName)
 }
 
+export function isFunnelEventName(eventName: string): eventName is FunnelEventName {
+    return FUNNEL_EVENT_NAME_SET.has(eventName as FunnelEventName)
+}
+
 function normalizeRecord(input: unknown): HomepageFunnelEventRecord | null {
     if (!input || typeof input !== 'object' || Array.isArray(input)) {
         return null
@@ -258,7 +266,7 @@ function normalizeRecord(input: unknown): HomepageFunnelEventRecord | null {
 
     const payload = input as Record<string, unknown>
     const eventNameRaw = toNonEmptyString(payload.eventName)
-    if (!eventNameRaw || !isHomepageEventName(eventNameRaw)) {
+    if (!eventNameRaw || !isFunnelEventName(eventNameRaw)) {
         return null
     }
 

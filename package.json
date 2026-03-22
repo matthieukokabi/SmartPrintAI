@@ -45,6 +45,7 @@
     "ops:quality-checkpoint:sync": "bash scripts/sync_vps_checkpoint_artifacts.sh",
   "ops:mockup-quality:smoke": "node --import tsx scripts/mockup_quality_smoke.ts",
   "analytics:funnel:report": "tsx scripts/report_homepage_funnel.ts",
+  "analytics:create:entry-report": "tsx scripts/report_create_entry_funnel.ts",
   "analytics:hero:snapshot": "tsx scripts/snapshot_hero_experiment.ts",
   "analytics:hero:readiness": "tsx scripts/check_hero_experiment_readiness.ts",
   "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh",

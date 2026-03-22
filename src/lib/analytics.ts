@@ -22,7 +22,26 @@ export const HOMEPAGE_EVENT_NAMES = {
 } as const
 
 export type HomepageEventName = (typeof HOMEPAGE_EVENT_NAMES)[keyof typeof HOMEPAGE_EVENT_NAMES]
-const FORWARDED_HOMEPAGE_EVENTS = new Set<HomepageEventName>(Object.values(HOMEPAGE_EVENT_NAMES))
+export const CREATE_ENTRY_EVENT_NAMES = {
+    pageViewed: 'create_page_viewed',
+    entrypointResolved: 'create_entrypoint_resolved',
+    promptInputFocused: 'create_prompt_input_focused',
+    promptStarted: 'create_prompt_started',
+    generationStarted: 'create_generation_started',
+    productSelected: 'create_product_selected',
+    templateSelected: 'create_template_selected',
+    flowAbandonedEarly: 'create_flow_abandoned_early',
+} as const
+
+export type CreateEntryEventName = (typeof CREATE_ENTRY_EVENT_NAMES)[keyof typeof CREATE_ENTRY_EVENT_NAMES]
+export type FunnelEventName = HomepageEventName | CreateEntryEventName
+const FORWARDED_FUNNEL_EVENTS = new Set<FunnelEventName>([
+    ...Object.values(HOMEPAGE_EVENT_NAMES),
+    ...Object.values(CREATE_ENTRY_EVENT_NAMES),
+])
+
+type CreateEntrypoint = 'homepage' | 'other' | 'unknown'
+type PromptLengthBucket = '0_2' | '3_10' | '11_30' | '31_80' | '81_plus'
 
 function toNumber(value: unknown): number {
     const n = typeof value === 'number' ? value : Number(value)
@@ -39,7 +58,7 @@ function cleanParams(params: AnalyticsParams): Record<string, unknown> {
 }
 
 function forwardHomepageEvent(eventName: string, params: Record<string, unknown>) {
-    if (typeof window === 'undefined' || !FORWARDED_HOMEPAGE_EVENTS.has(eventName as HomepageEventName)) {
+    if (typeof window === 'undefined' || !FORWARDED_FUNNEL_EVENTS.has(eventName as FunnelEventName)) {
         return
     }
 
@@ -123,12 +142,88 @@ export function trackHomepageToCreateClicked(params: {
 }
 
 export function trackCreateFlowStarted(params: {
-    entrypoint?: 'homepage' | 'other' | 'unknown'
+    entrypoint?: CreateEntrypoint
     referrer_path?: string
     locale?: string
     page_variant?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.createFlowStarted, params)
+}
+
+export function trackCreatePageViewed(params: {
+    entrypoint?: CreateEntrypoint
+    referrer_path?: string
+    locale?: string
+    page_variant?: string
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.pageViewed, params)
+}
+
+export function trackCreateEntrypointResolved(params: {
+    entrypoint?: CreateEntrypoint
+    referrer_path?: string
+    locale?: string
+    page_variant?: string
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.entrypointResolved, params)
+}
+
+export function trackCreatePromptInputFocused(params: {
+    entrypoint?: CreateEntrypoint
+    locale?: string
+    page_variant?: string
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.promptInputFocused, params)
+}
+
+export function trackCreatePromptStarted(params: {
+    entrypoint?: CreateEntrypoint
+    locale?: string
+    page_variant?: string
+    prompt_length_bucket?: PromptLengthBucket
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.promptStarted, params)
+}
+
+export function trackCreateGenerationStarted(params: {
+    entrypoint?: CreateEntrypoint
+    locale?: string
+    page_variant?: string
+    prompt_length_bucket?: PromptLengthBucket
+    template_type?: string
+    has_reference_image?: boolean
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.generationStarted, params)
+}
+
+export function trackCreateProductSelected(params: {
+    entrypoint?: CreateEntrypoint
+    locale?: string
+    page_variant?: string
+    product_type?: string
+    product_id?: string
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.productSelected, params)
+}
+
+export function trackCreateTemplateSelected(params: {
+    entrypoint?: CreateEntrypoint
+    locale?: string
+    page_variant?: string
+    template_type?: string
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.templateSelected, params)
+}
+
+export function trackCreateFlowAbandonedEarly(params: {
+    entrypoint?: CreateEntrypoint
+    referrer_path?: string
+    locale?: string
+    page_variant?: string
+    last_completed_step?: 'page_viewed' | 'prompt_focused' | 'prompt_started' | 'template_selected' | 'product_selected' | 'generation_started'
+    prompt_length_bucket?: PromptLengthBucket
+}): boolean {
+    return trackEvent(CREATE_ENTRY_EVENT_NAMES.flowAbandonedEarly, params)
 }
 
 export function trackPurchase(order: Order): boolean {
