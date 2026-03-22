@@ -64,10 +64,11 @@ export default function Navbar() {
 
                         <Link
                             href="/create"
-                            className="site-nav-cta hidden rounded-full bg-gradient-to-r from-orange-500 to-sky-500 px-4 py-2 text-sm font-medium text-white shadow-[0_18px_36px_-26px_rgba(14,165,233,0.8)] transition-all duration-300 hover:opacity-90 sm:inline-flex sm:items-center sm:gap-2"
+                            className="site-nav-cta inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-sky-500 px-3 py-2 text-sm font-medium text-white shadow-[0_18px_36px_-26px_rgba(14,165,233,0.8)] transition-all duration-300 hover:opacity-90 sm:gap-2 sm:px-4"
+                            aria-label="Start creating"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
-                            Start Creating
+                            <span className="hidden sm:inline">Start Creating</span>
                         </Link>
 
                         {isSignedIn ? (

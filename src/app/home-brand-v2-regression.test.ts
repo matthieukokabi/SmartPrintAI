@@ -15,11 +15,17 @@ describe('homepage brand v2 regression', () => {
         const source = readSource(HOME_LANDING_PATH)
 
         expect(source).toContain('id="how-it-works"')
+        expect(source).toContain('id="why-smartprintai"')
+        expect(source).toContain('id="featured-products"')
         expect(source).toContain('TRUST_STACK')
         expect(source).toContain('FEATURED_PRODUCT_PREVIEWS')
+        expect(source).toContain('heroAssurances')
+        expect(source).toContain('trustSubtitle')
+        expect(source).toContain('midCtaTitle')
         expect(source).toContain('faqItems')
         expect(source).toContain('finalCtaTitle')
-        expect(source).toContain('Talk to Support')
+        expect(source).toContain('heroSupportLine')
+        expect(source).toContain('text.heroSecondaryCta')
     })
 
     it('keeps shared BrandMark usage in nav and footer', () => {
