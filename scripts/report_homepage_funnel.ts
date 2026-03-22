@@ -12,6 +12,23 @@ function printSection(title: string) {
     console.log('-'.repeat(title.length))
 }
 
+function printAttributionCoverageWarning(params: {
+    label: string
+    totalViews: number
+    rows: Array<{ value: string; homepageViews: number }>
+}) {
+    const fallbackViews = params.rows
+        .filter((row) => row.value === 'unknown' || row.value === 'direct' || row.value === 'internal')
+        .reduce((sum, row) => sum + row.homepageViews, 0)
+    const fallbackRate = params.totalViews > 0
+        ? (fallbackViews / params.totalViews) * 100
+        : 0
+
+    if (fallbackRate >= 60) {
+        console.log(`Warning: ${params.label} has ${fallbackRate.toFixed(2)}% fallback traffic in unknown/direct/internal buckets.`)
+    }
+}
+
 async function main() {
     const report = await buildHomepageFunnelReport()
 
@@ -84,6 +101,11 @@ async function main() {
             `${row.value}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}`
         )
     }
+    printAttributionCoverageWarning({
+        label: 'utm_source',
+        totalViews: report.totals.homepageViews,
+        rows: report.attributionBreakdown.utmSource,
+    })
 
     printSection('Hero Variant Performance by utm_source')
     for (const row of report.attributionBreakdown.heroVariantByUtmSource) {

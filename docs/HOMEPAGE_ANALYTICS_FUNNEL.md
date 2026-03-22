@@ -188,6 +188,89 @@ Segmentation now included in reports:
   - `referrer_domain`
   - `device_type`
 
+## UTM Naming Contract (Traffic Launch Standard)
+Use canonical, lowercase, underscore-delimited values only.
+
+Canonical `utm_source` values:
+- `meta`
+- `google`
+- `tiktok`
+- `x`
+- `producthunt`
+- `linkedin`
+- `email`
+- `direct` (report bucket only, not for manual tagging)
+
+Canonical `utm_medium` values:
+- `paid_social`
+- `paid_search`
+- `organic_social`
+- `organic_search`
+- `email`
+- `referral`
+- `influencer`
+
+Campaign format (enforced convention):
+- `channel_objective_geo_audience_offer_date`
+- Example: `social_conversion_us_creators_drop1_2026_03`
+
+`utm_content` guidance:
+- Creative/ad variant identifier only.
+- Example: `video_hook_a`, `carousel_mockup_b`.
+
+`utm_term` guidance:
+- Keyword or targeting intent token.
+- Example: `ai_tshirt`, `print_on_demand_logo`.
+
+### Normalization Rules
+Known source aliases are normalized before persistence:
+- `facebook`, `fb`, `instagram`, `ig` -> `meta`
+- `twitter` -> `x`
+
+Known medium aliases are normalized before persistence:
+- `paid social`, `paid-social`, `social_paid` -> `paid_social`
+- `cpc`, `ppc`, `paidsearch` -> `paid_search`
+- `social`, `organic` -> `organic_social`
+
+Referrer-domain fallback source mapping is applied when `utm_source` is missing:
+- `instagram.com`, `l.instagram.com` -> `meta`
+- `facebook.com`, `m.facebook.com` -> `meta`
+- `tiktok.com` -> `tiktok`
+- `twitter.com`, `x.com`, `t.co` -> `x`
+- `google.com` -> `google`
+- `linkedin.com` -> `linkedin`
+
+Fallback buckets:
+- `direct`
+- `internal`
+- `unknown`
+
+### Tagged Traffic QA Procedure
+Run controlled QA before paid traffic launch:
+1. `npm run analytics:attribution:qa`
+2. Confirm output reports all test cases as `PASS`.
+3. Confirm no tagged QA traffic leaked into fallback source buckets (`unknown`, `direct`, `internal`).
+4. Re-run:
+- `npm run analytics:funnel:report`
+- `npm run analytics:create:entry-report`
+5. Verify segmented tables include canonical `utm_source` / `utm_campaign` rows for the tested tags.
+
+Sample tagged URL templates:
+- `https://smartprintai.com/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=video_hook_a`
+- `https://smartprintai.com/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_term=ai_tshirt`
+- `https://smartprintai.com/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=creator_demo_a`
+- `https://smartprintai.com/?utm_source=x&utm_medium=organic_social&utm_campaign=social_awareness_global_launch_2026_03`
+
+### Traffic Launch Readiness Checklist
+- [ ] `visitor_id` linkage confirmed (`trackedUsers > 0` in homepage report).
+- [ ] Attribution enrichment present on homepage and create-entry events.
+- [ ] `npm run analytics:attribution:qa` passes.
+- [ ] Homepage/create reports show canonical source buckets for tagged traffic.
+- [ ] No unexpected fallback dominance for tagged QA runs.
+- [ ] Hero experiment remains active and segmented by source.
+- [ ] Create-entry report remains segmented by source.
+- [ ] Marketing team agrees to canonical UTM naming contract before ad launch.
+
 ## Product-Proof Exposure Analysis
 Goal:
 - Compare users who saw the homepage product-proof section vs users who did not.
@@ -328,3 +411,4 @@ Interpretation:
 - Funnel reports are generated from the real event log only (`source = event_log`).
 - If no events are recorded yet, the report returns zeroed metrics with `hasData = false` and `recordCount = 0`.
 - Report output includes per-variant breakdown (`variant_a` vs `variant_b`) for CTR, create-start rate, click->create-start rate, and drop-off step comparison.
+- Funnel report scripts print a warning when attribution fallback buckets (`unknown`/`direct`/`internal`) exceed 60% of views in source breakdowns.

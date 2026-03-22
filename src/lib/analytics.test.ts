@@ -157,7 +157,7 @@ describe('trackEvent', () => {
         utm_medium: 'paid_social',
         utm_campaign: 'spring_launch',
         utm_content: 'hero_a',
-        utm_term: 'ai shirt',
+        utm_term: 'ai_shirt',
         referrer_domain: 'google.com',
         landing_path: '/',
         device_type: 'mobile',
@@ -213,7 +213,7 @@ describe('trackEvent', () => {
       'homepage_to_create_clicked',
       expect.objectContaining({
         utm_source: 'google',
-        utm_medium: 'cpc',
+        utm_medium: 'paid_search',
         utm_campaign: 'brand_search',
         referrer_domain: 'google.com',
         landing_path: '/',

@@ -224,6 +224,35 @@ describe('/api/analytics/events POST', () => {
     )
   })
 
+  it('canonicalizes source and medium aliases to stable buckets', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/?utm_source=facebook&utm_medium=Paid-Social&utm_campaign=Social Conversion US Launch',
+      }),
+      {
+        cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_alias`,
+        referer: 'https://twitter.com/smartprintai',
+      }
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({
+          visitor_id: 'cookie_visitor_alias',
+          utm_source: 'meta',
+          utm_medium: 'paid_social',
+          utm_campaign: 'social_conversion_us_launch',
+        }),
+      })
+    )
+  })
+
   it('reuses stored attribution cookie when payload omits attribution fields', async () => {
     const attributionCookie = encodeURIComponent(JSON.stringify({
       visitor_id: 'cookie_visitor_789',
@@ -263,6 +292,55 @@ describe('/api/analytics/events POST', () => {
           referrer_domain: 'google.com',
           landing_path: '/',
           device_type: 'desktop',
+        }),
+      })
+    )
+  })
+
+  it('preserves first-touch attribution from homepage visit to create events', async () => {
+    const firstRequest = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_launch_2026_03',
+      }),
+      {
+        cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_roundtrip`,
+      }
+    )
+
+    const firstResponse = await POST(firstRequest)
+    expect(firstResponse.status).toBe(202)
+    const firstSetCookie = firstResponse.headers.get('set-cookie') || ''
+    const attributionCookie = firstSetCookie.match(/spai_first_touch_attribution=([^;]+)/)?.[1]
+    expect(attributionCookie).toBeTruthy()
+
+    const secondRequest = createRequest(
+      JSON.stringify({
+        eventName: 'create_page_viewed',
+        params: {
+          visitor_id: 'cookie_visitor_roundtrip',
+          entrypoint: 'homepage',
+          referrer_path: '/',
+        },
+        path: '/create',
+      }),
+      {
+        cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_roundtrip; ${ANALYTICS_ATTRIBUTION_COOKIE}=${attributionCookie}`,
+      }
+    )
+
+    const secondResponse = await POST(secondRequest)
+    expect(secondResponse.status).toBe(202)
+    await expect(secondResponse.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        eventName: 'create_page_viewed',
+        params: expect.objectContaining({
+          visitor_id: 'cookie_visitor_roundtrip',
+          utm_source: 'tiktok',
+          utm_medium: 'paid_social',
+          utm_campaign: 'social_conversion_us_launch_2026_03',
         }),
       })
     )

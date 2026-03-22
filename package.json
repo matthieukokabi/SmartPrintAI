@@ -50,6 +50,7 @@
   "analytics:create:entry-snapshot": "tsx scripts/snapshot_create_entry.ts",
   "analytics:hero:snapshot": "tsx scripts/snapshot_hero_experiment.ts",
   "analytics:hero:readiness": "tsx scripts/check_hero_experiment_readiness.ts",
+  "analytics:attribution:qa": "tsx scripts/qa_attribution_launch_readiness.ts",
   "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh",
     "ops:conversion-insights": "node --import tsx scripts/build_conversion_insights.ts",
     "ops:alerts:tune": "node --import tsx scripts/build_ops_alert_summary.ts",

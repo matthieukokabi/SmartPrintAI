@@ -12,6 +12,22 @@ function printSection(title: string) {
     console.log('-'.repeat(title.length))
 }
 
+function printAttributionCoverageWarning(params: {
+    totalCreateViews: number
+    rows: Array<{ value: string; createPageViews: number }>
+}) {
+    const fallbackViews = params.rows
+        .filter((row) => row.value === 'unknown' || row.value === 'direct' || row.value === 'internal')
+        .reduce((sum, row) => sum + row.createPageViews, 0)
+    const fallbackRate = params.totalCreateViews > 0
+        ? (fallbackViews / params.totalCreateViews) * 100
+        : 0
+
+    if (fallbackRate >= 60) {
+        console.log(`Warning: create-entry utm_source has ${fallbackRate.toFixed(2)}% fallback traffic in unknown/direct/internal buckets.`)
+    }
+}
+
 async function main() {
     const report = await buildCreateEntryFunnelReport()
 
@@ -116,6 +132,10 @@ async function main() {
             `${row.value}: createViews=${row.createPageViews}, promptStarted=${row.promptStarted}, generationStarted=${row.generationStarted}, promptStartRate=${formatRate(row.promptStartRateFromCreateView)}, generationStartRate=${formatRate(row.generationStartRateFromCreateView)}`
         )
     }
+    printAttributionCoverageWarning({
+        totalCreateViews: report.totals.createPageViews,
+        rows: report.attributionBreakdown.utmSource,
+    })
 
     const artifactDir = path.join(process.cwd(), 'docs', 'reports', 'artifacts', 'create-entry-funnel')
     await mkdir(artifactDir, { recursive: true })

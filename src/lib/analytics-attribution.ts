@@ -8,6 +8,47 @@ export const ATTRIBUTION_BUCKET_UNKNOWN = 'unknown'
 const MAX_ATTRIBUTION_VALUE_LENGTH = 160
 const MAX_REFERRER_LENGTH = 400
 const MAX_PATH_LENGTH = 240
+const TOKEN_DELIMITER_PATTERN = /[\s-]+/g
+
+const SOURCE_CANONICAL_MAP: Record<string, string> = {
+    facebook: 'meta',
+    fb: 'meta',
+    instagram: 'meta',
+    ig: 'meta',
+    twitter: 'x',
+}
+
+const MEDIUM_CANONICAL_MAP: Record<string, string> = {
+    paidsocial: 'paid_social',
+    paid_social: 'paid_social',
+    social_paid: 'paid_social',
+    paidsocialads: 'paid_social',
+    paidsearch: 'paid_search',
+    paid_search: 'paid_search',
+    cpc: 'paid_search',
+    ppc: 'paid_search',
+    organic: 'organic_social',
+    social: 'organic_social',
+    organic_social: 'organic_social',
+    organicsearch: 'organic_search',
+    organic_search: 'organic_search',
+}
+
+const REFERRER_DOMAIN_SOURCE_MAP: Record<string, string> = {
+    'facebook.com': 'meta',
+    'm.facebook.com': 'meta',
+    'instagram.com': 'meta',
+    'l.instagram.com': 'meta',
+    'tiktok.com': 'tiktok',
+    'www.tiktok.com': 'tiktok',
+    'twitter.com': 'x',
+    'x.com': 'x',
+    't.co': 'x',
+    'google.com': 'google',
+    'www.google.com': 'google',
+    'linkedin.com': 'linkedin',
+    'www.linkedin.com': 'linkedin',
+}
 
 export type AnalyticsDeviceType = 'desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown'
 
@@ -66,6 +107,19 @@ function normalizeValue(value: unknown, lowercase = false): string | null {
     }
     const cleaned = lowercase ? normalized.toLowerCase() : normalized
     return cleaned.slice(0, MAX_ATTRIBUTION_VALUE_LENGTH)
+}
+
+function normalizeToken(value: unknown): string | null {
+    const normalized = normalizeValue(value, true)
+    if (!normalized) {
+        return null
+    }
+    const token = normalized
+        .replace(TOKEN_DELIMITER_PATTERN, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+
+    return token ? token.slice(0, MAX_ATTRIBUTION_VALUE_LENGTH) : null
 }
 
 export function normalizeReferrerDomain(value: unknown): string {
@@ -165,7 +219,23 @@ export function classifyAnalyticsDeviceType(userAgent: string | null | undefined
 }
 
 function toAttributionUtmBucket(value: unknown): string {
-    return normalizeValue(value, true) || ATTRIBUTION_BUCKET_UNKNOWN
+    return normalizeToken(value) || ATTRIBUTION_BUCKET_UNKNOWN
+}
+
+function canonicalizeSource(value: unknown): string {
+    const token = toAttributionUtmBucket(value)
+    if (token === ATTRIBUTION_BUCKET_UNKNOWN) {
+        return token
+    }
+    return SOURCE_CANONICAL_MAP[token] || token
+}
+
+function canonicalizeMedium(value: unknown): string {
+    const token = toAttributionUtmBucket(value)
+    if (token === ATTRIBUTION_BUCKET_UNKNOWN) {
+        return token
+    }
+    return MEDIUM_CANONICAL_MAP[token] || token
 }
 
 function toSourceBucket(
@@ -173,7 +243,11 @@ function toSourceBucket(
     referrerDomain: string
 ): string {
     if (utmSource !== ATTRIBUTION_BUCKET_UNKNOWN) {
-        return utmSource
+        return SOURCE_CANONICAL_MAP[utmSource] || utmSource
+    }
+    const mappedReferrerSource = REFERRER_DOMAIN_SOURCE_MAP[referrerDomain]
+    if (mappedReferrerSource) {
+        return mappedReferrerSource
     }
     if (
         referrerDomain === ATTRIBUTION_BUCKET_DIRECT
@@ -222,8 +296,8 @@ export function normalizeAttributionFromParams(params: Record<string, unknown>):
         : 'unknown'
 
     return {
-        utm_source: toAttributionUtmBucket(params.utm_source),
-        utm_medium: toAttributionUtmBucket(params.utm_medium),
+        utm_source: canonicalizeSource(params.utm_source),
+        utm_medium: canonicalizeMedium(params.utm_medium),
         utm_campaign: toAttributionUtmBucket(params.utm_campaign),
         utm_content: toAttributionUtmBucket(params.utm_content),
         utm_term: toAttributionUtmBucket(params.utm_term),
@@ -237,14 +311,14 @@ export function normalizeAttributionFromParams(params: Record<string, unknown>):
 export function buildAttributionContext(input: BuildAttributionInput): StoredAttributionContext {
     const utmValues = parseUtmValues(input.search)
     const referrer = normalizeReferrer(toNonEmptyString(input.referrer), toNonEmptyString(input.origin))
-    const utmSource = toAttributionUtmBucket(utmValues.utm_source)
+    const utmSource = canonicalizeSource(utmValues.utm_source)
     const referrerDomain = normalizeReferrerDomain(referrer.referrerDomain)
 
     return {
         visitor_id: input.visitorId,
         captured_at: new Date().toISOString(),
         utm_source: toSourceBucket(utmSource, referrerDomain),
-        utm_medium: toAttributionUtmBucket(utmValues.utm_medium),
+        utm_medium: canonicalizeMedium(utmValues.utm_medium),
         utm_campaign: toAttributionUtmBucket(utmValues.utm_campaign),
         utm_content: toAttributionUtmBucket(utmValues.utm_content),
         utm_term: toAttributionUtmBucket(utmValues.utm_term),
@@ -262,8 +336,8 @@ export function mergeAttributionWithFallback(
     const partial = incoming || {}
 
     const normalized: AttributionContext = {
-        utm_source: toAttributionUtmBucket(partial.utm_source),
-        utm_medium: toAttributionUtmBucket(partial.utm_medium),
+        utm_source: canonicalizeSource(partial.utm_source),
+        utm_medium: canonicalizeMedium(partial.utm_medium),
         utm_campaign: toAttributionUtmBucket(partial.utm_campaign),
         utm_content: toAttributionUtmBucket(partial.utm_content),
         utm_term: toAttributionUtmBucket(partial.utm_term),
