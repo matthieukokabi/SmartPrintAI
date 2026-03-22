@@ -21,38 +21,80 @@ function buildCreateRecord(
 }
 
 describe('create entry funnel report', () => {
-    it('returns zeroed metrics with no create-entry events', () => {
-        const report = aggregateCreateEntryFunnel([])
-
-        expect(report.source).toBe('event_log')
-        expect(report.hasData).toBe(false)
-        expect(report.totals.createPageViews).toBe(0)
-        expect(report.dropoff.biggestEarlyDropoffStep).toBe('none')
-    })
-
-    it('aggregates create-entry stages and identifies largest early drop-off', () => {
+    it('returns insufficient_data state with explicit blockers when thresholds are not met', () => {
         const records: HomepageFunnelEventRecord[] = [
-            ...Array.from({ length: 20 }, () => buildCreateRecord('pageViewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
-            ...Array.from({ length: 20 }, () => buildCreateRecord('entrypointResolved', { params: { entrypoint: 'homepage' } })),
-            ...Array.from({ length: 12 }, () => buildCreateRecord('promptInputFocused')),
-            ...Array.from({ length: 10 }, () => buildCreateRecord('promptStarted', { params: { prompt_length_bucket: '11_30' } })),
-            ...Array.from({ length: 6 }, () => buildCreateRecord('generationStarted')),
-            ...Array.from({ length: 4 }, () => buildCreateRecord('productSelected', { params: { product_type: 'apparel' } })),
-            ...Array.from({ length: 3 }, () => buildCreateRecord('templateSelected', { params: { template_type: 'photorealistic' } })),
-            ...Array.from({ length: 5 }, () => buildCreateRecord('flowAbandonedEarly', { params: { last_completed_step: 'prompt_started' } })),
+            ...Array.from({ length: 20 }, () => buildCreateRecord('pageViewed')),
+            ...Array.from({ length: 10 }, () => buildCreateRecord('promptInputFocused')),
+            ...Array.from({ length: 7 }, () => buildCreateRecord('promptStarted', { params: { prompt_length_bucket: '11_30' } })),
+            ...Array.from({ length: 4 }, () => buildCreateRecord('generationStarted')),
         ]
 
         const report = aggregateCreateEntryFunnel(records)
+        expect(report.source).toBe('event_log')
         expect(report.hasData).toBe(true)
-        expect(report.totals.createPageViews).toBe(20)
-        expect(report.totals.promptInputFocused).toBe(12)
-        expect(report.totals.promptStarted).toBe(10)
-        expect(report.totals.generationStarted).toBe(6)
-        expect(report.totals.productSelected).toBe(4)
-        expect(report.rates.promptInteractionRate).toBe(60)
-        expect(report.rates.generationStartRate).toBe(30)
-        expect(report.dropoff.biggestEarlyDropoffStep).toBe('before_prompt_focus')
-        expect(report.firstFrictionPoint).toBe('before_prompt_focus')
+        expect(report.status).toBe('insufficient_data')
+        expect(report.decision).toBe('continue_running')
+        expect(report.thresholdChecks.all).toBe(false)
+        expect(report.readiness.readyForOptimization).toBe(false)
+        expect(report.readiness.blockers).toContain('Need 100 more create_page_viewed events.')
+        expect(report.readiness.blockers).toContain('Need 60 more create_prompt_input_focused events.')
+        expect(report.readiness.blockers).toContain('Need 38 more create_prompt_started events.')
+        expect(report.readiness.blockers).toContain('Need 21 more create_generation_started events.')
+    })
+
+    it('returns friction_candidate when thresholds are met and drop-off is actionable', () => {
+        const records: HomepageFunnelEventRecord[] = [
+            ...Array.from({ length: 150 }, () => buildCreateRecord('pageViewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+            ...Array.from({ length: 145 }, () => buildCreateRecord('entrypointResolved', { params: { entrypoint: 'homepage' } })),
+            ...Array.from({ length: 110 }, () => buildCreateRecord('promptInputFocused')),
+            ...Array.from({ length: 70 }, () => buildCreateRecord('promptStarted', { params: { prompt_length_bucket: '11_30' } })),
+            ...Array.from({ length: 45 }, () => buildCreateRecord('generationStarted')),
+            ...Array.from({ length: 20 }, () => buildCreateRecord('productSelected')),
+        ]
+
+        const report = aggregateCreateEntryFunnel(records)
+        expect(report.thresholdChecks.all).toBe(true)
+        expect(report.status).toBe('friction_candidate')
+        expect(report.decision).toBe('optimize_first_friction_point')
+        expect(report.firstFrictionPoint).toBe('before_prompt_start')
+        expect(report.firstActionableFrictionPoint).toBe('before_prompt_start')
+        expect(report.readiness.readyForOptimization).toBe(true)
+        expect(report.rates.promptStartRateFromCreateView).toBe(46.67)
+        expect(report.rates.generationStartRateFromPromptStart).toBe(64.29)
+    })
+
+    it('returns ready_for_comparison with no_action_yet when drop-off is too small', () => {
+        const records: HomepageFunnelEventRecord[] = [
+            ...Array.from({ length: 130 }, () => buildCreateRecord('pageViewed')),
+            ...Array.from({ length: 128 }, () => buildCreateRecord('entrypointResolved', { params: { entrypoint: 'homepage' } })),
+            ...Array.from({ length: 122 }, () => buildCreateRecord('promptInputFocused')),
+            ...Array.from({ length: 119 }, () => buildCreateRecord('promptStarted', { params: { prompt_length_bucket: '3_10' } })),
+            ...Array.from({ length: 114 }, () => buildCreateRecord('generationStarted')),
+        ]
+
+        const report = aggregateCreateEntryFunnel(records)
+        expect(report.thresholdChecks.all).toBe(true)
+        expect(report.status).toBe('ready_for_comparison')
+        expect(report.decision).toBe('no_action_yet')
+        expect(report.firstActionableFrictionPoint).toBe('none')
+        expect(report.readiness.readinessMessage).toContain('no clear first friction candidate')
+    })
+
+    it('returns inconclusive and investigate_tracking when event sequence integrity is broken', () => {
+        const records: HomepageFunnelEventRecord[] = [
+            ...Array.from({ length: 130 }, () => buildCreateRecord('pageViewed')),
+            ...Array.from({ length: 75 }, () => buildCreateRecord('promptInputFocused')),
+            ...Array.from({ length: 48 }, () => buildCreateRecord('promptStarted', { params: { prompt_length_bucket: '11_30' } })),
+            ...Array.from({ length: 30 }, () => buildCreateRecord('generationStarted')),
+            // Intentionally no entrypointResolved events to trigger integrity guard.
+        ]
+
+        const report = aggregateCreateEntryFunnel(records)
+        expect(report.thresholdChecks.all).toBe(true)
+        expect(report.status).toBe('inconclusive')
+        expect(report.decision).toBe('investigate_tracking')
+        expect(report.reason).toContain('tracking gaps')
+        expect(report.firstActionableFrictionPoint).toBe('none')
     })
 
     it('breaks down entrypoint, variant, and prompt length buckets', () => {

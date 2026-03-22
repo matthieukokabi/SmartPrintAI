@@ -3,7 +3,9 @@ import { readHomepageEventRecords, type HomepageFunnelEventRecord } from '@/lib/
 
 type CreateEntrypoint = 'homepage' | 'other' | 'unknown'
 type CreatePromptLengthBucket = '0_2' | '3_10' | '11_30' | '31_80' | '81_plus' | 'unknown'
-type CreateEntryDropoffStep = 'before_prompt_focus' | 'before_prompt_start' | 'before_generation_start' | 'none'
+export type CreateEntryDropoffStep = 'before_prompt_focus' | 'before_prompt_start' | 'before_generation_start' | 'none'
+export type CreateEntryStatus = 'insufficient_data' | 'ready_for_comparison' | 'friction_candidate' | 'inconclusive'
+export type CreateEntryDecision = 'continue_running' | 'investigate_tracking' | 'optimize_first_friction_point' | 'no_action_yet'
 
 type CreateEntryBreakdownRow = {
     value: string
@@ -17,6 +19,32 @@ type CreateEntryDropoffRow = {
     toCount: number
     dropoffCount: number
     dropoffRate: number
+}
+
+export type CreateEntryThresholdProgressItem = {
+    metric: 'create_page_viewed' | 'create_prompt_input_focused' | 'create_prompt_started' | 'create_generation_started'
+    label: string
+    current: number
+    required: number
+    remaining: number
+    met: boolean
+    message: string
+}
+
+type CreateEntryThresholds = {
+    minCreatePageViewed: number
+    minPromptInputFocused: number
+    minPromptStarted: number
+    minGenerationStarted: number
+    minActionableDropoffRatePct: number
+}
+
+type CreateEntryThresholdChecks = {
+    minCreatePageViewed: boolean
+    minPromptInputFocused: boolean
+    minPromptStarted: boolean
+    minGenerationStarted: boolean
+    all: boolean
 }
 
 export type CreateEntryFunnelReport = {
@@ -38,7 +66,10 @@ export type CreateEntryFunnelReport = {
     rates: {
         promptInteractionRate: number
         promptStartedRate: number
+        promptStartRateFromCreateView: number
         generationStartRate: number
+        generationStartRateFromCreateView: number
+        generationStartRateFromPromptStart: number
         productSelectionRateFromGeneration: number
         templateSelectionRate: number
         earlyAbandonmentRate: number
@@ -48,13 +79,34 @@ export type CreateEntryFunnelReport = {
         biggestEarlyDropoffStep: CreateEntryDropoffStep
     }
     firstFrictionPoint: CreateEntryDropoffStep
+    firstActionableFrictionPoint: CreateEntryDropoffStep
+    primaryMetric: 'prompt_start_rate_from_create_view'
+    secondaryMetric: 'generation_start_rate_from_prompt_start'
+    status: CreateEntryStatus
+    decision: CreateEntryDecision
+    reason: string
     nextAction: string
+    thresholds: CreateEntryThresholds
+    thresholdChecks: CreateEntryThresholdChecks
+    readiness: {
+        readyForOptimization: boolean
+        readinessMessage: string
+        progressItems: CreateEntryThresholdProgressItem[]
+        blockers: string[]
+    }
     entrypointBreakdown: CreateEntryBreakdownRow[]
     homepageVariantBreakdown: CreateEntryBreakdownRow[]
     promptLengthBreakdown: CreateEntryBreakdownRow[]
 }
 
 const CREATE_ENTRY_EVENT_SET = new Set<string>(Object.values(CREATE_ENTRY_EVENT_NAMES))
+const DEFAULT_CREATE_ENTRY_THRESHOLDS: CreateEntryThresholds = {
+    minCreatePageViewed: 120,
+    minPromptInputFocused: 70,
+    minPromptStarted: 45,
+    minGenerationStarted: 25,
+    minActionableDropoffRatePct: 10,
+}
 
 function toRate(numerator: number, denominator: number): number {
     if (denominator <= 0) {
@@ -115,6 +167,28 @@ function clampStageCount(count: number, max: number): number {
     return Math.min(Math.max(count, 0), Math.max(max, 0))
 }
 
+function buildProgressItem(params: {
+    metric: CreateEntryThresholdProgressItem['metric']
+    label: string
+    metricName: string
+    current: number
+    required: number
+}): CreateEntryThresholdProgressItem {
+    const remaining = Math.max(0, params.required - params.current)
+    const met = remaining === 0
+    return {
+        metric: params.metric,
+        label: params.label,
+        current: params.current,
+        required: params.required,
+        remaining,
+        met,
+        message: met
+            ? `${params.label}: threshold met (${params.current}/${params.required})`
+            : `Need ${remaining} more ${params.metricName} event${remaining === 1 ? '' : 's'}.`,
+    }
+}
+
 export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[]): CreateEntryFunnelReport {
     const createRecords = records.filter((record) => CREATE_ENTRY_EVENT_SET.has(record.eventName))
 
@@ -160,7 +234,13 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
         if (!largest) {
             return current
         }
-        return current.dropoffCount > largest.dropoffCount ? current : largest
+        if (current.dropoffCount > largest.dropoffCount) {
+            return current
+        }
+        if (current.dropoffCount === largest.dropoffCount && current.dropoffRate > largest.dropoffRate) {
+            return current
+        }
+        return largest
     }, null)
     const biggestEarlyDropoffStep: CreateEntryDropoffStep = biggestStage?.dropoffCount
         ? biggestStage.step
@@ -187,13 +267,95 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
         }
     }
 
-    let nextAction = 'Keep collecting create-entry data until a clear early-stage drop-off appears.'
-    if (biggestEarlyDropoffStep === 'before_prompt_focus') {
-        nextAction = 'Clarify the very first instruction at the top of /create and reduce first-screen ambiguity.'
-    } else if (biggestEarlyDropoffStep === 'before_prompt_start') {
-        nextAction = 'Improve prompt examples and helper text to make writing the first prompt easier.'
-    } else if (biggestEarlyDropoffStep === 'before_generation_start') {
-        nextAction = 'Investigate prompt submission friction (button clarity, validation messaging, or loading confidence).'
+    const promptStartRateFromCreateView = toRate(promptStarted, createPageViews)
+    const generationStartRateFromPromptStart = toRate(generationStarted, promptStarted)
+    const generationStartRateFromCreateView = toRate(generationStarted, createPageViews)
+
+    const thresholdChecks: CreateEntryThresholdChecks = {
+        minCreatePageViewed: createPageViews >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minCreatePageViewed,
+        minPromptInputFocused: promptInputFocused >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minPromptInputFocused,
+        minPromptStarted: promptStarted >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minPromptStarted,
+        minGenerationStarted: generationStarted >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minGenerationStarted,
+        all: false,
+    }
+    thresholdChecks.all = thresholdChecks.minCreatePageViewed
+        && thresholdChecks.minPromptInputFocused
+        && thresholdChecks.minPromptStarted
+        && thresholdChecks.minGenerationStarted
+
+    const progressItems: CreateEntryThresholdProgressItem[] = [
+        buildProgressItem({
+            metric: 'create_page_viewed',
+            label: 'create_page_viewed',
+            metricName: 'create_page_viewed',
+            current: createPageViews,
+            required: DEFAULT_CREATE_ENTRY_THRESHOLDS.minCreatePageViewed,
+        }),
+        buildProgressItem({
+            metric: 'create_prompt_input_focused',
+            label: 'create_prompt_input_focused',
+            metricName: 'create_prompt_input_focused',
+            current: promptInputFocused,
+            required: DEFAULT_CREATE_ENTRY_THRESHOLDS.minPromptInputFocused,
+        }),
+        buildProgressItem({
+            metric: 'create_prompt_started',
+            label: 'create_prompt_started',
+            metricName: 'create_prompt_started',
+            current: promptStarted,
+            required: DEFAULT_CREATE_ENTRY_THRESHOLDS.minPromptStarted,
+        }),
+        buildProgressItem({
+            metric: 'create_generation_started',
+            label: 'create_generation_started',
+            metricName: 'create_generation_started',
+            current: generationStarted,
+            required: DEFAULT_CREATE_ENTRY_THRESHOLDS.minGenerationStarted,
+        }),
+    ]
+    const blockers = progressItems.filter((item) => !item.met).map((item) => item.message)
+
+    const hasTrackingIntegrityIssue = (
+        (createPageViews >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minCreatePageViewed && entrypointResolved === 0)
+        || (promptStarted > 0 && createPageViews === 0)
+        || (generationStarted > 0 && promptStarted === 0)
+    )
+    const hasActionableFriction = thresholdChecks.all
+        && biggestEarlyDropoffStep !== 'none'
+        && (biggestStage?.dropoffRate || 0) >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minActionableDropoffRatePct
+
+    let status: CreateEntryStatus
+    let decision: CreateEntryDecision
+    let reason: string
+    let nextAction: string
+    let firstActionableFrictionPoint: CreateEntryDropoffStep = 'none'
+    let readinessMessage: string
+
+    if (hasTrackingIntegrityIssue) {
+        status = 'inconclusive'
+        decision = 'investigate_tracking'
+        reason = 'Create-entry event sequence is inconsistent and may be impacted by tracking gaps.'
+        nextAction = 'Audit create entry event firing and payload integrity before making UX decisions.'
+        readinessMessage = 'Create-entry data is inconclusive due to tracking integrity checks.'
+    } else if (!thresholdChecks.all) {
+        status = 'insufficient_data'
+        decision = 'continue_running'
+        reason = 'Create-entry sample thresholds are not met yet.'
+        nextAction = 'Continue collecting create-entry events until thresholds are satisfied.'
+        readinessMessage = 'Data too immature to optimize create-entry friction.'
+    } else if (hasActionableFriction) {
+        status = 'friction_candidate'
+        decision = 'optimize_first_friction_point'
+        reason = `Thresholds are met and ${biggestEarlyDropoffStep} has actionable drop-off (${(biggestStage?.dropoffRate || 0).toFixed(2)}%).`
+        nextAction = `Run one focused /create UX iteration targeting ${biggestEarlyDropoffStep}.`
+        firstActionableFrictionPoint = biggestEarlyDropoffStep
+        readinessMessage = `Ready to optimize ${biggestEarlyDropoffStep}.`
+    } else {
+        status = 'ready_for_comparison'
+        decision = 'no_action_yet'
+        reason = 'Thresholds are met, but no early-stage drop-off is strong enough to justify a focused UX change.'
+        nextAction = 'Keep collecting data and re-evaluate when a stronger friction point emerges.'
+        readinessMessage = 'Thresholds met, but no clear first friction candidate yet.'
     }
 
     return {
@@ -214,8 +376,11 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
         },
         rates: {
             promptInteractionRate: toRate(promptInputFocused, createPageViews),
-            promptStartedRate: toRate(promptStarted, createPageViews),
-            generationStartRate: toRate(generationStarted, createPageViews),
+            promptStartedRate: promptStartRateFromCreateView,
+            promptStartRateFromCreateView,
+            generationStartRate: generationStartRateFromCreateView,
+            generationStartRateFromCreateView,
+            generationStartRateFromPromptStart,
             productSelectionRateFromGeneration: toRate(productSelected, generationStarted),
             templateSelectionRate: toRate(templateSelected, createPageViews),
             earlyAbandonmentRate: toRate(abandonedEarly, createPageViews),
@@ -225,7 +390,21 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
             biggestEarlyDropoffStep,
         },
         firstFrictionPoint: biggestEarlyDropoffStep,
+        firstActionableFrictionPoint,
+        primaryMetric: 'prompt_start_rate_from_create_view',
+        secondaryMetric: 'generation_start_rate_from_prompt_start',
+        status,
+        decision,
+        reason,
         nextAction,
+        thresholds: DEFAULT_CREATE_ENTRY_THRESHOLDS,
+        thresholdChecks,
+        readiness: {
+            readyForOptimization: thresholdChecks.all && !hasTrackingIntegrityIssue,
+            readinessMessage,
+            progressItems,
+            blockers,
+        },
         entrypointBreakdown: toBreakdownRows(entrypointCounts),
         homepageVariantBreakdown: toBreakdownRows(variantCounts),
         promptLengthBreakdown: toBreakdownRows(promptLengthCounts),

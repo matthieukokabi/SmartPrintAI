@@ -25,12 +25,43 @@ async function main() {
         console.log('Note: no create-entry funnel events found yet in the real event log.')
     }
 
+    printSection('Create Entry Decision')
+    console.log(`Primary metric: ${report.primaryMetric}`)
+    console.log(`Secondary metric: ${report.secondaryMetric}`)
+    console.log(`Status: ${report.status}`)
+    console.log(`Decision: ${report.decision}`)
+    console.log(`First friction point: ${report.firstFrictionPoint}`)
+    console.log(`First actionable friction point: ${report.firstActionableFrictionPoint}`)
+    console.log(`Reason: ${report.reason}`)
+    console.log(`Readiness message: ${report.readiness.readinessMessage}`)
+    console.log(`Next action: ${report.nextAction}`)
+
+    printSection('Create Entry Thresholds')
+    console.log(`minCreatePageViewed: ${report.thresholds.minCreatePageViewed} (met=${report.thresholdChecks.minCreatePageViewed})`)
+    console.log(`minPromptInputFocused: ${report.thresholds.minPromptInputFocused} (met=${report.thresholdChecks.minPromptInputFocused})`)
+    console.log(`minPromptStarted: ${report.thresholds.minPromptStarted} (met=${report.thresholdChecks.minPromptStarted})`)
+    console.log(`minGenerationStarted: ${report.thresholds.minGenerationStarted} (met=${report.thresholdChecks.minGenerationStarted})`)
+    console.log(`allThresholdsMet: ${report.thresholdChecks.all}`)
+    console.log(`minActionableDropoffRatePct: ${report.thresholds.minActionableDropoffRatePct}`)
+
+    printSection('Create Entry Threshold Progress')
+    for (const item of report.readiness.progressItems) {
+        const suffix = item.met ? 'met' : `need ${item.remaining} more`
+        console.log(`${item.label}: ${item.current}/${item.required} (${suffix})`)
+    }
+    if (report.readiness.blockers.length > 0) {
+        console.log('Readiness blockers:')
+        for (const blocker of report.readiness.blockers) {
+            console.log(`- ${blocker}`)
+        }
+    }
+
     printSection('Create Entry Stages')
     console.log(`Create page viewed: ${report.totals.createPageViews}`)
     console.log(`Entrypoint resolved: ${report.totals.entrypointResolved}`)
     console.log(`Prompt input focused: ${report.totals.promptInputFocused} (${formatRate(report.rates.promptInteractionRate)})`)
-    console.log(`Prompt started: ${report.totals.promptStarted} (${formatRate(report.rates.promptStartedRate)})`)
-    console.log(`Generation started: ${report.totals.generationStarted} (${formatRate(report.rates.generationStartRate)})`)
+    console.log(`Prompt started: ${report.totals.promptStarted} (${formatRate(report.rates.promptStartRateFromCreateView)} from create views)`)
+    console.log(`Generation started: ${report.totals.generationStarted} (${formatRate(report.rates.generationStartRateFromCreateView)} from create views, ${formatRate(report.rates.generationStartRateFromPromptStart)} from prompt starts)`)
     console.log(`Template selected: ${report.totals.templateSelected} (${formatRate(report.rates.templateSelectionRate)})`)
     console.log(`Product selected: ${report.totals.productSelected} (${formatRate(report.rates.productSelectionRateFromGeneration)} from generation starts)`)
     console.log(`Early abandoned: ${report.totals.abandonedEarly} (${formatRate(report.rates.earlyAbandonmentRate)})`)
@@ -42,7 +73,6 @@ async function main() {
         )
     }
     console.log(`Biggest early drop-off: ${report.dropoff.biggestEarlyDropoffStep}`)
-    console.log(`Next action: ${report.nextAction}`)
 
     printSection('Entrypoint Breakdown')
     for (const row of report.entrypointBreakdown) {

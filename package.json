@@ -46,6 +46,8 @@
   "ops:mockup-quality:smoke": "node --import tsx scripts/mockup_quality_smoke.ts",
   "analytics:funnel:report": "tsx scripts/report_homepage_funnel.ts",
   "analytics:create:entry-report": "tsx scripts/report_create_entry_funnel.ts",
+  "analytics:create:entry-readiness": "tsx scripts/check_create_entry_readiness.ts",
+  "analytics:create:entry-snapshot": "tsx scripts/snapshot_create_entry.ts",
   "analytics:hero:snapshot": "tsx scripts/snapshot_hero_experiment.ts",
   "analytics:hero:readiness": "tsx scripts/check_hero_experiment_readiness.ts",
   "ops:quality-checkpoint:install-timer": "bash scripts/install_quality_checkpoint_timer.sh",

@@ -42,6 +42,7 @@ TODO.md.bak.*
 .resend_api_key.tmp
 /data/analytics/*.jsonl
 /data/analytics/homepage-hero-experiment-snapshots.jsonl
+/data/analytics/create-entry-funnel-snapshots.jsonl
 /docs/reports/artifacts/homepage-funnel/latest.json
 
 # vercel

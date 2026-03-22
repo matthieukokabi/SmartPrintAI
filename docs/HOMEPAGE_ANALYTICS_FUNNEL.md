@@ -48,6 +48,8 @@ Interpretation rule:
 Commands:
 - `npm run analytics:funnel:report`: full funnel + experiment decision report.
 - `npm run analytics:create:entry-report`: create-entry stage funnel report (post-click interaction/readiness).
+- `npm run analytics:create:entry-readiness`: concise create-entry readiness + blockers output.
+- `npm run analytics:create:entry-snapshot`: append create-entry readiness snapshot row for monitoring history.
 - `npm run analytics:hero:readiness`: concise readiness-focused output showing what is still missing.
 - `npm run analytics:hero:snapshot`: append a dated snapshot row for historical tracking.
 
@@ -134,6 +136,51 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - Fires: when user leaves `/create` without starting generation.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`, `last_completed_step`, `prompt_length_bucket`.
 
+## Create Entry Decision Guardrails
+Primary metric:
+- `prompt_start_rate_from_create_view`
+
+Secondary metric:
+- `generation_start_rate_from_prompt_start`
+
+Threshold defaults enforced in create-entry report logic:
+- `minCreatePageViewed = 120`
+- `minPromptInputFocused = 70`
+- `minPromptStarted = 45`
+- `minGenerationStarted = 25`
+- `minActionableDropoffRatePct = 10`
+
+Create-entry status values:
+- `insufficient_data`: thresholds are not met yet.
+- `ready_for_comparison`: thresholds are met, but no early friction stage is strong enough to optimize.
+- `friction_candidate`: thresholds are met and one early stage has actionable drop-off.
+- `inconclusive`: tracking integrity checks failed (do not optimize until fixed).
+
+Create-entry decision values:
+- `continue_running`
+- `investigate_tracking`
+- `optimize_first_friction_point`
+- `no_action_yet`
+
+First friction logic:
+- `firstFrictionPoint`: biggest early drop-off stage by count/rate.
+- `firstActionableFrictionPoint`: only set when thresholds are met and drop-off is actionable.
+
+Readiness progress:
+- Report includes threshold progress (`current`, `required`, `remaining`) and blockers.
+- Typical messages include:
+- `Need X more create_page_viewed events.`
+- `Need Y more create_prompt_started events.`
+- `Data too immature to optimize create-entry friction.`
+- `Ready to optimize before_generation_start.`
+
+Iteration rule:
+- Next `/create` UX iteration is allowed only when:
+- `status = friction_candidate`
+- `decision = optimize_first_friction_point`
+- `firstActionableFrictionPoint != none`
+- If status is `insufficient_data`, `ready_for_comparison`, or `inconclusive`, keep running and do not change `/create` UX.
+
 ## Where Events Fire
 1. Homepage tracker:
 - [`src/components/home/HomeFunnelAnalytics.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/home/HomeFunnelAnalytics.tsx)
@@ -171,6 +218,11 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 
 Artifact output:
 - `docs/reports/artifacts/create-entry-funnel/latest.json`
+
+Create-entry snapshot storage:
+- Default file: `data/analytics/create-entry-funnel-snapshots.jsonl`
+- Optional override: `CREATE_ENTRY_FUNNEL_SNAPSHOT_PATH`
+- Snapshot files are local/internal and ignored by git.
 
 Interpretation:
 - Treat `biggestEarlyDropoffStep` as the first friction point to optimize.
