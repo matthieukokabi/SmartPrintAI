@@ -16,6 +16,7 @@ import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import { ShoppingCart, Check } from 'lucide-react'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { getCreateProductPromptGuidance } from '@/lib/create-product-guidance'
+import { trackCreateFlowStarted } from '@/lib/analytics'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
@@ -36,6 +37,28 @@ const MAX_MOCKUP_RETRY_ATTEMPTS = 2
 const DEFAULT_MOCKUP_RETRY_SEC = 12
 const MAX_MOCKUP_RETRY_SEC = 90
 const MOCKUP_RETRY_BUFFER_SEC = 3
+
+function normalizeReferrerPath(referrer: string): string | undefined {
+    if (!referrer) {
+        return undefined
+    }
+    try {
+        const url = new URL(referrer)
+        if (typeof window !== 'undefined' && url.origin !== window.location.origin) {
+            return 'external'
+        }
+        return url.pathname
+    } catch {
+        return undefined
+    }
+}
+
+function isHomepagePath(path: string | undefined): boolean {
+    if (!path) {
+        return false
+    }
+    return /^\/(?:en|fr|de|es)?$/.test(path)
+}
 
 function readFileAsDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -141,6 +164,21 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [added, setAdded] = useState(false)
 
     const addItem = useCart((s) => s.addItem)
+
+    useEffect(() => {
+        const referrerPath = normalizeReferrerPath(document.referrer)
+        const entrypoint = isHomepagePath(referrerPath)
+            ? 'homepage'
+            : referrerPath
+                ? 'other'
+                : 'unknown'
+
+        trackCreateFlowStarted({
+            entrypoint,
+            referrer_path: referrerPath || 'direct',
+            locale,
+        })
+    }, [locale])
 
     useEffect(() => {
         fetch('/api/products')

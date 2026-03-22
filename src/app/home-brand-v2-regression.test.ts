@@ -19,6 +19,12 @@ describe('homepage brand v2 regression', () => {
         expect(source).toContain('id="featured-products"')
         expect(source).toContain('TRUST_STACK')
         expect(source).toContain('FEATURED_PRODUCT_PREVIEWS')
+        expect(source).toContain('<HomeFunnelAnalytics />')
+        expect(source).toContain('data-analytics-page="homepage"')
+        expect(source).toContain('data-home-section="hero"')
+        expect(source).toContain('data-home-section="trust"')
+        expect(source).toContain('data-home-cta="hero_primary_create"')
+        expect(source).toContain('data-home-cta="hero_secondary_products"')
         expect(source).toContain('heroAssurances')
         expect(source).toContain('trustSubtitle')
         expect(source).toContain('midCtaTitle')
@@ -34,8 +40,10 @@ describe('homepage brand v2 regression', () => {
 
         expect(navbar).toContain("import BrandMark from '@/components/brand/BrandMark'")
         expect(navbar).toContain('<BrandMark size={18} />')
+        expect(navbar).toContain('data-home-cta="navbar_primary_create"')
 
         expect(footer).toContain("import BrandMark from '@/components/brand/BrandMark'")
         expect(footer).toContain('<BrandMark size={18} />')
+        expect(footer).toContain('data-home-cta="footer_primary_create"')
     })
 })

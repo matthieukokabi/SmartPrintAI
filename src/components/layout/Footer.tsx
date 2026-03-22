@@ -21,7 +21,15 @@ export default function Footer() {
                     <div>
                         <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Product</h4>
                         <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/create" className="hover:text-foreground transition-colors">Create Design</Link></li>
+                            <li>
+                                <Link
+                                    href="/create"
+                                    data-home-cta="footer_primary_create"
+                                    className="hover:text-foreground transition-colors"
+                                >
+                                    Create Design
+                                </Link>
+                            </li>
                             <li><Link href="/products" className="hover:text-foreground transition-colors">Products</Link></li>
                             <li><Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
                             <li><Link href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</Link></li>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import FirstOrderDiscountPopup from '@/components/marketing/FirstOrderDiscountPopup'
 import HomeThemeScope from '@/components/home/HomeThemeScope'
+import HomeFunnelAnalytics from '@/components/home/HomeFunnelAnalytics'
 import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import BrandMark from '@/components/brand/BrandMark'
 
@@ -331,8 +332,13 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
 
     return (
         <>
-            <div className="premium-home-shell bg-[#06080f] text-zinc-100">
+            <div
+                className="premium-home-shell bg-[#06080f] text-zinc-100"
+                data-analytics-page="homepage"
+                data-page-variant="premium_v2"
+            >
                 <HomeThemeScope />
+                <HomeFunnelAnalytics />
 
                 <section className="relative pt-6">
                     <div className="mx-auto flex max-w-7xl justify-center px-4 sm:px-6 lg:justify-end lg:px-8">
@@ -340,7 +346,10 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section className="relative overflow-hidden px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pb-16 lg:pt-10">
+                <section
+                    className="relative overflow-hidden px-4 pb-12 pt-6 sm:px-6 lg:px-8 lg:pb-16 lg:pt-10"
+                    data-home-section="hero"
+                >
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.28),_transparent_68%)] blur-3xl" />
                         <div className="absolute -right-20 top-20 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(14,165,233,0.24),_transparent_70%)] blur-3xl" />
@@ -360,12 +369,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <Link
                                     href="/create"
+                                    data-home-cta="hero_primary_create"
                                     className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                                 >
                                     {text.heroPrimaryCta}
                                 </Link>
                                 <Link
                                     href="/products"
+                                    data-home-cta="hero_secondary_products"
                                     className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] sm:w-auto"
                                 >
                                     {text.heroSecondaryCta}
@@ -386,11 +397,19 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
 
                             <p className="mt-4 text-sm text-zinc-400">
                                 {text.heroSupportLine}{' '}
-                                <Link href="/support" className="text-zinc-200 underline underline-offset-4 transition-colors hover:text-white">
+                                <Link
+                                    href="/support"
+                                    data-home-cta="hero_support"
+                                    className="text-zinc-200 underline underline-offset-4 transition-colors hover:text-white"
+                                >
                                     Support
                                 </Link>{' '}
                                 ·{' '}
-                                <Link href="/terms" className="text-zinc-200 underline underline-offset-4 transition-colors hover:text-white">
+                                <Link
+                                    href="/terms"
+                                    data-home-cta="hero_terms"
+                                    className="text-zinc-200 underline underline-offset-4 transition-colors hover:text-white"
+                                >
                                     Terms
                                 </Link>
                             </p>
@@ -433,7 +452,10 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section className="border-y border-white/10 bg-[#070b16]/80 px-4 py-5 sm:px-6 lg:px-8">
+                <section
+                    className="border-y border-white/10 bg-[#070b16]/80 px-4 py-5 sm:px-6 lg:px-8"
+                    data-home-section="trust"
+                >
                     <div className="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                         <div>
                             <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.trustTitle}</p>
@@ -452,7 +474,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section id="why-smartprintai" className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+                <section id="why-smartprintai" className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16" data-home-section="why_choose_us">
                     <div className="mx-auto max-w-7xl rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 sm:p-8 lg:p-10">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.whyTitle}</h2>
                         <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base">{text.whyIntro}</p>
@@ -467,7 +489,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section id="how-it-works" className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+                <section id="how-it-works" className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16" data-home-section="how_it_works">
                     <div className="mx-auto max-w-7xl">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.howItWorksTitle}</h2>
                         <p className="mt-3 max-w-2xl text-zinc-300">{text.howItWorksSubtitle}</p>
@@ -485,12 +507,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                             <Link
                                 href="/create"
+                                data-home-cta="how_it_works_primary_create"
                                 className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.midCtaPrimary}
                             </Link>
                             <Link
                                 href="/support"
+                                data-home-cta="how_it_works_secondary_support"
                                 className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] sm:w-auto"
                             >
                                 {text.midCtaSecondary}
@@ -499,7 +523,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section id="featured-products" className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+                <section id="featured-products" className="px-4 py-8 sm:px-6 lg:px-8 lg:py-10" data-home-section="featured_products">
                     <div className="mx-auto max-w-7xl">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.featuredTitle}</h2>
                         <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base">{text.featuredSubtitle}</p>
@@ -531,12 +555,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/create"
+                                data-home-cta="mid_band_primary_create"
                                 className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(14,165,233,0.75)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.midCtaPrimary}
                             </Link>
                             <Link
                                 href="/products"
+                                data-home-cta="mid_band_secondary_products"
                                 className="inline-flex w-full items-center justify-center rounded-xl border border-white/20 bg-white/[0.03] px-7 py-3 text-sm font-semibold text-zinc-100 transition-colors hover:bg-white/[0.09] sm:w-auto"
                             >
                                 {text.heroSecondaryCta}
@@ -545,7 +571,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
-                <section className="px-4 pb-8 sm:px-6 lg:px-8 lg:pb-10">
+                <section className="px-4 pb-8 sm:px-6 lg:px-8 lg:pb-10" data-home-section="faq">
                     <div className="mx-auto max-w-7xl rounded-3xl border border-white/10 bg-[#0b1222] p-5 sm:p-8 lg:p-10">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.faqTitle}</h2>
                         <div className="mt-6 space-y-3">
@@ -566,12 +592,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/create"
+                                data-home-cta="final_primary_create"
                                 className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(14,165,233,0.75)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.heroPrimaryCta}
                             </Link>
                             <Link
                                 href="/terms"
+                                data-home-cta="final_secondary_terms"
                                 className="inline-flex w-full items-center justify-center rounded-xl border border-white/20 bg-white/[0.03] px-7 py-3 text-sm font-semibold text-zinc-100 transition-colors hover:bg-white/[0.09] sm:w-auto"
                             >
                                 {text.finalCtaSecondary}
