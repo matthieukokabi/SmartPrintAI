@@ -21,7 +21,7 @@ describe('trackEvent', () => {
       location: { pathname: '/', search: '' },
     } as unknown as Window
 
-    expect(trackEvent('homepage_viewed', { page_variant: 'premium_v2' })).toBe(false)
+    expect(trackEvent('homepage_viewed', { page_variant: 'variant_a' })).toBe(false)
     expect(sendBeacon).toHaveBeenCalledTimes(1)
 
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
@@ -33,12 +33,12 @@ describe('trackEvent', () => {
     ;(globalThis as unknown as { window?: unknown }).window = { gtag } as unknown as Window
 
     const ok = trackEvent('homepage_viewed', {
-      page_variant: 'premium_v2',
+      page_variant: 'variant_a',
       locale: undefined,
     })
 
     expect(ok).toBe(true)
-    expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', { page_variant: 'premium_v2' })
+    expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', { page_variant: 'variant_a' })
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
   })
 })
@@ -58,19 +58,19 @@ describe('homepage analytics helpers', () => {
     const originalWindow = (globalThis as unknown as { window?: unknown }).window
     ;(globalThis as unknown as { window?: unknown }).window = { gtag } as unknown as Window
 
-    trackHomepageViewed({ page_variant: 'premium_v2', locale: 'en' })
+    trackHomepageViewed({ page_variant: 'variant_a', locale: 'en' })
     trackHomepageCtaClicked({ cta_location: 'hero_primary_create', destination: '/create' })
-    trackHomepageSectionViewed({ section_name: 'hero', page_variant: 'premium_v2' })
-    trackHomepageScrollDepthReached({ scroll_depth_percent: 50, page_variant: 'premium_v2' })
+    trackHomepageSectionViewed({ section_name: 'hero', page_variant: 'variant_a' })
+    trackHomepageScrollDepthReached({ scroll_depth_percent: 50, page_variant: 'variant_a' })
     trackHomepageToCreateClicked({ cta_location: 'hero_primary_create', destination: '/create' })
-    trackCreateFlowStarted({ entrypoint: 'homepage', referrer_path: '/', locale: 'en' })
+    trackCreateFlowStarted({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
 
-    expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', expect.objectContaining({ page_variant: 'premium_v2' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', expect.objectContaining({ page_variant: 'variant_a' }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_cta_clicked', expect.objectContaining({ cta_location: 'hero_primary_create' }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_section_viewed', expect.objectContaining({ section_name: 'hero' }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_scroll_depth_reached', expect.objectContaining({ scroll_depth_percent: 50 }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_to_create_clicked', expect.objectContaining({ destination: '/create' }))
-    expect(gtag).toHaveBeenCalledWith('event', 'create_flow_started', expect.objectContaining({ entrypoint: 'homepage' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'create_flow_started', expect.objectContaining({ entrypoint: 'homepage', page_variant: 'variant_a' }))
 
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
   })

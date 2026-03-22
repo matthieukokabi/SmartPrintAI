@@ -17,6 +17,7 @@ import { ShoppingCart, Check } from 'lucide-react'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { getCreateProductPromptGuidance } from '@/lib/create-product-guidance'
 import { trackCreateFlowStarted } from '@/lib/analytics'
+import { HOMEPAGE_HERO_VARIANT_COOKIE, normalizeHomepageHeroVariant } from '@/lib/homepage-experiment'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
@@ -58,6 +59,28 @@ function isHomepagePath(path: string | undefined): boolean {
         return false
     }
     return /^\/(?:en|fr|de|es)?$/.test(path)
+}
+
+function readHomepageVariantFromDocumentCookie(): string | undefined {
+    const rawCookieValue = document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${HOMEPAGE_HERO_VARIANT_COOKIE}=`))
+        ?.split('=')
+        .slice(1)
+        .join('=')
+
+    let cookieValue: string | null = null
+    if (rawCookieValue) {
+        try {
+            cookieValue = decodeURIComponent(rawCookieValue)
+        } catch {
+            cookieValue = rawCookieValue
+        }
+    }
+
+    const variant = normalizeHomepageHeroVariant(cookieValue)
+    return variant || undefined
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -172,11 +195,13 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             : referrerPath
                 ? 'other'
                 : 'unknown'
+        const homepageVariant = readHomepageVariantFromDocumentCookie()
 
         trackCreateFlowStarted({
             entrypoint,
             referrer_path: referrerPath || 'direct',
             locale,
+            page_variant: homepageVariant,
         })
     }, [locale])
 

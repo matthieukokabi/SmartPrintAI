@@ -75,7 +75,7 @@ describe('/api/analytics/events POST', () => {
         eventName: 'homepage_cta_clicked',
         params: { cta_location: 'hero_primary_create', destination: '/create' },
         path: '/',
-        pageVariant: 'premium_v2',
+        pageVariant: 'variant_a',
         locale: 'en',
       }),
       { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)' }
@@ -89,7 +89,7 @@ describe('/api/analytics/events POST', () => {
       expect.objectContaining({
         eventName: 'homepage_cta_clicked',
         path: '/',
-        pageVariant: 'premium_v2',
+        pageVariant: 'variant_a',
         locale: 'en',
       })
     )

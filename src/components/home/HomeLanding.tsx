@@ -1,10 +1,17 @@
 import Link from 'next/link'
+import { cookies, headers } from 'next/headers'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import FirstOrderDiscountPopup from '@/components/marketing/FirstOrderDiscountPopup'
 import HomeThemeScope from '@/components/home/HomeThemeScope'
 import HomeFunnelAnalytics from '@/components/home/HomeFunnelAnalytics'
 import type { LocaleCopy, SupportedLocale } from '@/lib/i18n'
 import BrandMark from '@/components/brand/BrandMark'
+import {
+    HOMEPAGE_HERO_VARIANT_COOKIE,
+    HOMEPAGE_HERO_VARIANT_HEADER,
+    type HomepageHeroVariant,
+    normalizeHomepageHeroVariant,
+} from '@/lib/homepage-experiment'
 
 interface HomeLandingProps {
     locale: SupportedLocale
@@ -14,11 +21,16 @@ interface HomeLandingProps {
 type LandingLocaleCopy = {
     heroLabel: string
     heroTitle: string
+    heroTitleVariantB: string
     heroSubtitle: string
+    heroSubtitleVariantB: string
     heroPrimaryCta: string
+    heroPrimaryCtaVariantB: string
     heroSecondaryCta: string
     heroAssurances: string[]
+    heroAssurancesVariantB: string[]
     heroSupportLine: string
+    heroSupportLineVariantB: string
     trustTitle: string
     trustSubtitle: string
     whyTitle: string
@@ -45,12 +57,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
     en: {
         heroLabel: 'Premium Prompt-to-Product Engine',
         heroTitle: 'From one prompt to a product customers can buy today.',
+        heroTitleVariantB: 'Go from idea to checkout-ready product in minutes.',
         heroSubtitle:
             'Generate print-ready artwork, approve clean mockups, and open checkout in minutes without design software or production guesswork.',
+        heroSubtitleVariantB:
+            'Describe one concept and SmartPrintAI gives you a print-ready design, approved mockup, and live product page your customer can buy right away.',
         heroPrimaryCta: 'Create My Product',
+        heroPrimaryCtaVariantB: 'Launch My Product',
         heroSecondaryCta: 'View Product Catalog',
         heroAssurances: ['First mockup in under a minute', 'Print-ready output with transparency control', 'Secure checkout + tracked fulfillment'],
+        heroAssurancesVariantB: ['No design software needed', 'Preview + checkout flow in one place', 'Fulfillment-ready output'],
         heroSupportLine: 'Need help launching your first product?',
+        heroSupportLineVariantB: 'Need a clean first launch?',
         trustTitle: 'Operational trust, built into the buying path',
         trustSubtitle: 'Payments, fulfillment, support, and analytics are integrated so creators can focus on selling, not patching ops.',
         whyTitle: 'Why creators choose SmartPrintAI over generic POD tools',
@@ -114,12 +132,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
     fr: {
         heroLabel: 'Moteur premium du prompt au produit',
         heroTitle: 'D’un seul prompt à un produit prêt à être acheté aujourd’hui.',
+        heroTitleVariantB: 'Passez de l’idée au produit prêt au checkout en quelques minutes.',
         heroSubtitle:
             'Générez un visuel prêt à imprimer, validez un mockup propre, puis ouvrez le checkout en quelques minutes sans logiciel design.',
+        heroSubtitleVariantB:
+            'Décrivez un concept et SmartPrintAI vous livre un design imprimable, un mockup validé et une page produit achetable immédiatement.',
         heroPrimaryCta: 'Créer mon produit',
+        heroPrimaryCtaVariantB: 'Lancer mon produit',
         heroSecondaryCta: 'Voir le catalogue',
         heroAssurances: ['Premier mockup en moins d’une minute', 'Sortie imprimable avec transparence contrôlée', 'Checkout sécurisé + fulfillment suivi'],
+        heroAssurancesVariantB: ['Aucun logiciel design requis', 'Preview + checkout dans le même flux', 'Sortie prête pour fulfillment'],
         heroSupportLine: 'Besoin d’aide pour lancer votre premier produit ?',
+        heroSupportLineVariantB: 'Besoin d’un premier lancement propre ?',
         trustTitle: 'Confiance opérationnelle intégrée au parcours d’achat',
         trustSubtitle: 'Paiement, fulfillment, support et analytics sont alignés pour vendre sans friction.',
         whyTitle: 'Pourquoi choisir SmartPrintAI plutôt qu’un POD générique',
@@ -184,12 +208,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
     de: {
         heroLabel: 'Premium Prompt-to-Product Engine',
         heroTitle: 'Aus einem Prompt wird heute ein kaufbares Premium-Produkt.',
+        heroTitleVariantB: 'Von der Idee zum checkout-fertigen Produkt in wenigen Minuten.',
         heroSubtitle:
             'Erzeuge druckfertige Motive, prüfe saubere Mockups und öffne den Checkout in Minuten ohne Design-Tool.',
+        heroSubtitleVariantB:
+            'Beschreibe ein Konzept und SmartPrintAI liefert dir druckfertiges Artwork, sauberes Mockup und eine sofort kaufbare Produktseite.',
         heroPrimaryCta: 'Mein Produkt erstellen',
+        heroPrimaryCtaVariantB: 'Mein Produkt launchen',
         heroSecondaryCta: 'Produktkatalog ansehen',
         heroAssurances: ['Erster Mockup in unter einer Minute', 'Druckfertiger Output mit Transparenzkontrolle', 'Sicherer Checkout + verfolgtes Fulfillment'],
+        heroAssurancesVariantB: ['Keine Design-Software nötig', 'Preview + Checkout in einem Flow', 'Fulfillment-fertiger Output'],
         heroSupportLine: 'Hilfe beim ersten Produkt-Launch?',
+        heroSupportLineVariantB: 'Hilfe für einen sauberen ersten Launch?',
         trustTitle: 'Operative Sicherheit direkt im Kaufprozess',
         trustSubtitle: 'Payment, Fulfillment, Support und Analytics greifen sauber ineinander.',
         whyTitle: 'Warum SmartPrintAI statt generischer POD-Tools',
@@ -254,12 +284,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
     es: {
         heroLabel: 'Motor premium de prompt a producto',
         heroTitle: 'De un solo prompt a un producto listo para vender hoy.',
+        heroTitleVariantB: 'De idea a producto listo para checkout en minutos.',
         heroSubtitle:
             'Genera arte listo para impresión, valida mockups limpios y abre checkout en minutos sin software de diseño.',
+        heroSubtitleVariantB:
+            'Describe un concepto y SmartPrintAI entrega diseño imprimible, mockup limpio y página de producto lista para comprar al instante.',
         heroPrimaryCta: 'Crear mi producto',
+        heroPrimaryCtaVariantB: 'Lanzar mi producto',
         heroSecondaryCta: 'Ver catálogo de productos',
         heroAssurances: ['Primer mockup en menos de un minuto', 'Salida imprimible con control de transparencia', 'Checkout seguro + fulfillment con seguimiento'],
+        heroAssurancesVariantB: ['Sin software de diseño', 'Preview + checkout en un solo flujo', 'Salida lista para fulfillment'],
         heroSupportLine: '¿Necesitas ayuda para lanzar tu primer producto?',
+        heroSupportLineVariantB: '¿Necesitas un primer lanzamiento limpio?',
         trustTitle: 'Confianza operativa dentro del recorrido de compra',
         trustSubtitle: 'Pago, fulfillment, soporte y analytics unidos para vender sin fricción.',
         whyTitle: 'Por qué SmartPrintAI supera a un POD genérico',
@@ -332,15 +368,28 @@ const FEATURED_PRODUCT_PREVIEWS = [
     { name: 'Canvas Wall Piece', price: '$74', provider: 'Gooten', fit: 'Best for premium home decor' },
 ]
 
+function resolveHomepageHeroVariant(): HomepageHeroVariant {
+    const headerVariant = normalizeHomepageHeroVariant(headers().get(HOMEPAGE_HERO_VARIANT_HEADER))
+    if (headerVariant) return headerVariant
+    return normalizeHomepageHeroVariant(cookies().get(HOMEPAGE_HERO_VARIANT_COOKIE)?.value) || 'variant_a'
+}
+
 export default function HomeLanding({ locale, copy }: HomeLandingProps) {
     const text = LANDING_COPY[locale]
+    const heroVariant = resolveHomepageHeroVariant()
+    const heroPageVariant = heroVariant
+    const heroTitle = heroVariant === 'variant_b' ? text.heroTitleVariantB : text.heroTitle
+    const heroSubtitle = heroVariant === 'variant_b' ? text.heroSubtitleVariantB : text.heroSubtitle
+    const heroPrimaryCta = heroVariant === 'variant_b' ? text.heroPrimaryCtaVariantB : text.heroPrimaryCta
+    const heroAssurances = heroVariant === 'variant_b' ? text.heroAssurancesVariantB : text.heroAssurances
+    const heroSupportLine = heroVariant === 'variant_b' ? text.heroSupportLineVariantB : text.heroSupportLine
 
     return (
         <>
             <div
                 className="premium-home-shell bg-[#06080f] text-zinc-100"
                 data-analytics-page="homepage"
-                data-page-variant="premium_v2"
+                data-page-variant={heroPageVariant}
             >
                 <HomeThemeScope />
                 <HomeFunnelAnalytics />
@@ -367,21 +416,23 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                 {text.heroLabel}
                             </div>
                             <h1 className="mt-5 max-w-3xl text-[2rem] font-semibold leading-[1.07] tracking-[-0.04em] text-white sm:text-5xl lg:text-6xl">
-                                {text.heroTitle}
+                                {heroTitle}
                             </h1>
-                            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">{text.heroSubtitle}</p>
+                            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">{heroSubtitle}</p>
 
                             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                 <Link
                                     href="/create"
                                     data-home-cta="hero_primary_create"
+                                    data-home-cta-label={heroPrimaryCta}
                                     className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                                 >
-                                    {text.heroPrimaryCta}
+                                    {heroPrimaryCta}
                                 </Link>
                                 <Link
                                     href="/products"
                                     data-home-cta="hero_secondary_products"
+                                    data-home-cta-label={text.heroSecondaryCta}
                                     className="inline-flex w-full items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] px-6 py-3 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/[0.08] sm:w-auto"
                                 >
                                     {text.heroSecondaryCta}
@@ -389,7 +440,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             </div>
 
                             <div className="mt-4 flex flex-wrap gap-2">
-                                {text.heroAssurances.map((assurance) => (
+                                {heroAssurances.map((assurance) => (
                                     <span
                                         key={assurance}
                                         className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-200"
@@ -401,7 +452,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             </div>
 
                             <p className="mt-4 text-sm text-zinc-400">
-                                {text.heroSupportLine}{' '}
+                                {heroSupportLine}{' '}
                                 <Link
                                     href="/support"
                                     data-home-cta="hero_support"

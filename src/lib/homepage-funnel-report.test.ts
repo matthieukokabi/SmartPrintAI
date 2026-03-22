@@ -21,7 +21,7 @@ function buildRecord(
     eventName: HOMEPAGE_EVENT_NAMES[eventName],
     params: {},
     path: '/',
-    pageVariant: 'premium_v2',
+    pageVariant: 'variant_a',
     locale: 'en',
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X)',
     deviceType: 'desktop',
@@ -94,5 +94,40 @@ describe('homepage funnel report helpers', () => {
     expect(report.totals.homepageViews).toBe(2)
     expect(report.totals.homepageToCreateClicks).toBe(1)
     expect(report.totals.createFlowStarts).toBe(1)
+  })
+
+  it('segments per page variant with CTR and drop-off comparison', () => {
+    const records = [
+      ...Array.from({ length: 10 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 4 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 2 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 10 }, () => buildRecord('viewed', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+      ...Array.from({ length: 3 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_b', params: { page_variant: 'variant_b', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 1 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    const variantA = report.pageVariantBreakdown.find((row) => row.pageVariant === 'variant_a')
+    const variantB = report.pageVariantBreakdown.find((row) => row.pageVariant === 'variant_b')
+
+    expect(variantA).toEqual(expect.objectContaining({
+      homepageViews: 10,
+      toCreateClicks: 4,
+      createStarts: 2,
+      homepageToCreateCtr: 40,
+      createStartRate: 20,
+      clickToCreateStartRate: 50,
+      biggestDropoffStep: 'before_cta_click',
+    }))
+
+    expect(variantB).toEqual(expect.objectContaining({
+      homepageViews: 10,
+      toCreateClicks: 3,
+      createStarts: 1,
+      homepageToCreateCtr: 30,
+      createStartRate: 10,
+      clickToCreateStartRate: 33.33,
+      biggestDropoffStep: 'before_cta_click',
+    }))
   })
 })

@@ -126,6 +126,7 @@ export function trackCreateFlowStarted(params: {
     entrypoint?: 'homepage' | 'other' | 'unknown'
     referrer_path?: string
     locale?: string
+    page_variant?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.createFlowStarted, params)
 }

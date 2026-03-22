@@ -52,7 +52,9 @@ async function main() {
 
     printSection('Page Variant Breakdown')
     for (const row of report.pageVariantBreakdown) {
-        console.log(`${row.pageVariant}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, ctr=${formatRate(row.homepageToCreateCtr)}`)
+        console.log(
+            `${row.pageVariant}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}, clickToCreateStartRate=${formatRate(row.clickToCreateStartRate)}, biggestDropoff=${row.biggestDropoffStep}`
+        )
     }
 
     const artifactDir = path.join(process.cwd(), 'docs', 'reports', 'artifacts', 'homepage-funnel')

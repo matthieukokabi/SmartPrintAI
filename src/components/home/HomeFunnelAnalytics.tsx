@@ -30,7 +30,7 @@ function isCreateDestination(destination: string | undefined): boolean {
 
 function getPageVariant(): string {
     const pageRoot = document.querySelector<HTMLElement>('[data-analytics-page="homepage"]')
-    return pageRoot?.dataset.pageVariant || 'premium_v2'
+    return pageRoot?.dataset.pageVariant || 'variant_a'
 }
 
 export default function HomeFunnelAnalytics() {

@@ -40,7 +40,15 @@ type PageVariantBreakdownRow = {
     pageVariant: string
     homepageViews: number
     toCreateClicks: number
+    createStarts: number
     homepageToCreateCtr: number
+    createStartRate: number
+    clickToCreateStartRate: number
+    beforeCtaClickCount: number
+    beforeCtaClickRate: number
+    afterCtaClickCount: number
+    afterCtaClickRate: number
+    biggestDropoffStep: 'before_cta_click' | 'after_cta_click_before_create_start' | 'none'
 }
 
 export type HomepageFunnelReport = {
@@ -267,12 +275,12 @@ function aggregateByDevice(records: HomepageFunnelEventRecord[]): DeviceBreakdow
 }
 
 function aggregateByPageVariant(records: HomepageFunnelEventRecord[]): PageVariantBreakdownRow[] {
-    const buckets = new Map<string, { viewed: number; toCreate: number }>()
+    const buckets = new Map<string, { viewed: number; toCreate: number; createStarted: number }>()
 
     const getBucket = (pageVariant: string) => {
         const existing = buckets.get(pageVariant)
         if (existing) return existing
-        const fresh = { viewed: 0, toCreate: 0 }
+        const fresh = { viewed: 0, toCreate: 0, createStarted: 0 }
         buckets.set(pageVariant, fresh)
         return fresh
     }
@@ -284,16 +292,38 @@ function aggregateByPageVariant(records: HomepageFunnelEventRecord[]): PageVaria
             bucket.viewed += 1
         } else if (record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked) {
             bucket.toCreate += 1
+        } else if (record.eventName === HOMEPAGE_EVENT_NAMES.createFlowStarted) {
+            bucket.createStarted += 1
         }
     }
 
     return Array.from(buckets.entries())
-        .map(([pageVariant, bucket]) => ({
-            pageVariant,
-            homepageViews: bucket.viewed,
-            toCreateClicks: bucket.toCreate,
-            homepageToCreateCtr: toRate(bucket.toCreate, bucket.viewed),
-        }))
+        .map(([pageVariant, bucket]) => {
+            const beforeCtaClickCount = Math.max(0, bucket.viewed - bucket.toCreate)
+            const afterCtaClickCount = Math.max(0, bucket.toCreate - bucket.createStarted)
+
+            let biggestDropoffStep: PageVariantBreakdownRow['biggestDropoffStep'] = 'none'
+            if (beforeCtaClickCount > 0 || afterCtaClickCount > 0) {
+                biggestDropoffStep = beforeCtaClickCount >= afterCtaClickCount
+                    ? 'before_cta_click'
+                    : 'after_cta_click_before_create_start'
+            }
+
+            return {
+                pageVariant,
+                homepageViews: bucket.viewed,
+                toCreateClicks: bucket.toCreate,
+                createStarts: bucket.createStarted,
+                homepageToCreateCtr: toRate(bucket.toCreate, bucket.viewed),
+                createStartRate: toRate(bucket.createStarted, bucket.viewed),
+                clickToCreateStartRate: toRate(bucket.createStarted, bucket.toCreate),
+                beforeCtaClickCount,
+                beforeCtaClickRate: toRate(beforeCtaClickCount, bucket.viewed),
+                afterCtaClickCount,
+                afterCtaClickRate: toRate(afterCtaClickCount, bucket.toCreate),
+                biggestDropoffStep,
+            }
+        })
         .sort((a, b) => b.homepageViews - a.homepageViews)
 }
 

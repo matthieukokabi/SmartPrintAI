@@ -4,6 +4,14 @@ Date: 2026-03-22
 ## Scope
 This instrumentation measures homepage conversion behavior and progression into `/create` without invasive tracking.
 
+## Hero Experiment Assignment
+Homepage hero copy is assigned in middleware for deterministic A/B testing:
+
+1. Middleware (`/middleware.ts`) runs on `/, /en, /fr, /de, /es`.
+2. It reads/creates a stable visitor cookie (`spai_visitor_id`).
+3. It deterministically assigns a hero variant from that ID (`variant_a` or `variant_b`) and persists it in `spai_home_hero_variant`.
+4. The assigned variant is passed to SSR via request header `x-spai-home-hero-variant` so the rendered hero does not flicker on hydration.
+
 ## Collection Pipeline
 1. Client event helpers (`trackHomepage*`) emit GA4 events when `gtag` is available.
 2. Homepage funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.
@@ -37,7 +45,7 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 
 6. `create_flow_started`
 - Fires: when `/create` client loads.
-- Properties: `entrypoint` (`homepage` | `other` | `unknown`), `referrer_path`, `locale`.
+- Properties: `entrypoint` (`homepage` | `other` | `unknown`), `referrer_path`, `locale`, `page_variant`.
 
 ## Where Events Fire
 1. Homepage tracker:
@@ -73,3 +81,4 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 ## Notes
 - Funnel reports are generated from the real event log only (`source = event_log`).
 - If no events are recorded yet, the report returns zeroed metrics with `hasData = false` and `recordCount = 0`.
+- Report output includes per-variant breakdown (`variant_a` vs `variant_b`) for CTR, create-start rate, click->create-start rate, and drop-off step comparison.
