@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  PRODUCT_PROOF_EVENT_NAMES,
   HOMEPAGE_EVENT_NAMES,
 } from '@/lib/analytics'
 import {
@@ -18,8 +19,15 @@ function buildRecord(
   eventName: keyof typeof HOMEPAGE_EVENT_NAMES,
   overrides: Partial<HomepageFunnelEventRecord> = {}
 ): HomepageFunnelEventRecord {
+  return buildFunnelRecord(HOMEPAGE_EVENT_NAMES[eventName], overrides)
+}
+
+function buildFunnelRecord(
+  eventName: HomepageFunnelEventRecord['eventName'],
+  overrides: Partial<HomepageFunnelEventRecord> = {}
+): HomepageFunnelEventRecord {
   return {
-    eventName: HOMEPAGE_EVENT_NAMES[eventName],
+    eventName,
     params: {},
     path: '/',
     pageVariant: 'variant_a',
@@ -225,5 +233,84 @@ describe('homepage funnel report helpers', () => {
     expect(report.heroExperiment.readiness.blockers).toContain('Need 86 more homepage views in experiment.')
     expect(report.heroExperiment.readiness.blockers).toContain('Need 41 more views in variant_b.')
     expect(report.heroExperiment.readiness.blockers).toContain('Need 6 more to-create clicks in variant_b.')
+  })
+
+  it('segments product-proof exposed and non-exposed users with delta calculations', () => {
+    const records: HomepageFunnelEventRecord[] = []
+
+    for (let index = 1; index <= 25; index += 1) {
+      const visitorId = `exp_${index}`
+      records.push(
+        buildRecord('viewed', { params: { visitor_id: visitorId } }),
+        buildFunnelRecord(PRODUCT_PROOF_EVENT_NAMES.sectionViewed, { params: { visitor_id: visitorId } }),
+      )
+      if (index <= 15) {
+        records.push(
+          buildRecord('toCreateClicked', { params: { visitor_id: visitorId, cta_location: 'hero_primary_create' } }),
+        )
+      }
+      if (index <= 10) {
+        records.push(
+          buildRecord('createFlowStarted', { params: { visitor_id: visitorId, entrypoint: 'homepage' }, path: '/create' }),
+        )
+      }
+    }
+
+    for (let index = 1; index <= 25; index += 1) {
+      const visitorId = `not_${index}`
+      records.push(buildRecord('viewed', { params: { visitor_id: visitorId } }))
+      if (index <= 8) {
+        records.push(
+          buildRecord('toCreateClicked', { params: { visitor_id: visitorId, cta_location: 'hero_primary_create' } }),
+        )
+      }
+      if (index <= 4) {
+        records.push(
+          buildRecord('createFlowStarted', { params: { visitor_id: visitorId, entrypoint: 'homepage' }, path: '/create' }),
+        )
+      }
+    }
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.productProofExposure.linkage.trackedUsers).toBe(50)
+    expect(report.productProofExposure.groups.productProofExposed.totalUsers).toBe(25)
+    expect(report.productProofExposure.groups.productProofNotExposed.totalUsers).toBe(25)
+    expect(report.productProofExposure.groups.productProofExposed.homepageToCreateCtr).toBe(60)
+    expect(report.productProofExposure.groups.productProofNotExposed.homepageToCreateCtr).toBe(32)
+    expect(report.productProofExposure.groups.productProofExposed.createStartRate).toBe(40)
+    expect(report.productProofExposure.groups.productProofNotExposed.createStartRate).toBe(16)
+    expect(report.productProofExposure.delta.homepageToCreateCtrPctPoints).toBe(28)
+    expect(report.productProofExposure.delta.createStartRatePctPoints).toBe(24)
+    expect(report.productProofExposure.interpretation.status).toBe('positive_signal')
+  })
+
+  it('marks product-proof analysis as insufficient when one cohort is missing', () => {
+    const records: HomepageFunnelEventRecord[] = []
+    for (let index = 1; index <= 25; index += 1) {
+      const visitorId = `only_exp_${index}`
+      records.push(
+        buildRecord('viewed', { params: { visitor_id: visitorId } }),
+        buildFunnelRecord(PRODUCT_PROOF_EVENT_NAMES.sectionViewed, { params: { visitor_id: visitorId } }),
+      )
+    }
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.productProofExposure.groups.productProofExposed.totalUsers).toBe(25)
+    expect(report.productProofExposure.groups.productProofNotExposed.totalUsers).toBe(0)
+    expect(report.productProofExposure.interpretation.status).toBe('insufficient_data')
+  })
+
+  it('tracks missing visitor_id linkage for product-proof exposure segmentation', () => {
+    const records: HomepageFunnelEventRecord[] = [
+      buildRecord('viewed'),
+      buildFunnelRecord(PRODUCT_PROOF_EVENT_NAMES.sectionViewed),
+      buildRecord('toCreateClicked', { params: { cta_location: 'hero_primary_create' } }),
+      buildRecord('createFlowStarted', { params: { entrypoint: 'homepage' }, path: '/create' }),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.productProofExposure.linkage.trackedUsers).toBe(0)
+    expect(report.productProofExposure.linkage.missingVisitorIdEvents).toBe(4)
+    expect(report.productProofExposure.interpretation.status).toBe('insufficient_data')
   })
 })

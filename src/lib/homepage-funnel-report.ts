@@ -57,6 +57,45 @@ type PageVariantBreakdownRow = {
     biggestDropoffStep: 'before_cta_click' | 'after_cta_click_before_create_start' | 'none'
 }
 
+type ProductProofExposureGroupKey = 'product_proof_exposed' | 'product_proof_not_exposed'
+type ProductProofExposureInterpretationStatus = 'positive_signal' | 'weak_signal' | 'potential_issue' | 'insufficient_data'
+
+type ProductProofExposureGroup = {
+    group: ProductProofExposureGroupKey
+    totalUsers: number
+    usersWithCtaClick: number
+    usersWithCreateStart: number
+    ctaClicks: number
+    createStarts: number
+    homepageToCreateCtr: number
+    createStartRate: number
+    clickToCreateStartRate: number
+}
+
+type ProductProofExposureDelta = {
+    homepageToCreateCtrPctPoints: number
+    createStartRatePctPoints: number
+    clickToCreateStartRatePctPoints: number
+}
+
+type ProductProofExposureAnalysis = {
+    linkage: {
+        trackedUsers: number
+        exposedUsers: number
+        notExposedUsers: number
+        missingVisitorIdEvents: number
+    }
+    groups: {
+        productProofExposed: ProductProofExposureGroup
+        productProofNotExposed: ProductProofExposureGroup
+    }
+    delta: ProductProofExposureDelta
+    interpretation: {
+        status: ProductProofExposureInterpretationStatus
+        summary: string
+    }
+}
+
 export type HeroExperimentStatus = 'insufficient_data' | 'ready_for_comparison' | 'winner_candidate' | 'inconclusive'
 export type HeroExperimentDecision = 'continue_running' | 'investigate_tracking' | 'ship_winner' | 'iterate_loser_dimension'
 export type HeroExperimentVariantKey = 'variant_a' | 'variant_b'
@@ -152,6 +191,7 @@ export type HomepageFunnelReport = {
     underperformingPrimaryCtaLocation: string | null
     deviceBreakdown: DeviceBreakdownRow[]
     pageVariantBreakdown: PageVariantBreakdownRow[]
+    productProofExposure: ProductProofExposureAnalysis
     heroExperiment: HeroExperimentReadout
 }
 
@@ -162,6 +202,7 @@ const FUNNEL_EVENT_NAME_SET = new Set<FunnelEventName>([
     ...Object.values(CREATE_ENTRY_EVENT_NAMES),
 ])
 const HERO_EXPERIMENT_VARIANTS: HeroExperimentVariantKey[] = ['variant_a', 'variant_b']
+const PRODUCT_PROOF_MIN_USERS_PER_GROUP = 20
 const DEFAULT_HERO_EXPERIMENT_THRESHOLDS: HeroExperimentThresholds = {
     minTotalHomepageViews: 200,
     minHomepageViewsPerVariant: 75,
@@ -176,6 +217,13 @@ const PRIMARY_CTA_LOCATIONS = [
     'mid_band_primary_create',
     'final_primary_create',
 ]
+
+const PRODUCT_PROOF_RELEVANT_EVENT_NAMES = new Set<FunnelEventName>([
+    HOMEPAGE_EVENT_NAMES.viewed,
+    HOMEPAGE_EVENT_NAMES.toCreateClicked,
+    HOMEPAGE_EVENT_NAMES.createFlowStarted,
+    PRODUCT_PROOF_EVENT_NAMES.sectionViewed,
+])
 
 function toEventLogPath(inputPath?: string): string {
     const defaultPath = path.join(process.cwd(), 'data', 'analytics', 'homepage-events.jsonl')
@@ -422,6 +470,197 @@ function aggregateByPageVariant(records: HomepageFunnelEventRecord[]): PageVaria
             }
         })
         .sort((a, b) => b.homepageViews - a.homepageViews)
+}
+
+function toVisitorId(record: HomepageFunnelEventRecord): string | null {
+    const value = toNonEmptyString(record.params.visitor_id)
+    return value ? value.slice(0, 128) : null
+}
+
+function isHomepageCreateStart(record: HomepageFunnelEventRecord): boolean {
+    if (record.eventName !== HOMEPAGE_EVENT_NAMES.createFlowStarted) {
+        return false
+    }
+
+    const entrypoint = toNonEmptyString(record.params.entrypoint)
+    if (entrypoint === 'homepage') {
+        return true
+    }
+
+    const referrerPath = toNonEmptyString(record.params.referrer_path)
+    if (!referrerPath) {
+        return false
+    }
+
+    return /^\/(?:en|fr|de|es)?$/.test(referrerPath)
+}
+
+function toExposureGroup(
+    group: ProductProofExposureGroupKey,
+    bucket: {
+        totalUsers: number
+        usersWithCtaClick: number
+        usersWithCreateStart: number
+        usersWithClickAndCreateStart: number
+        ctaClicks: number
+        createStarts: number
+    }
+): ProductProofExposureGroup {
+    return {
+        group,
+        totalUsers: bucket.totalUsers,
+        usersWithCtaClick: bucket.usersWithCtaClick,
+        usersWithCreateStart: bucket.usersWithCreateStart,
+        ctaClicks: bucket.ctaClicks,
+        createStarts: bucket.createStarts,
+        homepageToCreateCtr: toRate(bucket.usersWithCtaClick, bucket.totalUsers),
+        createStartRate: toRate(bucket.usersWithCreateStart, bucket.totalUsers),
+        clickToCreateStartRate: toRate(bucket.usersWithClickAndCreateStart, bucket.usersWithCtaClick),
+    }
+}
+
+function buildProductProofExposureAnalysis(records: HomepageFunnelEventRecord[]): ProductProofExposureAnalysis {
+    const byVisitor = new Map<string, {
+        homepageViews: number
+        productProofViewed: boolean
+        toCreateClicks: number
+        createStarts: number
+    }>()
+    let missingVisitorIdEvents = 0
+
+    const getVisitorBucket = (visitorId: string) => {
+        const existing = byVisitor.get(visitorId)
+        if (existing) {
+            return existing
+        }
+        const fresh = {
+            homepageViews: 0,
+            productProofViewed: false,
+            toCreateClicks: 0,
+            createStarts: 0,
+        }
+        byVisitor.set(visitorId, fresh)
+        return fresh
+    }
+
+    for (const record of records) {
+        if (!PRODUCT_PROOF_RELEVANT_EVENT_NAMES.has(record.eventName)) {
+            continue
+        }
+
+        const visitorId = toVisitorId(record)
+        if (!visitorId) {
+            missingVisitorIdEvents += 1
+            continue
+        }
+
+        const bucket = getVisitorBucket(visitorId)
+        if (record.eventName === HOMEPAGE_EVENT_NAMES.viewed) {
+            bucket.homepageViews += 1
+            continue
+        }
+
+        if (record.eventName === PRODUCT_PROOF_EVENT_NAMES.sectionViewed) {
+            bucket.productProofViewed = true
+            continue
+        }
+
+        if (record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked) {
+            bucket.toCreateClicks += 1
+            continue
+        }
+
+        if (isHomepageCreateStart(record)) {
+            bucket.createStarts += 1
+        }
+    }
+
+    const exposedBucket = {
+        totalUsers: 0,
+        usersWithCtaClick: 0,
+        usersWithCreateStart: 0,
+        usersWithClickAndCreateStart: 0,
+        ctaClicks: 0,
+        createStarts: 0,
+    }
+    const notExposedBucket = {
+        totalUsers: 0,
+        usersWithCtaClick: 0,
+        usersWithCreateStart: 0,
+        usersWithClickAndCreateStart: 0,
+        ctaClicks: 0,
+        createStarts: 0,
+    }
+
+    let trackedUsers = 0
+
+    for (const visitorMetrics of Array.from(byVisitor.values())) {
+        if (visitorMetrics.homepageViews <= 0) {
+            continue
+        }
+        trackedUsers += 1
+
+        const target = visitorMetrics.productProofViewed ? exposedBucket : notExposedBucket
+        target.totalUsers += 1
+        target.ctaClicks += visitorMetrics.toCreateClicks
+        target.createStarts += visitorMetrics.createStarts
+
+        if (visitorMetrics.toCreateClicks > 0) {
+            target.usersWithCtaClick += 1
+        }
+        if (visitorMetrics.createStarts > 0) {
+            target.usersWithCreateStart += 1
+        }
+        if (visitorMetrics.toCreateClicks > 0 && visitorMetrics.createStarts > 0) {
+            target.usersWithClickAndCreateStart += 1
+        }
+    }
+
+    const exposed = toExposureGroup('product_proof_exposed', exposedBucket)
+    const notExposed = toExposureGroup('product_proof_not_exposed', notExposedBucket)
+    const delta: ProductProofExposureDelta = {
+        homepageToCreateCtrPctPoints: Number((exposed.homepageToCreateCtr - notExposed.homepageToCreateCtr).toFixed(2)),
+        createStartRatePctPoints: Number((exposed.createStartRate - notExposed.createStartRate).toFixed(2)),
+        clickToCreateStartRatePctPoints: Number((exposed.clickToCreateStartRate - notExposed.clickToCreateStartRate).toFixed(2)),
+    }
+
+    let interpretationStatus: ProductProofExposureInterpretationStatus
+    let summary: string
+
+    if (
+        exposed.totalUsers < PRODUCT_PROOF_MIN_USERS_PER_GROUP
+        || notExposed.totalUsers < PRODUCT_PROOF_MIN_USERS_PER_GROUP
+    ) {
+        interpretationStatus = 'insufficient_data'
+        summary = 'Exposure cohorts are still too small for a reliable product-proof impact decision.'
+    } else if (delta.homepageToCreateCtrPctPoints >= 5 && delta.createStartRatePctPoints >= 2) {
+        interpretationStatus = 'positive_signal'
+        summary = 'Product-proof exposed users are converting better across top-of-funnel and create-start metrics.'
+    } else if (delta.homepageToCreateCtrPctPoints <= -5 || delta.createStartRatePctPoints <= -2) {
+        interpretationStatus = 'potential_issue'
+        summary = 'Product-proof exposed users are underperforming; review section clarity and placement after more validation.'
+    } else {
+        interpretationStatus = 'weak_signal'
+        summary = 'Product-proof impact is currently flat; keep collecting traffic before optimizing.'
+    }
+
+    return {
+        linkage: {
+            trackedUsers,
+            exposedUsers: exposed.totalUsers,
+            notExposedUsers: notExposed.totalUsers,
+            missingVisitorIdEvents,
+        },
+        groups: {
+            productProofExposed: exposed,
+            productProofNotExposed: notExposed,
+        },
+        delta,
+        interpretation: {
+            status: interpretationStatus,
+            summary,
+        },
+    }
 }
 
 function getExperimentVariantMetrics(
@@ -700,6 +939,7 @@ export function aggregateHomepageFunnel(
 
     const ctaBreakdown = aggregateCtaBreakdown(records)
     const pageVariantBreakdown = aggregateByPageVariant(records)
+    const productProofExposure = buildProductProofExposureAnalysis(records)
     const heroExperiment = buildHeroExperimentReadout({
         pageVariantBreakdown,
         homepageViewsOverall: homepageViews,
@@ -731,6 +971,7 @@ export function aggregateHomepageFunnel(
         underperformingPrimaryCtaLocation: identifyUnderperformingPrimaryCta(ctaBreakdown),
         deviceBreakdown: aggregateByDevice(records),
         pageVariantBreakdown,
+        productProofExposure,
         heroExperiment,
     }
 }

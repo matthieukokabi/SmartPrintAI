@@ -57,6 +57,40 @@ async function main() {
         )
     }
 
+    printSection('Product Proof Exposure Analysis')
+    console.log(`Tracked users (with visitor_id): ${report.productProofExposure.linkage.trackedUsers}`)
+    console.log(`Exposed users: ${report.productProofExposure.linkage.exposedUsers}`)
+    console.log(`Not exposed users: ${report.productProofExposure.linkage.notExposedUsers}`)
+    console.log(`Relevant events missing visitor_id: ${report.productProofExposure.linkage.missingVisitorIdEvents}`)
+
+    const exposed = report.productProofExposure.groups.productProofExposed
+    const notExposed = report.productProofExposure.groups.productProofNotExposed
+
+    printSection('Product Proof Group: Exposed')
+    console.log(`Users: ${exposed.totalUsers}`)
+    console.log(`CTA clicks: ${exposed.ctaClicks}`)
+    console.log(`Create starts: ${exposed.createStarts}`)
+    console.log(`Homepage -> create CTR (user): ${formatRate(exposed.homepageToCreateCtr)}`)
+    console.log(`Create start rate (user): ${formatRate(exposed.createStartRate)}`)
+    console.log(`Click -> create-start rate (user): ${formatRate(exposed.clickToCreateStartRate)}`)
+
+    printSection('Product Proof Group: Not Exposed')
+    console.log(`Users: ${notExposed.totalUsers}`)
+    console.log(`CTA clicks: ${notExposed.ctaClicks}`)
+    console.log(`Create starts: ${notExposed.createStarts}`)
+    console.log(`Homepage -> create CTR (user): ${formatRate(notExposed.homepageToCreateCtr)}`)
+    console.log(`Create start rate (user): ${formatRate(notExposed.createStartRate)}`)
+    console.log(`Click -> create-start rate (user): ${formatRate(notExposed.clickToCreateStartRate)}`)
+
+    printSection('Product Proof Conversion Delta (Exposed - Not Exposed)')
+    console.log(`CTR delta: ${formatRate(report.productProofExposure.delta.homepageToCreateCtrPctPoints)}`)
+    console.log(`Create-start rate delta: ${formatRate(report.productProofExposure.delta.createStartRatePctPoints)}`)
+    console.log(`Click->create-start delta: ${formatRate(report.productProofExposure.delta.clickToCreateStartRatePctPoints)}`)
+
+    printSection('Product Proof Interpretation')
+    console.log(`Status: ${report.productProofExposure.interpretation.status}`)
+    console.log(`Summary: ${report.productProofExposure.interpretation.summary}`)
+
     printSection('Hero Experiment Readout')
     console.log(`Primary metric: ${report.heroExperiment.primaryMetric}`)
     console.log(`Secondary metric: ${report.heroExperiment.secondaryMetric}`)

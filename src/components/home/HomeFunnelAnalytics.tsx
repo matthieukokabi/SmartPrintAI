@@ -10,6 +10,7 @@ import {
     trackProductProofCtaClicked,
     trackProductProofSectionViewed,
 } from '@/lib/analytics'
+import { HOMEPAGE_VISITOR_ID_COOKIE, sanitizeVisitorId } from '@/lib/homepage-experiment'
 
 const SECTION_SELECTOR = '[data-home-section]'
 const CTA_SELECTOR = 'a[data-home-cta],button[data-home-cta]'
@@ -35,14 +36,36 @@ function getPageVariant(): string {
     return pageRoot?.dataset.pageVariant || 'variant_a'
 }
 
+function readVisitorIdFromDocumentCookie(): string | undefined {
+    const rawCookieValue = document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${HOMEPAGE_VISITOR_ID_COOKIE}=`))
+        ?.split('=')
+        .slice(1)
+        .join('=')
+
+    if (!rawCookieValue) {
+        return undefined
+    }
+
+    try {
+        return sanitizeVisitorId(decodeURIComponent(rawCookieValue)) || undefined
+    } catch {
+        return sanitizeVisitorId(rawCookieValue) || undefined
+    }
+}
+
 export default function HomeFunnelAnalytics() {
     useEffect(() => {
         const pageVariant = getPageVariant()
         const locale = document.documentElement.lang || undefined
+        const visitorId = readVisitorIdFromDocumentCookie()
 
         trackHomepageViewed({
             locale,
             page_variant: pageVariant,
+            visitor_id: visitorId,
         })
 
         const seenSections = new Set<string>()
@@ -66,11 +89,13 @@ export default function HomeFunnelAnalytics() {
                             trackHomepageSectionViewed({
                                 section_name: sectionName,
                                 page_variant: pageVariant,
+                                visitor_id: visitorId,
                             })
 
                             if (sectionName === 'product_proof') {
                                 trackProductProofSectionViewed({
                                     page_variant: pageVariant,
+                                    visitor_id: visitorId,
                                 })
                             }
                         }
@@ -95,6 +120,7 @@ export default function HomeFunnelAnalytics() {
                     trackHomepageScrollDepthReached({
                         scroll_depth_percent: milestone,
                         page_variant: pageVariant,
+                        visitor_id: visitorId,
                     })
                 }
             }
@@ -124,6 +150,7 @@ export default function HomeFunnelAnalytics() {
                 cta_label: ctaLabel,
                 destination,
                 page_variant: pageVariant,
+                visitor_id: visitorId,
             })
 
             if (ctaLocation.startsWith('product_proof_')) {
@@ -132,6 +159,7 @@ export default function HomeFunnelAnalytics() {
                     cta_label: ctaLabel,
                     destination,
                     page_variant: pageVariant,
+                    visitor_id: visitorId,
                 })
             }
 
@@ -141,6 +169,7 @@ export default function HomeFunnelAnalytics() {
                     cta_label: ctaLabel,
                     destination,
                     page_variant: pageVariant,
+                    visitor_id: visitorId,
                 })
             }
         }

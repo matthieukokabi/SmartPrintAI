@@ -27,7 +27,12 @@ import {
     trackCreatePromptStarted,
     trackCreateTemplateSelected,
 } from '@/lib/analytics'
-import { HOMEPAGE_HERO_VARIANT_COOKIE, normalizeHomepageHeroVariant } from '@/lib/homepage-experiment'
+import {
+    HOMEPAGE_HERO_VARIANT_COOKIE,
+    HOMEPAGE_VISITOR_ID_COOKIE,
+    normalizeHomepageHeroVariant,
+    sanitizeVisitorId,
+} from '@/lib/homepage-experiment'
 
 type CreatePageClientProps = {
     locale: SupportedLocale
@@ -110,6 +115,27 @@ function readHomepageVariantFromDocumentCookie(): string | undefined {
 
     const variant = normalizeHomepageHeroVariant(cookieValue)
     return variant || undefined
+}
+
+function readHomepageVisitorIdFromDocumentCookie(): string | undefined {
+    const rawCookieValue = document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${HOMEPAGE_VISITOR_ID_COOKIE}=`))
+        ?.split('=')
+        .slice(1)
+        .join('=')
+
+    let cookieValue: string | null = null
+    if (rawCookieValue) {
+        try {
+            cookieValue = decodeURIComponent(rawCookieValue)
+        } catch {
+            cookieValue = rawCookieValue
+        }
+    }
+
+    return sanitizeVisitorId(cookieValue) || undefined
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -220,10 +246,12 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
         entrypoint: CreateEntrypoint
         referrerPath: string
         homepageVariant?: string
+        visitorId?: string
     }>({
         entrypoint: 'unknown',
         referrerPath: 'direct',
         homepageVariant: undefined,
+        visitorId: undefined,
     })
     const createEntryStageRef = useRef({
         promptFocused: false,
@@ -239,6 +267,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
         referrer_path: entryContextRef.current.referrerPath,
         locale,
         page_variant: entryContextRef.current.homepageVariant,
+        visitor_id: entryContextRef.current.visitorId,
     })
 
     useEffect(() => {
@@ -249,12 +278,14 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                 ? 'other'
                 : 'unknown'
         const homepageVariant = readHomepageVariantFromDocumentCookie()
+        const visitorId = readHomepageVisitorIdFromDocumentCookie()
         const normalizedReferrerPath = referrerPath || 'direct'
 
         entryContextRef.current = {
             entrypoint,
             referrerPath: normalizedReferrerPath,
             homepageVariant,
+            visitorId,
         }
 
         trackCreatePageViewed({
@@ -262,12 +293,14 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             referrer_path: normalizedReferrerPath,
             locale,
             page_variant: homepageVariant,
+            visitor_id: visitorId,
         })
         trackCreateEntrypointResolved({
             entrypoint,
             referrer_path: normalizedReferrerPath,
             locale,
             page_variant: homepageVariant,
+            visitor_id: visitorId,
         })
 
         trackCreateFlowStarted({
@@ -275,6 +308,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             referrer_path: normalizedReferrerPath,
             locale,
             page_variant: homepageVariant,
+            visitor_id: visitorId,
         })
 
         const stageState = createEntryStageRef.current

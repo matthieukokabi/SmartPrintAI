@@ -113,6 +113,7 @@ export function trackEvent(eventName: string, params: AnalyticsParams = {}): boo
 export function trackHomepageViewed(params: {
     locale?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.viewed, params)
 }
@@ -122,6 +123,7 @@ export function trackHomepageCtaClicked(params: {
     cta_label?: string
     destination?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.ctaClicked, params)
 }
@@ -129,6 +131,7 @@ export function trackHomepageCtaClicked(params: {
 export function trackHomepageSectionViewed(params: {
     section_name: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.sectionViewed, params)
 }
@@ -136,6 +139,7 @@ export function trackHomepageSectionViewed(params: {
 export function trackHomepageScrollDepthReached(params: {
     scroll_depth_percent: number
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.scrollDepthReached, params)
 }
@@ -145,12 +149,14 @@ export function trackHomepageToCreateClicked(params: {
     cta_label?: string
     destination?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.toCreateClicked, params)
 }
 
 export function trackProductProofSectionViewed(params: {
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(PRODUCT_PROOF_EVENT_NAMES.sectionViewed, params)
 }
@@ -160,6 +166,7 @@ export function trackProductProofCtaClicked(params: {
     cta_label?: string
     destination?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(PRODUCT_PROOF_EVENT_NAMES.ctaClicked, params)
 }
@@ -169,6 +176,7 @@ export function trackCreateFlowStarted(params: {
     referrer_path?: string
     locale?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.createFlowStarted, params)
 }
@@ -178,6 +186,7 @@ export function trackCreatePageViewed(params: {
     referrer_path?: string
     locale?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.pageViewed, params)
 }
@@ -187,6 +196,7 @@ export function trackCreateEntrypointResolved(params: {
     referrer_path?: string
     locale?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.entrypointResolved, params)
 }
@@ -195,6 +205,7 @@ export function trackCreatePromptInputFocused(params: {
     entrypoint?: CreateEntrypoint
     locale?: string
     page_variant?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.promptInputFocused, params)
 }
@@ -204,6 +215,7 @@ export function trackCreatePromptStarted(params: {
     locale?: string
     page_variant?: string
     prompt_length_bucket?: PromptLengthBucket
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.promptStarted, params)
 }
@@ -215,6 +227,7 @@ export function trackCreateGenerationStarted(params: {
     prompt_length_bucket?: PromptLengthBucket
     template_type?: string
     has_reference_image?: boolean
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.generationStarted, params)
 }
@@ -225,6 +238,7 @@ export function trackCreateProductSelected(params: {
     page_variant?: string
     product_type?: string
     product_id?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.productSelected, params)
 }
@@ -234,6 +248,7 @@ export function trackCreateTemplateSelected(params: {
     locale?: string
     page_variant?: string
     template_type?: string
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.templateSelected, params)
 }
@@ -245,6 +260,7 @@ export function trackCreateFlowAbandonedEarly(params: {
     page_variant?: string
     last_completed_step?: 'page_viewed' | 'prompt_focused' | 'prompt_started' | 'template_selected' | 'product_selected' | 'generation_started'
     prompt_length_bucket?: PromptLengthBucket
+    visitor_id?: string
 }): boolean {
     return trackEvent(CREATE_ENTRY_EVENT_NAMES.flowAbandonedEarly, params)
 }

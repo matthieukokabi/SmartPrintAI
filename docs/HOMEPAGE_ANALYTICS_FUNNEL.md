@@ -144,6 +144,38 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - Fires: when user leaves `/create` without starting generation.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`, `last_completed_step`, `prompt_length_bucket`.
 
+## Product-Proof Exposure Analysis
+Goal:
+- Compare users who saw the homepage product-proof section vs users who did not.
+
+Linkage model:
+- All homepage/create-start funnel events now include `visitor_id` from cookie `spai_visitor_id` when available.
+- Exposure analysis groups only users with at least one `homepage_viewed` event and a valid `visitor_id`.
+
+Exposure groups:
+- `product_proof_exposed`: visitor has `product_proof_section_viewed`.
+- `product_proof_not_exposed`: visitor has homepage view but no product-proof section view.
+
+Metrics per group:
+- `totalUsers`
+- `ctaClicks`
+- `createStarts`
+- `homepageToCreateCtr` (users with >=1 homepage->create click / total users)
+- `createStartRate` (users with >=1 create_flow_started from homepage / total users)
+- `clickToCreateStartRate` (users with click and create-start / users with click)
+
+Delta output:
+- Exposed minus not-exposed for:
+- homepage->create CTR
+- create-start rate
+- click->create-start rate
+
+Interpretation status:
+- `positive_signal`: exposed users outperform on CTR and create-start rate (with sufficient cohorts).
+- `weak_signal`: little or mixed difference.
+- `potential_issue`: exposed users underperform materially.
+- `insufficient_data`: one or both cohorts below minimum size.
+
 ## Create Entry Decision Guardrails
 Primary metric:
 - `prompt_start_rate_from_create_view`
