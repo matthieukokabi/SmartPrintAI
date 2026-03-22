@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ANALYTICS_ATTRIBUTION_COOKIE } from '@/lib/analytics-attribution'
 import { HOMEPAGE_VISITOR_ID_COOKIE } from '@/lib/homepage-experiment'
 import {
   CREATE_ENTRY_EVENT_NAMES,
@@ -24,6 +25,35 @@ import {
   trackPurchase,
 } from './analytics'
 import type { Order } from '@/types'
+
+function createMockDocument(referrer: string) {
+  const jar = new Map<string, string>()
+  return {
+    referrer,
+    get cookie() {
+      return Array.from(jar.entries())
+        .map(([key, value]) => `${key}=${value}`)
+        .join('; ')
+    },
+    set cookie(value: string) {
+      const [pair] = value.split(';')
+      const eqIndex = pair.indexOf('=')
+      if (eqIndex === -1) {
+        return
+      }
+      const key = pair.slice(0, eqIndex).trim()
+      const encodedValue = pair.slice(eqIndex + 1).trim()
+      if (!key) {
+        return
+      }
+      if (value.includes('Max-Age=0')) {
+        jar.delete(key)
+        return
+      }
+      jar.set(key, encodedValue)
+    },
+  } as unknown as Document
+}
 
 describe('trackEvent', () => {
   it('returns false when gtag is unavailable', () => {
@@ -88,6 +118,105 @@ describe('trackEvent', () => {
       expect.objectContaining({
         page_variant: 'variant_a',
         visitor_id: 'cookie_visitor_abc',
+      })
+    )
+
+    if (originalDocument) {
+      ;(globalThis as unknown as { document?: Document }).document = originalDocument
+    } else {
+      Reflect.deleteProperty(globalThis as object, 'document')
+    }
+    ;(globalThis as unknown as { window?: unknown }).window = originalWindow
+  })
+
+  it('captures first-touch attribution fields and persists attribution cookie', () => {
+    const gtag = vi.fn()
+    const originalWindow = (globalThis as unknown as { window?: unknown }).window
+    const originalDocument = (globalThis as unknown as { document?: Document }).document
+    const mockDocument = createMockDocument('https://google.com/search?q=smartprintai')
+
+    ;(globalThis as unknown as { document?: Document }).document = mockDocument
+    ;(globalThis as unknown as { window?: unknown }).window = {
+      gtag,
+      navigator: { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)' },
+      location: {
+        pathname: '/',
+        search: '?utm_source=tiktok&utm_medium=paid_social&utm_campaign=spring_launch&utm_content=hero_a&utm_term=ai+shirt',
+        origin: 'https://smartprintai.com',
+        protocol: 'https:',
+      },
+    } as unknown as Window
+
+    const ok = trackEvent('homepage_viewed', { page_variant: 'variant_a' })
+    expect(ok).toBe(true)
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'homepage_viewed',
+      expect.objectContaining({
+        utm_source: 'tiktok',
+        utm_medium: 'paid_social',
+        utm_campaign: 'spring_launch',
+        utm_content: 'hero_a',
+        utm_term: 'ai shirt',
+        referrer_domain: 'google.com',
+        landing_path: '/',
+        device_type: 'mobile',
+      })
+    )
+    expect(mockDocument.cookie).toContain(`${ANALYTICS_ATTRIBUTION_COOKIE}=`)
+
+    if (originalDocument) {
+      ;(globalThis as unknown as { document?: Document }).document = originalDocument
+    } else {
+      Reflect.deleteProperty(globalThis as object, 'document')
+    }
+    ;(globalThis as unknown as { window?: unknown }).window = originalWindow
+  })
+
+  it('preserves first-touch attribution across later events', () => {
+    const gtag = vi.fn()
+    const originalWindow = (globalThis as unknown as { window?: unknown }).window
+    const originalDocument = (globalThis as unknown as { document?: Document }).document
+    const mockDocument = createMockDocument('https://google.com/search?q=smartprintai')
+    const firstTouchAttribution = encodeURIComponent(JSON.stringify({
+      visitor_id: 'cookie_visitor_abc',
+      captured_at: '2026-03-22T00:00:00.000Z',
+      utm_source: 'google',
+      utm_medium: 'cpc',
+      utm_campaign: 'brand_search',
+      utm_content: 'ad_1',
+      utm_term: 'smartprintai',
+      referrer: 'https://google.com/search?q=smartprintai',
+      referrer_domain: 'google.com',
+      landing_path: '/',
+      device_type: 'desktop',
+    }))
+    mockDocument.cookie = `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_abc`
+    mockDocument.cookie = `${ANALYTICS_ATTRIBUTION_COOKIE}=${firstTouchAttribution}`
+
+    ;(globalThis as unknown as { document?: Document }).document = mockDocument
+    ;(globalThis as unknown as { window?: unknown }).window = {
+      gtag,
+      navigator: { userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)' },
+      location: {
+        pathname: '/create',
+        search: '?utm_source=tiktok&utm_medium=paid_social&utm_campaign=retargeting',
+        origin: 'https://smartprintai.com',
+        protocol: 'https:',
+      },
+    } as unknown as Window
+
+    const ok = trackEvent('homepage_to_create_clicked', { cta_location: 'hero_primary_create' })
+    expect(ok).toBe(true)
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'homepage_to_create_clicked',
+      expect.objectContaining({
+        utm_source: 'google',
+        utm_medium: 'cpc',
+        utm_campaign: 'brand_search',
+        referrer_domain: 'google.com',
+        landing_path: '/',
       })
     )
 

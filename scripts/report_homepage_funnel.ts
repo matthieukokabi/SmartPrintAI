@@ -57,6 +57,44 @@ async function main() {
         )
     }
 
+    printSection('Attribution Breakdown: utm_source')
+    for (const row of report.attributionBreakdown.utmSource) {
+        console.log(
+            `${row.value}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}`
+        )
+    }
+
+    printSection('Attribution Breakdown: utm_campaign')
+    for (const row of report.attributionBreakdown.utmCampaign) {
+        console.log(
+            `${row.value}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}`
+        )
+    }
+
+    printSection('Attribution Breakdown: referrer_domain')
+    for (const row of report.attributionBreakdown.referrerDomain) {
+        console.log(
+            `${row.value}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}`
+        )
+    }
+
+    printSection('Attribution Breakdown: device_type')
+    for (const row of report.attributionBreakdown.deviceType) {
+        console.log(
+            `${row.value}: views=${row.homepageViews}, toCreate=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}`
+        )
+    }
+
+    printSection('Hero Variant Performance by utm_source')
+    for (const row of report.attributionBreakdown.heroVariantByUtmSource) {
+        console.log(`${row.utmSource}:`)
+        for (const variant of row.variants) {
+            console.log(
+                `  ${variant.pageVariant}: views=${variant.homepageViews}, toCreate=${variant.toCreateClicks}, createStarts=${variant.createStarts}, ctr=${formatRate(variant.homepageToCreateCtr)}, createStartRate=${formatRate(variant.createStartRate)}`
+            )
+        }
+    }
+
     printSection('Product Proof Exposure Analysis')
     console.log(`Tracked users (with visitor_id): ${report.productProofExposure.linkage.trackedUsers}`)
     console.log(`Exposed users: ${report.productProofExposure.linkage.exposedUsers}`)

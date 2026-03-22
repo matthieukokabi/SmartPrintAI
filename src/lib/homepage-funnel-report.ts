@@ -7,8 +7,13 @@ import {
     type FunnelEventName,
     type HomepageEventName,
 } from '@/lib/analytics'
+import {
+    classifyAnalyticsDeviceType,
+    normalizeAttributionFromParams,
+    type AnalyticsDeviceType,
+} from '@/lib/analytics-attribution'
 
-export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown'
+export type DeviceType = AnalyticsDeviceType
 
 export type HomepageFunnelEventRecord = {
     eventName: FunnelEventName
@@ -55,6 +60,29 @@ type PageVariantBreakdownRow = {
     afterCtaClickCount: number
     afterCtaClickRate: number
     biggestDropoffStep: 'before_cta_click' | 'after_cta_click_before_create_start' | 'none'
+}
+
+type AttributionBreakdownRow = {
+    value: string
+    homepageViews: number
+    toCreateClicks: number
+    createStarts: number
+    homepageToCreateCtr: number
+    createStartRate: number
+    clickToCreateStartRate: number
+}
+
+type HeroVariantBySourceRow = {
+    utmSource: string
+    variants: Array<{
+        pageVariant: string
+        homepageViews: number
+        toCreateClicks: number
+        createStarts: number
+        homepageToCreateCtr: number
+        createStartRate: number
+        clickToCreateStartRate: number
+    }>
 }
 
 type ProductProofExposureGroupKey = 'product_proof_exposed' | 'product_proof_not_exposed'
@@ -191,6 +219,13 @@ export type HomepageFunnelReport = {
     underperformingPrimaryCtaLocation: string | null
     deviceBreakdown: DeviceBreakdownRow[]
     pageVariantBreakdown: PageVariantBreakdownRow[]
+    attributionBreakdown: {
+        utmSource: AttributionBreakdownRow[]
+        utmCampaign: AttributionBreakdownRow[]
+        referrerDomain: AttributionBreakdownRow[]
+        deviceType: AttributionBreakdownRow[]
+        heroVariantByUtmSource: HeroVariantBySourceRow[]
+    }
     productProofExposure: ProductProofExposureAnalysis
     heroExperiment: HeroExperimentReadout
 }
@@ -289,21 +324,7 @@ function normalizeParams(value: unknown): Record<string, unknown> {
 }
 
 export function classifyDeviceType(userAgent: string | null | undefined): DeviceType {
-    if (!userAgent || userAgent.trim().length === 0) {
-        return 'unknown'
-    }
-    const value = userAgent.toLowerCase()
-
-    if (value.includes('bot') || value.includes('crawler') || value.includes('spider') || value.includes('slurp')) {
-        return 'bot'
-    }
-    if (value.includes('ipad') || value.includes('tablet')) {
-        return 'tablet'
-    }
-    if (value.includes('mobile') || value.includes('iphone') || value.includes('android')) {
-        return 'mobile'
-    }
-    return 'desktop'
+    return classifyAnalyticsDeviceType(userAgent)
 }
 
 export function isHomepageEventName(eventName: string): eventName is HomepageEventName {
@@ -470,6 +491,133 @@ function aggregateByPageVariant(records: HomepageFunnelEventRecord[]): PageVaria
             }
         })
         .sort((a, b) => b.homepageViews - a.homepageViews)
+}
+
+type AttributionDimension = 'utm_source' | 'utm_campaign' | 'referrer_domain' | 'device_type'
+
+function toAttributionValue(record: HomepageFunnelEventRecord, dimension: AttributionDimension): string {
+    const normalized = normalizeAttributionFromParams(record.params)
+    if (dimension === 'device_type') {
+        return normalized.device_type === 'unknown'
+            ? (record.deviceType || 'unknown')
+            : normalized.device_type
+    }
+    if (dimension === 'utm_source') {
+        return normalized.utm_source
+    }
+    if (dimension === 'utm_campaign') {
+        return normalized.utm_campaign
+    }
+    return normalized.referrer_domain
+}
+
+function aggregateByAttributionDimension(
+    records: HomepageFunnelEventRecord[],
+    dimension: AttributionDimension
+): AttributionBreakdownRow[] {
+    const buckets = new Map<string, { viewed: number; toCreate: number; createStarted: number }>()
+
+    const getBucket = (value: string) => {
+        const existing = buckets.get(value)
+        if (existing) {
+            return existing
+        }
+        const fresh = { viewed: 0, toCreate: 0, createStarted: 0 }
+        buckets.set(value, fresh)
+        return fresh
+    }
+
+    for (const record of records) {
+        if (
+            record.eventName !== HOMEPAGE_EVENT_NAMES.viewed
+            && record.eventName !== HOMEPAGE_EVENT_NAMES.toCreateClicked
+            && record.eventName !== HOMEPAGE_EVENT_NAMES.createFlowStarted
+        ) {
+            continue
+        }
+
+        const value = toAttributionValue(record, dimension)
+        const bucket = getBucket(value)
+        if (record.eventName === HOMEPAGE_EVENT_NAMES.viewed) {
+            bucket.viewed += 1
+        } else if (record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked) {
+            bucket.toCreate += 1
+        } else if (record.eventName === HOMEPAGE_EVENT_NAMES.createFlowStarted) {
+            bucket.createStarted += 1
+        }
+    }
+
+    return Array.from(buckets.entries())
+        .map(([value, bucket]) => ({
+            value,
+            homepageViews: bucket.viewed,
+            toCreateClicks: bucket.toCreate,
+            createStarts: bucket.createStarted,
+            homepageToCreateCtr: toRate(bucket.toCreate, bucket.viewed),
+            createStartRate: toRate(bucket.createStarted, bucket.viewed),
+            clickToCreateStartRate: toRate(bucket.createStarted, bucket.toCreate),
+        }))
+        .sort((left, right) => right.homepageViews - left.homepageViews)
+}
+
+function aggregateHeroVariantBySource(records: HomepageFunnelEventRecord[]): HeroVariantBySourceRow[] {
+    const buckets = new Map<string, Map<string, { viewed: number; toCreate: number; createStarted: number }>>()
+
+    const getVariantBucket = (utmSource: string, pageVariant: string) => {
+        const byVariant = buckets.get(utmSource) || new Map<string, { viewed: number; toCreate: number; createStarted: number }>()
+        if (!buckets.has(utmSource)) {
+            buckets.set(utmSource, byVariant)
+        }
+        const existing = byVariant.get(pageVariant)
+        if (existing) {
+            return existing
+        }
+        const fresh = { viewed: 0, toCreate: 0, createStarted: 0 }
+        byVariant.set(pageVariant, fresh)
+        return fresh
+    }
+
+    for (const record of records) {
+        if (
+            record.eventName !== HOMEPAGE_EVENT_NAMES.viewed
+            && record.eventName !== HOMEPAGE_EVENT_NAMES.toCreateClicked
+            && record.eventName !== HOMEPAGE_EVENT_NAMES.createFlowStarted
+        ) {
+            continue
+        }
+
+        const utmSource = toAttributionValue(record, 'utm_source')
+        const pageVariant = record.pageVariant || 'unknown'
+        const bucket = getVariantBucket(utmSource, pageVariant)
+        if (record.eventName === HOMEPAGE_EVENT_NAMES.viewed) {
+            bucket.viewed += 1
+        } else if (record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked) {
+            bucket.toCreate += 1
+        } else if (record.eventName === HOMEPAGE_EVENT_NAMES.createFlowStarted) {
+            bucket.createStarted += 1
+        }
+    }
+
+    return Array.from(buckets.entries())
+        .map(([utmSource, byVariant]) => ({
+            utmSource,
+            variants: Array.from(byVariant.entries())
+                .map(([pageVariant, metrics]) => ({
+                    pageVariant,
+                    homepageViews: metrics.viewed,
+                    toCreateClicks: metrics.toCreate,
+                    createStarts: metrics.createStarted,
+                    homepageToCreateCtr: toRate(metrics.toCreate, metrics.viewed),
+                    createStartRate: toRate(metrics.createStarted, metrics.viewed),
+                    clickToCreateStartRate: toRate(metrics.createStarted, metrics.toCreate),
+                }))
+                .sort((left, right) => right.homepageViews - left.homepageViews),
+        }))
+        .sort((left, right) => {
+            const leftViews = left.variants.reduce((sum, row) => sum + row.homepageViews, 0)
+            const rightViews = right.variants.reduce((sum, row) => sum + row.homepageViews, 0)
+            return rightViews - leftViews
+        })
 }
 
 function toVisitorId(record: HomepageFunnelEventRecord): string | null {
@@ -939,6 +1087,13 @@ export function aggregateHomepageFunnel(
 
     const ctaBreakdown = aggregateCtaBreakdown(records)
     const pageVariantBreakdown = aggregateByPageVariant(records)
+    const attributionBreakdown = {
+        utmSource: aggregateByAttributionDimension(records, 'utm_source'),
+        utmCampaign: aggregateByAttributionDimension(records, 'utm_campaign'),
+        referrerDomain: aggregateByAttributionDimension(records, 'referrer_domain'),
+        deviceType: aggregateByAttributionDimension(records, 'device_type'),
+        heroVariantByUtmSource: aggregateHeroVariantBySource(records),
+    }
     const productProofExposure = buildProductProofExposureAnalysis(records)
     const heroExperiment = buildHeroExperimentReadout({
         pageVariantBreakdown,
@@ -971,6 +1126,7 @@ export function aggregateHomepageFunnel(
         underperformingPrimaryCtaLocation: identifyUnderperformingPrimaryCta(ctaBreakdown),
         deviceBreakdown: aggregateByDevice(records),
         pageVariantBreakdown,
+        attributionBreakdown,
         productProofExposure,
         heroExperiment,
     }

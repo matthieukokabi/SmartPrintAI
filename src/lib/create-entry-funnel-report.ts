@@ -1,4 +1,5 @@
 import { CREATE_ENTRY_EVENT_NAMES } from '@/lib/analytics'
+import { normalizeAttributionFromParams } from '@/lib/analytics-attribution'
 import { readHomepageEventRecords, type HomepageFunnelEventRecord } from '@/lib/homepage-funnel-report'
 
 type CreateEntrypoint = 'homepage' | 'other' | 'unknown'
@@ -19,6 +20,16 @@ type CreateEntryDropoffRow = {
     toCount: number
     dropoffCount: number
     dropoffRate: number
+}
+
+type CreateEntryAttributionBreakdownRow = {
+    value: string
+    createPageViews: number
+    promptStarted: number
+    generationStarted: number
+    promptStartRateFromCreateView: number
+    generationStartRateFromCreateView: number
+    generationStartRateFromPromptStart: number
 }
 
 export type CreateEntryThresholdProgressItem = {
@@ -97,6 +108,12 @@ export type CreateEntryFunnelReport = {
     entrypointBreakdown: CreateEntryBreakdownRow[]
     homepageVariantBreakdown: CreateEntryBreakdownRow[]
     promptLengthBreakdown: CreateEntryBreakdownRow[]
+    attributionBreakdown: {
+        utmSource: CreateEntryAttributionBreakdownRow[]
+        utmCampaign: CreateEntryAttributionBreakdownRow[]
+        referrerDomain: CreateEntryAttributionBreakdownRow[]
+        deviceType: CreateEntryAttributionBreakdownRow[]
+    }
 }
 
 const CREATE_ENTRY_EVENT_SET = new Set<string>(Object.values(CREATE_ENTRY_EVENT_NAMES))
@@ -157,6 +174,77 @@ function toBreakdownRows(counts: Map<string, number>): CreateEntryBreakdownRow[]
             share: toRate(count, total),
         }))
         .sort((left, right) => right.count - left.count)
+}
+
+type CreateAttributionDimension = 'utm_source' | 'utm_campaign' | 'referrer_domain' | 'device_type'
+
+function toAttributionValue(record: HomepageFunnelEventRecord, dimension: CreateAttributionDimension): string {
+    const normalized = normalizeAttributionFromParams(record.params)
+    if (dimension === 'device_type') {
+        return normalized.device_type === 'unknown'
+            ? (record.deviceType || 'unknown')
+            : normalized.device_type
+    }
+    if (dimension === 'utm_source') {
+        return normalized.utm_source
+    }
+    if (dimension === 'utm_campaign') {
+        return normalized.utm_campaign
+    }
+    return normalized.referrer_domain
+}
+
+function aggregateCreateAttributionBreakdown(
+    records: HomepageFunnelEventRecord[],
+    dimension: CreateAttributionDimension
+): CreateEntryAttributionBreakdownRow[] {
+    const buckets = new Map<string, { createPageViews: number; promptStarted: number; generationStarted: number }>()
+
+    const getBucket = (value: string) => {
+        const existing = buckets.get(value)
+        if (existing) {
+            return existing
+        }
+        const fresh = {
+            createPageViews: 0,
+            promptStarted: 0,
+            generationStarted: 0,
+        }
+        buckets.set(value, fresh)
+        return fresh
+    }
+
+    for (const record of records) {
+        if (
+            record.eventName !== CREATE_ENTRY_EVENT_NAMES.pageViewed
+            && record.eventName !== CREATE_ENTRY_EVENT_NAMES.promptStarted
+            && record.eventName !== CREATE_ENTRY_EVENT_NAMES.generationStarted
+        ) {
+            continue
+        }
+
+        const value = toAttributionValue(record, dimension)
+        const bucket = getBucket(value)
+        if (record.eventName === CREATE_ENTRY_EVENT_NAMES.pageViewed) {
+            bucket.createPageViews += 1
+        } else if (record.eventName === CREATE_ENTRY_EVENT_NAMES.promptStarted) {
+            bucket.promptStarted += 1
+        } else if (record.eventName === CREATE_ENTRY_EVENT_NAMES.generationStarted) {
+            bucket.generationStarted += 1
+        }
+    }
+
+    return Array.from(buckets.entries())
+        .map(([value, bucket]) => ({
+            value,
+            createPageViews: bucket.createPageViews,
+            promptStarted: bucket.promptStarted,
+            generationStarted: bucket.generationStarted,
+            promptStartRateFromCreateView: toRate(bucket.promptStarted, bucket.createPageViews),
+            generationStartRateFromCreateView: toRate(bucket.generationStarted, bucket.createPageViews),
+            generationStartRateFromPromptStart: toRate(bucket.generationStarted, bucket.promptStarted),
+        }))
+        .sort((left, right) => right.createPageViews - left.createPageViews)
 }
 
 function countEvent(records: HomepageFunnelEventRecord[], eventName: string): number {
@@ -270,6 +358,12 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
     const promptStartRateFromCreateView = toRate(promptStarted, createPageViews)
     const generationStartRateFromPromptStart = toRate(generationStarted, promptStarted)
     const generationStartRateFromCreateView = toRate(generationStarted, createPageViews)
+    const attributionBreakdown = {
+        utmSource: aggregateCreateAttributionBreakdown(createRecords, 'utm_source'),
+        utmCampaign: aggregateCreateAttributionBreakdown(createRecords, 'utm_campaign'),
+        referrerDomain: aggregateCreateAttributionBreakdown(createRecords, 'referrer_domain'),
+        deviceType: aggregateCreateAttributionBreakdown(createRecords, 'device_type'),
+    }
 
     const thresholdChecks: CreateEntryThresholdChecks = {
         minCreatePageViewed: createPageViews >= DEFAULT_CREATE_ENTRY_THRESHOLDS.minCreatePageViewed,
@@ -408,6 +502,7 @@ export function aggregateCreateEntryFunnel(records: HomepageFunnelEventRecord[])
         entrypointBreakdown: toBreakdownRows(entrypointCounts),
         homepageVariantBreakdown: toBreakdownRows(variantCounts),
         promptLengthBreakdown: toBreakdownRows(promptLengthCounts),
+        attributionBreakdown,
     }
 }
 

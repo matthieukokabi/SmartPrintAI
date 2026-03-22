@@ -1,5 +1,14 @@
 import { NextRequest } from 'next/server'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
+import {
+    ANALYTICS_ATTRIBUTION_COOKIE,
+    ATTRIBUTION_COOKIE_MAX_AGE_SEC,
+    buildAttributionContext,
+    mergeAttributionWithFallback,
+    normalizeAttributionFromParams,
+    readAttributionCookie,
+    serializeAttributionCookie,
+} from '@/lib/analytics-attribution'
 import { rateLimitRequest } from '@/lib/rate-limit'
 import { appendHomepageEventRecord, isFunnelEventName } from '@/lib/homepage-funnel-report'
 import {
@@ -38,6 +47,26 @@ function toEventParams(params: unknown): EventParams {
         return {}
     }
     return params as EventParams
+}
+
+function toPathParts(rawPath: string | undefined, fallbackPathname: string): {
+    pathname: string
+    search: string
+} {
+    const raw = rawPath?.trim() || fallbackPathname
+    try {
+        const parsed = new URL(raw, 'https://smartprintai.com')
+        return {
+            pathname: parsed.pathname || fallbackPathname,
+            search: parsed.search || '',
+        }
+    } catch {
+        const [pathname, search = ''] = raw.split('?')
+        return {
+            pathname: pathname || fallbackPathname,
+            search: search ? `?${search}` : '',
+        }
+    }
 }
 
 function generateVisitorId(): string {
@@ -113,14 +142,36 @@ export async function POST(req: NextRequest) {
         })
     }
 
+    const pathInput = toShortString(payload.path) || req.nextUrl.pathname
+    const pathParts = toPathParts(pathInput, req.nextUrl.pathname)
+    const attributionFromParams = normalizeAttributionFromParams(params)
+    const attributionFromCookie = readAttributionCookie(
+        req.cookies.get(ANALYTICS_ATTRIBUTION_COOKIE)?.value,
+        visitorId
+    )
+    const attributionFallback = buildAttributionContext({
+        visitorId,
+        pathname: pathParts.pathname,
+        search: pathParts.search,
+        referrer: toShortString(req.headers.get('referer')),
+        origin: req.nextUrl.origin,
+        userAgent: toShortString(req.headers.get('user-agent')),
+    })
+    const resolvedAttribution = mergeAttributionWithFallback(
+        attributionFromParams,
+        attributionFromCookie ? attributionFromCookie : attributionFallback
+    )
+    const shouldSetAttributionCookie = !attributionFromCookie || attributionFromCookie.visitor_id !== visitorId
+
     try {
         const appended = await appendHomepageEventRecord({
             eventName: eventNameRaw,
             params: {
                 ...params,
                 visitor_id: visitorId,
+                ...resolvedAttribution,
             },
-            path: toShortString(payload.path) || req.nextUrl.pathname,
+            path: pathInput,
             pageVariant: toShortString(payload.pageVariant) || null,
             locale: toShortString(payload.locale) || null,
             userAgent: toShortString(req.headers.get('user-agent')) || null,
@@ -136,6 +187,19 @@ export async function POST(req: NextRequest) {
         if (shouldSetCookie) {
             response.cookies.set(HOMEPAGE_VISITOR_ID_COOKIE, visitorId, {
                 maxAge: HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC,
+                path: '/',
+                sameSite: 'lax',
+                secure: req.nextUrl.protocol === 'https:',
+                httpOnly: false,
+            })
+        }
+        if (shouldSetAttributionCookie) {
+            response.cookies.set(ANALYTICS_ATTRIBUTION_COOKIE, serializeAttributionCookie({
+                visitor_id: visitorId,
+                captured_at: attributionFromCookie?.captured_at || attributionFallback.captured_at,
+                ...resolvedAttribution,
+            }), {
+                maxAge: ATTRIBUTION_COOKIE_MAX_AGE_SEC,
                 path: '/',
                 sameSite: 'lax',
                 secure: req.nextUrl.protocol === 'https:',

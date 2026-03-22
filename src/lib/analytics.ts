@@ -1,5 +1,16 @@
 import type { Order } from '@/types'
 import {
+    ANALYTICS_ATTRIBUTION_COOKIE,
+    ATTRIBUTION_COOKIE_MAX_AGE_SEC,
+    buildAttributionContext,
+    mergeAttributionWithFallback,
+    normalizeAttributionFromParams,
+    readAttributionCookie,
+    serializeAttributionCookie,
+    type AttributionContext,
+    type StoredAttributionContext,
+} from '@/lib/analytics-attribution'
+import {
     HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC,
     HOMEPAGE_VISITOR_ID_COOKIE,
     sanitizeVisitorId,
@@ -16,13 +27,13 @@ type AnalyticsParams = Record<string, AnalyticsValue>
 type BrowserNavigator = Navigator & {
     sendBeacon?: (url: string, data?: BodyInit | null) => boolean
 }
-type BrowserLocation = Pick<Location, 'protocol'>
+type BrowserLocation = Pick<Location, 'protocol' | 'pathname' | 'search' | 'origin'>
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
-function readVisitorIdFromDocumentCookie(): string | undefined {
+function readCookieValue(cookieName: string): string | undefined {
     if (typeof document === 'undefined' || typeof document.cookie !== 'string') {
         return undefined
     }
@@ -30,11 +41,20 @@ function readVisitorIdFromDocumentCookie(): string | undefined {
     const rawCookieValue = document.cookie
         .split(';')
         .map((part) => part.trim())
-        .find((part) => part.startsWith(`${HOMEPAGE_VISITOR_ID_COOKIE}=`))
+        .find((part) => part.startsWith(`${cookieName}=`))
         ?.split('=')
         .slice(1)
         .join('=')
 
+    if (!rawCookieValue) {
+        return undefined
+    }
+
+    return rawCookieValue
+}
+
+function readVisitorIdFromDocumentCookie(): string | undefined {
+    const rawCookieValue = readCookieValue(HOMEPAGE_VISITOR_ID_COOKIE)
     if (!rawCookieValue) {
         return undefined
     }
@@ -53,6 +73,18 @@ function persistVisitorIdToDocumentCookie(visitorId: string, locationRef: Browse
 
     const secureAttribute = locationRef?.protocol === 'https:' ? '; Secure' : ''
     document.cookie = `${HOMEPAGE_VISITOR_ID_COOKIE}=${encodeURIComponent(visitorId)}; Max-Age=${HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC}; Path=/; SameSite=Lax${secureAttribute}`
+}
+
+function persistAttributionToDocumentCookie(
+    attribution: StoredAttributionContext,
+    locationRef: BrowserLocation | undefined
+) {
+    if (typeof document === 'undefined') {
+        return
+    }
+    const secureAttribute = locationRef?.protocol === 'https:' ? '; Secure' : ''
+    const encoded = serializeAttributionCookie(attribution)
+    document.cookie = `${ANALYTICS_ATTRIBUTION_COOKIE}=${encoded}; Max-Age=${ATTRIBUTION_COOKIE_MAX_AGE_SEC}; Path=/; SameSite=Lax${secureAttribute}`
 }
 
 function generateFallbackVisitorId(): string {
@@ -80,6 +112,40 @@ function ensureVisitorId(
     const generated = generateFallbackVisitorId()
     persistVisitorIdToDocumentCookie(generated, locationRef)
     return generated
+}
+
+function resolveFunnelAttribution(
+    params: AnalyticsParams,
+    visitorId: string,
+    locationRef: BrowserLocation | undefined,
+    navigatorRef: BrowserNavigator | undefined
+): AttributionContext {
+    const existing = normalizeAttributionFromParams(params)
+    const rawAttributionCookie = readCookieValue(ANALYTICS_ATTRIBUTION_COOKIE)
+    const fromCookie = readAttributionCookie(rawAttributionCookie, visitorId)
+
+    const fallback = buildAttributionContext({
+        visitorId,
+        pathname: locationRef?.pathname || '/',
+        search: locationRef?.search || '',
+        referrer: typeof document !== 'undefined' ? document.referrer : null,
+        origin: locationRef?.origin || null,
+        userAgent: navigatorRef?.userAgent || null,
+    })
+
+    const resolved = mergeAttributionWithFallback(existing, fromCookie ? fromCookie : fallback)
+    const shouldPersist = !fromCookie || fromCookie.visitor_id !== visitorId
+    if (shouldPersist) {
+        persistAttributionToDocumentCookie(
+            {
+                visitor_id: visitorId,
+                captured_at: fromCookie?.captured_at || fallback.captured_at,
+                ...resolved,
+            },
+            locationRef
+        )
+    }
+    return resolved
 }
 
 export const HOMEPAGE_EVENT_NAMES = {
@@ -171,10 +237,22 @@ export function trackEvent(eventName: string, params: AnalyticsParams = {}): boo
     }
 
     const visitorId = ensureVisitorId(params, window.location as BrowserLocation | undefined)
-    const sanitizedParams = cleanParams({
+    const baseParams: AnalyticsParams = {
         ...params,
         visitor_id: visitorId,
-    })
+    }
+
+    if (FORWARDED_FUNNEL_EVENTS.has(eventName as FunnelEventName)) {
+        const attribution = resolveFunnelAttribution(
+            baseParams,
+            visitorId,
+            window.location as BrowserLocation | undefined,
+            window.navigator as BrowserNavigator | undefined
+        )
+        Object.assign(baseParams, attribution)
+    }
+
+    const sanitizedParams = cleanParams(baseParams)
     const gtag = window.gtag
     const canUseGtag = typeof gtag === 'function'
     if (canUseGtag) {

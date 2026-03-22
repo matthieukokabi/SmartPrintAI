@@ -119,4 +119,44 @@ describe('create entry funnel report', () => {
             expect.objectContaining({ count: 1 })
         )
     })
+
+    it('segments create entry stages by attribution dimensions', () => {
+        const records: HomepageFunnelEventRecord[] = [
+            ...Array.from({ length: 5 }, () => buildCreateRecord('pageViewed', { params: { utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' } })),
+            ...Array.from({ length: 3 }, () => buildCreateRecord('promptStarted', { params: { utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' } })),
+            ...Array.from({ length: 2 }, () => buildCreateRecord('generationStarted', { params: { utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' } })),
+            ...Array.from({ length: 4 }, () => buildCreateRecord('pageViewed', { params: { utm_source: 'google', utm_campaign: 'brand_search', referrer_domain: 'google.com', device_type: 'desktop' } })),
+            buildCreateRecord('promptStarted', { params: { utm_source: 'google', utm_campaign: 'brand_search', referrer_domain: 'google.com', device_type: 'desktop' } }),
+        ]
+
+        const report = aggregateCreateEntryFunnel(records)
+        expect(report.attributionBreakdown.utmSource.find((row) => row.value === 'meta')).toEqual(
+            expect.objectContaining({
+                createPageViews: 5,
+                promptStarted: 3,
+                generationStarted: 2,
+                promptStartRateFromCreateView: 60,
+            })
+        )
+        expect(report.attributionBreakdown.utmCampaign.find((row) => row.value === 'brand_search')).toEqual(
+            expect.objectContaining({
+                createPageViews: 4,
+                promptStarted: 1,
+                generationStarted: 0,
+            })
+        )
+        expect(report.attributionBreakdown.referrerDomain.find((row) => row.value === 'instagram.com')).toEqual(
+            expect.objectContaining({
+                createPageViews: 5,
+                promptStarted: 3,
+                generationStarted: 2,
+            })
+        )
+        expect(report.attributionBreakdown.deviceType.find((row) => row.value === 'mobile')).toEqual(
+            expect.objectContaining({
+                createPageViews: 5,
+                promptStarted: 3,
+            })
+        )
+    })
 })

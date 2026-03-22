@@ -89,6 +89,34 @@ async function main() {
         console.log(`${row.value}: ${row.count} (${formatRate(row.share)})`)
     }
 
+    printSection('Create Attribution Breakdown: utm_source')
+    for (const row of report.attributionBreakdown.utmSource) {
+        console.log(
+            `${row.value}: createViews=${row.createPageViews}, promptStarted=${row.promptStarted}, generationStarted=${row.generationStarted}, promptStartRate=${formatRate(row.promptStartRateFromCreateView)}, generationStartRate=${formatRate(row.generationStartRateFromCreateView)}`
+        )
+    }
+
+    printSection('Create Attribution Breakdown: utm_campaign')
+    for (const row of report.attributionBreakdown.utmCampaign) {
+        console.log(
+            `${row.value}: createViews=${row.createPageViews}, promptStarted=${row.promptStarted}, generationStarted=${row.generationStarted}, promptStartRate=${formatRate(row.promptStartRateFromCreateView)}, generationStartRate=${formatRate(row.generationStartRateFromCreateView)}`
+        )
+    }
+
+    printSection('Create Attribution Breakdown: referrer_domain')
+    for (const row of report.attributionBreakdown.referrerDomain) {
+        console.log(
+            `${row.value}: createViews=${row.createPageViews}, promptStarted=${row.promptStarted}, generationStarted=${row.generationStarted}, promptStartRate=${formatRate(row.promptStartRateFromCreateView)}, generationStartRate=${formatRate(row.generationStartRateFromCreateView)}`
+        )
+    }
+
+    printSection('Create Attribution Breakdown: device_type')
+    for (const row of report.attributionBreakdown.deviceType) {
+        console.log(
+            `${row.value}: createViews=${row.createPageViews}, promptStarted=${row.promptStarted}, generationStarted=${row.generationStarted}, promptStartRate=${formatRate(row.promptStartRateFromCreateView)}, generationStartRate=${formatRate(row.generationStartRateFromCreateView)}`
+        )
+    }
+
     const artifactDir = path.join(process.cwd(), 'docs', 'reports', 'artifacts', 'create-entry-funnel')
     await mkdir(artifactDir, { recursive: true })
     const artifactPath = path.join(artifactDir, 'latest.json')

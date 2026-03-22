@@ -71,14 +71,22 @@ Readiness progress interpretation:
 
 ## Collection Pipeline
 1. Client event helpers (`trackHomepage*`) emit GA4 events when `gtag` is available.
-2. Homepage funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.
-3. Server appends validated JSONL records to `data/analytics/homepage-events.jsonl`.
-4. Aggregation utilities build funnel metrics from stored records.
-5. `npm run analytics:funnel:report` prints a readable report and writes:
+2. Funnel events auto-enrich with `visitor_id` + first-touch attribution before forwarding.
+3. Homepage/create funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.
+4. Server validates/repairs visitor and attribution context, then appends JSONL records to `data/analytics/homepage-events.jsonl`.
+5. Aggregation utilities build funnel metrics from stored records.
+6. `npm run analytics:funnel:report` prints a readable report and writes:
 - `docs/reports/artifacts/homepage-funnel/latest.json`
 
 ## Event Taxonomy
 All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/lib/analytics.ts).
+
+Common enrichment across homepage/create funnel events:
+- `visitor_id` (cookie-backed)
+- `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`
+- `referrer`, `referrer_domain`
+- `landing_path`
+- `device_type`
 
 1. `homepage_viewed`
 - Fires: once on homepage client mount.
@@ -143,6 +151,42 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 16. `create_flow_abandoned_early`
 - Fires: when user leaves `/create` without starting generation.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`, `last_completed_step`, `prompt_length_bucket`.
+
+## Traffic Source Attribution
+Captured fields:
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
+- `utm_term`
+- `referrer`
+- `referrer_domain`
+- `landing_path`
+- `device_type`
+
+Source of truth and precedence:
+1. Preserve first-touch attribution cookie (`spai_first_touch_attribution`) for the active visitor.
+2. If event payload carries explicit attribution values, keep them when valid.
+3. If missing/unknown, backfill from first-touch cookie.
+4. If still missing, derive from request context (URL params/referrer/user-agent) and persist.
+
+Normalization buckets:
+- `direct`: no referrer/utm context.
+- `internal`: same-origin/internal navigation.
+- `unknown`: unparsable or unavailable source context.
+
+Segmentation now included in reports:
+- Homepage funnel:
+  - `utm_source`
+  - `utm_campaign`
+  - `referrer_domain`
+  - `device_type`
+  - hero variant performance by `utm_source`
+- Create-entry funnel:
+  - `utm_source`
+  - `utm_campaign`
+  - `referrer_domain`
+  - `device_type`
 
 ## Product-Proof Exposure Analysis
 Goal:
@@ -256,6 +300,7 @@ Iteration rule:
 - template/product selection rates
 - early abandonment rate
 - biggest early drop-off stage (`before_prompt_focus`, `before_prompt_start`, `before_generation_start`)
+- attribution breakdown tables (`utm_source`, `utm_campaign`, `referrer_domain`, `device_type`)
 
 Artifact output:
 - `docs/reports/artifacts/create-entry-funnel/latest.json`
@@ -277,6 +322,7 @@ Interpretation:
 - Event intake is rate-limited on `/api/analytics/events`.
 - Invalid event names/payloads are rejected server-side.
 - Missing `visitor_id` payloads are explicitly flagged in API logs (`visitor_id_auto_attached`) and repaired before persistence.
+- Missing attribution fields are normalized and backfilled server-side before persistence.
 
 ## Notes
 - Funnel reports are generated from the real event log only (`source = event_log`).

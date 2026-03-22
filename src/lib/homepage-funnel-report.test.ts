@@ -313,4 +313,73 @@ describe('homepage funnel report helpers', () => {
     expect(report.productProofExposure.linkage.missingVisitorIdEvents).toBe(4)
     expect(report.productProofExposure.interpretation.status).toBe('insufficient_data')
   })
+
+  it('segments attribution performance and hero variant mix by source', () => {
+    const records: HomepageFunnelEventRecord[] = [
+      ...Array.from({ length: 6 }, () =>
+        buildRecord('viewed', {
+          pageVariant: 'variant_a',
+          params: { page_variant: 'variant_a', utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' },
+        })
+      ),
+      ...Array.from({ length: 3 }, () =>
+        buildRecord('toCreateClicked', {
+          pageVariant: 'variant_a',
+          params: { page_variant: 'variant_a', cta_location: 'hero_primary_create', utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' },
+        })
+      ),
+      ...Array.from({ length: 2 }, () =>
+        buildRecord('createFlowStarted', {
+          pageVariant: 'variant_a',
+          params: { page_variant: 'variant_a', utm_source: 'meta', utm_campaign: 'launch_q2', referrer_domain: 'instagram.com', device_type: 'mobile' },
+          path: '/create',
+        })
+      ),
+      ...Array.from({ length: 5 }, () =>
+        buildRecord('viewed', {
+          pageVariant: 'variant_b',
+          params: { page_variant: 'variant_b', utm_source: 'google', utm_campaign: 'brand_search', referrer_domain: 'google.com', device_type: 'desktop' },
+        })
+      ),
+      ...Array.from({ length: 1 }, () =>
+        buildRecord('toCreateClicked', {
+          pageVariant: 'variant_b',
+          params: { page_variant: 'variant_b', cta_location: 'hero_primary_create', utm_source: 'google', utm_campaign: 'brand_search', referrer_domain: 'google.com', device_type: 'desktop' },
+        })
+      ),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+
+    expect(report.attributionBreakdown.utmSource.find((row) => row.value === 'meta')).toEqual(
+      expect.objectContaining({
+        homepageViews: 6,
+        toCreateClicks: 3,
+        createStarts: 2,
+        homepageToCreateCtr: 50,
+      })
+    )
+    expect(report.attributionBreakdown.referrerDomain.find((row) => row.value === 'google.com')).toEqual(
+      expect.objectContaining({
+        homepageViews: 5,
+        toCreateClicks: 1,
+      })
+    )
+    expect(report.attributionBreakdown.deviceType.find((row) => row.value === 'mobile')).toEqual(
+      expect.objectContaining({
+        homepageViews: 6,
+        toCreateClicks: 3,
+      })
+    )
+
+    const bySource = report.attributionBreakdown.heroVariantByUtmSource.find((row) => row.utmSource === 'meta')
+    expect(bySource).toBeTruthy()
+    expect(bySource?.variants.find((variant) => variant.pageVariant === 'variant_a')).toEqual(
+      expect.objectContaining({
+        homepageViews: 6,
+        toCreateClicks: 3,
+        createStarts: 2,
+      })
+    )
+  })
 })
