@@ -17,7 +17,7 @@ export default function MockupPreview({ mockupUrl, isLoading, copy }: Props) {
         return (
             <div className="aspect-square rounded-2xl glass flex items-center justify-center">
                 <div className="text-center space-y-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-purple-400 mx-auto" />
+                    <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2f6cf3]" />
                     <p className="text-sm text-muted-foreground">{copy.generatingLabel}</p>
                 </div>
             </div>

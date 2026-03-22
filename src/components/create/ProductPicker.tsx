@@ -50,9 +50,9 @@ export default function ProductPicker({ products, selectedId, onSelect, chooseLa
                         <button
                             key={product.id}
                             onClick={() => onSelect(product.id)}
-                            className={`p-4 rounded-xl text-left transition-all ${selectedId === product.id
-                                    ? 'bg-purple-500/10 border-2 border-purple-500 shadow-lg shadow-purple-500/10'
-                                    : 'glass hover:border-purple-500/30'
+                            className={`rounded-xl p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 ${selectedId === product.id
+                                    ? 'border-2 border-[#2f6cf3] bg-[#2f6cf3]/10 shadow-lg shadow-[#26d4b8]/15'
+                                    : 'glass hover:border-[#2f6cf3]/30'
                                 }`}
                         >
                             <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-white/5 mb-3">
@@ -70,12 +70,12 @@ export default function ProductPicker({ products, selectedId, onSelect, chooseLa
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <Icon className={`w-6 h-6 ${selectedId === product.id ? 'text-purple-400' : 'text-muted-foreground'}`} />
+                                        <Icon className={`w-6 h-6 ${selectedId === product.id ? 'text-[#26d4b8]' : 'text-muted-foreground'}`} />
                                     </div>
                                 )}
                             </div>
                             <p className="text-sm font-medium truncate">{product.name}</p>
-                            <p className="text-xs text-purple-400 mt-0.5">${product.sellPrice.toFixed(2)}</p>
+                            <p className="mt-0.5 text-xs text-[#2f6cf3]">${product.sellPrice.toFixed(2)}</p>
                         </button>
                     )
                 })}

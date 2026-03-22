@@ -20,7 +20,10 @@ export default function GeneratedImage({ imageUrl, isLoading, onRegenerate, copy
         return (
             <div className="aspect-square rounded-2xl glass flex items-center justify-center overflow-hidden">
                 <div className="text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-spin mx-auto" style={{ clipPath: 'inset(0 0 50% 0)' }} />
+                    <div
+                        className="mx-auto h-16 w-16 animate-spin rounded-full bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8]"
+                        style={{ clipPath: 'inset(0 0 50% 0)' }}
+                    />
                     <div>
                         <p className="text-sm font-medium">{copy.creatingLabel}</p>
                         <p className="text-xs text-muted-foreground mt-1">{copy.creatingSubLabel}</p>

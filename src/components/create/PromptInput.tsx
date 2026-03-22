@@ -53,7 +53,7 @@ export default function PromptInput({
     return (
         <div className="space-y-4">
             <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-20 group-focus-within:opacity-40 transition-opacity" />
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] blur-lg opacity-20 transition-opacity group-focus-within:opacity-40" />
                 <div className="relative">
                     <textarea
                         value={prompt}
@@ -62,14 +62,14 @@ export default function PromptInput({
                         placeholder={copy.placeholder}
                         rows={3}
                         maxLength={500}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-base outline-none focus:border-purple-500/50 resize-none placeholder:text-muted-foreground/40 transition-colors"
+                        className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-base outline-none transition-colors placeholder:text-muted-foreground/40 focus:border-[#2f6cf3]/60 focus:ring-2 focus:ring-[#26d4b8]/20"
                     />
                     <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-muted-foreground">{prompt.length}/500</span>
                         <button
                             onClick={handleGenerate}
                             disabled={isLoading || prompt.trim().length < 3}
-                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+                            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>

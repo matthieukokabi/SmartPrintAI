@@ -733,7 +733,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
                     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 sm:p-5 space-y-4">
                         <div className="space-y-1.5">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-purple-200/85">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#26d4b8]/90">
                                 {copy.entryStepLabel}
                             </p>
                             <p className="text-sm font-semibold text-foreground">{copy.entryStepTitle}</p>
@@ -762,7 +762,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                         <ul className="space-y-2 text-xs text-muted-foreground">
                             {copy.promptGuideChecklist.map((item) => (
                                 <li key={item} className="flex items-start gap-2">
-                                    <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-purple-400/80" />
+                                    <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-[#26d4b8]/85" />
                                     <span>{item}</span>
                                 </li>
                             ))}
@@ -797,8 +797,8 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                                 <button
                                                     key={size}
                                                     onClick={() => setSelectedSize(size)}
-                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedSize === size
-                                                        ? 'bg-purple-600 text-white'
+                                                    className={`rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 ${selectedSize === size
+                                                        ? 'bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] text-white shadow-lg shadow-[#26d4b8]/20'
                                                         : 'glass text-muted-foreground hover:text-foreground'
                                                         }`}
                                                 >
@@ -814,8 +814,8 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                                 <button
                                                     key={color.name}
                                                     onClick={() => setSelectedColor(color.name)}
-                                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedColor === color.name
-                                                        ? 'bg-purple-600 text-white border border-purple-500'
+                                                    className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 ${selectedColor === color.name
+                                                        ? 'border border-[#2f6cf3] bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] text-white shadow-lg shadow-[#26d4b8]/20'
                                                         : 'glass text-muted-foreground hover:text-foreground'
                                                         }`}
                                                 >
@@ -832,7 +832,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                             <ul className="space-y-1.5 text-xs text-muted-foreground">
                                                 {productPromptGuidance.checklist.map((item) => (
                                                     <li key={item} className="flex items-start gap-2">
-                                                        <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-purple-400/80" />
+                                                        <span className="mt-[3px] h-1.5 w-1.5 flex-none rounded-full bg-[#26d4b8]/85" />
                                                         <span>{item}</span>
                                                     </li>
                                                 ))}
@@ -844,7 +844,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                     <button
                                         onClick={handleAddToCart}
                                         disabled={added}
-                                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-all"
+                                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45"
                                     >
                                         {added ? (
                                             <>

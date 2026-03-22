@@ -17,9 +17,9 @@ export default function StyleSelector({ selected, onSelect, label }: Props) {
                     <button
                         key={style.value}
                         onClick={() => onSelect(style.value)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selected === style.value
-                                ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                                : 'glass text-muted-foreground hover:text-foreground hover:border-purple-500/30'
+                        className={`rounded-full px-4 py-2 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 ${selected === style.value
+                                ? 'bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] text-white shadow-lg shadow-[#26d4b8]/25'
+                                : 'glass text-muted-foreground hover:border-[#2f6cf3]/30 hover:text-foreground'
                             }`}
                     >
                         {style.emoji} {style.label}
