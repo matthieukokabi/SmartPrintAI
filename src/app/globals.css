@@ -171,6 +171,29 @@
 @layer components {
   body:has(.premium-home-shell),
   body.premium-home {
+    --premium-page-bg: 217 44% 96%;
+    --premium-ink: 224 27% 14%;
+    --premium-muted: 220 16% 40%;
+    --premium-line: 216 26% 78%;
+    --premium-line-strong: 208 58% 54%;
+    --premium-surface: 0 0% 100%;
+    --premium-surface-soft: 215 44% 94%;
+    --premium-spot: 221 84% 56%;
+    --premium-spot-alt: 174 74% 44%;
+    --premium-shadow: 216 22% 58%;
+    color-scheme: light;
+    background:
+      radial-gradient(circle at top left, hsl(222 88% 74% / 0.22), transparent 34%),
+      radial-gradient(circle at 84% 18%, hsl(174 72% 68% / 0.2), transparent 26%),
+      radial-gradient(circle at 50% 120%, hsl(210 64% 76% / 0.2), transparent 44%),
+      linear-gradient(180deg, hsl(var(--premium-page-bg)) 0%, hsl(214 42% 93%) 56%, hsl(212 36% 91%) 100%);
+    transition:
+      background 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html[data-theme-mode='dark'] body:has(.premium-home-shell),
+  html[data-theme-mode='dark'] body.premium-home {
     --premium-page-bg: 221 46% 8%;
     --premium-ink: 212 24% 94%;
     --premium-muted: 214 16% 68%;
@@ -187,9 +210,26 @@
       radial-gradient(circle at 84% 18%, hsl(174 82% 26% / 0.2), transparent 26%),
       radial-gradient(circle at 50% 120%, hsl(209 86% 20% / 0.16), transparent 42%),
       linear-gradient(180deg, hsl(var(--premium-page-bg)) 0%, hsl(222 34% 9%) 42%, hsl(220 30% 7%) 100%);
-    transition:
-      background 520ms cubic-bezier(0.22, 1, 0.36, 1),
-      color 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html[data-theme-mode='light'] body:has(.premium-home-shell),
+  html[data-theme-mode='light'] body.premium-home {
+    --premium-page-bg: 217 44% 96%;
+    --premium-ink: 224 27% 14%;
+    --premium-muted: 220 16% 40%;
+    --premium-line: 216 26% 78%;
+    --premium-line-strong: 208 58% 54%;
+    --premium-surface: 0 0% 100%;
+    --premium-surface-soft: 215 44% 94%;
+    --premium-spot: 221 84% 56%;
+    --premium-spot-alt: 174 74% 44%;
+    --premium-shadow: 216 22% 58%;
+    color-scheme: light;
+    background:
+      radial-gradient(circle at top left, hsl(222 88% 74% / 0.22), transparent 34%),
+      radial-gradient(circle at 84% 18%, hsl(174 72% 68% / 0.2), transparent 26%),
+      radial-gradient(circle at 50% 120%, hsl(210 64% 76% / 0.2), transparent 44%),
+      linear-gradient(180deg, hsl(var(--premium-page-bg)) 0%, hsl(214 42% 93%) 56%, hsl(212 36% 91%) 100%);
   }
 
   body:has(.premium-home-shell)::before,
@@ -293,6 +333,69 @@
   .premium-home-shell {
     color: hsl(var(--premium-ink));
     position: relative;
+  }
+
+  .premium-home-shell .text-white,
+  .premium-home-shell .text-zinc-100,
+  .premium-home-shell .text-zinc-200 {
+    color: hsl(var(--premium-ink));
+    transition: color 320ms ease;
+  }
+
+  .premium-home-shell .text-zinc-300,
+  .premium-home-shell .text-zinc-400,
+  .premium-home-shell .text-zinc-500 {
+    color: hsl(var(--premium-muted));
+    transition: color 320ms ease;
+  }
+
+  .premium-home-shell .border-white\/10,
+  .premium-home-shell .border-white\/12,
+  .premium-home-shell .border-white\/15,
+  .premium-home-shell .border-white\/20 {
+    border-color: hsl(var(--premium-line) / 0.72);
+    transition: border-color 320ms ease;
+  }
+
+  .premium-home-shell .bg-\[\#0b1020\],
+  .premium-home-shell .bg-\[\#0b1222\],
+  .premium-home-shell .bg-\[\#090f1e\] {
+    background-color: hsl(var(--premium-surface) / 0.9);
+    transition: background-color 320ms ease;
+  }
+
+  .premium-home-shell .bg-\[\#070b16\]\/80 {
+    background-color: hsl(var(--premium-surface-soft) / 0.76);
+    transition: background-color 320ms ease;
+  }
+
+  .premium-home-shell .bg-white\/\[0\.01\],
+  .premium-home-shell .bg-white\/\[0\.02\],
+  .premium-home-shell .bg-white\/\[0\.03\],
+  .premium-home-shell .bg-white\/\[0\.04\],
+  .premium-home-shell .bg-white\/\[0\.05\],
+  .premium-home-shell .bg-white\/\[0\.08\],
+  .premium-home-shell .bg-white\/\[0\.09\] {
+    background-color: hsl(var(--premium-surface) / 0.58);
+    transition: background-color 320ms ease;
+  }
+
+  .premium-home-shell .from-zinc-900 {
+    --tw-gradient-from: hsl(var(--premium-surface-soft) / 0.94) var(--tw-gradient-from-position);
+    --tw-gradient-to: hsl(var(--premium-surface-soft) / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+
+  .premium-home-shell .to-\[\#111a2f\],
+  .premium-home-shell .to-\[\#141d33\] {
+    --tw-gradient-to: hsl(var(--premium-surface) / 0.78) var(--tw-gradient-to-position);
+  }
+
+  .premium-home-shell .via-\[\#101a2f\],
+  .premium-home-shell .via-\[\#111b30\] {
+    --tw-gradient-via: hsl(var(--premium-surface-soft) / 0.72) var(--tw-gradient-via-position);
+    --tw-gradient-to: hsl(var(--premium-surface-soft) / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to);
   }
 
   .premium-home-shell .premium-muted {

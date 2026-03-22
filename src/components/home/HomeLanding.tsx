@@ -442,7 +442,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
     return (
         <>
             <div
-                className="premium-home-shell bg-[#050c1a] text-zinc-100"
+                className="premium-home-shell"
                 data-analytics-page="homepage"
                 data-page-variant={heroPageVariant}
             >

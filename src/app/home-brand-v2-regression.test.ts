@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 const HOME_LANDING_PATH = path.join(process.cwd(), 'src', 'components', 'home', 'HomeLanding.tsx')
 const NAVBAR_PATH = path.join(process.cwd(), 'src', 'components', 'layout', 'Navbar.tsx')
 const FOOTER_PATH = path.join(process.cwd(), 'src', 'components', 'layout', 'Footer.tsx')
+const GLOBALS_CSS_PATH = path.join(process.cwd(), 'src', 'app', 'globals.css')
 
 function readSource(filePath: string): string {
     return fs.readFileSync(filePath, 'utf8')
@@ -56,5 +57,15 @@ describe('homepage brand v2 regression', () => {
         expect(footer).toContain("import BrandMark from '@/components/brand/BrandMark'")
         expect(footer).toContain('<BrandMark size={18} />')
         expect(footer).toContain('data-home-cta="footer_primary_create"')
+    })
+
+    it('keeps homepage premium shell theme-aware instead of dark-locked', () => {
+        const homeLanding = readSource(HOME_LANDING_PATH)
+        const globalsCss = readSource(GLOBALS_CSS_PATH)
+
+        expect(homeLanding).toContain('className="premium-home-shell"')
+        expect(homeLanding).not.toContain('premium-home-shell bg-[#050c1a] text-zinc-100')
+        expect(globalsCss).toContain("html[data-theme-mode='light'] body:has(.premium-home-shell)")
+        expect(globalsCss).toContain("html[data-theme-mode='dark'] body:has(.premium-home-shell)")
     })
 })

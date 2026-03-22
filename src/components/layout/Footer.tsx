@@ -11,7 +11,7 @@ export default function Footer() {
                             <div className="flex h-10 w-10 items-center justify-center rounded-2xl">
                                 <BrandMark size={18} />
                             </div>
-                            <span className="text-lg font-semibold tracking-[-0.015em] text-zinc-100">
+                            <span className="text-lg font-semibold tracking-[-0.015em] text-foreground">
                                 <span>SmartPrint</span>
                                 <span className="bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] bg-clip-text text-transparent">AI</span>
                             </span>
