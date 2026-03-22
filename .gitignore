@@ -41,6 +41,7 @@ yarn-error.log*
 TODO.md.bak.*
 .resend_api_key.tmp
 /data/analytics/*.jsonl
+/data/analytics/homepage-hero-experiment-snapshots.jsonl
 /docs/reports/artifacts/homepage-funnel/latest.json
 
 # vercel

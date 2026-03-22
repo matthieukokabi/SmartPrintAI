@@ -65,6 +65,17 @@ type HeroExperimentVariantMetrics = {
     clickToCreateStartRate: number
 }
 
+export type HeroExperimentThresholdProgressItem = {
+    metric: 'total_homepage_views' | 'variant_homepage_views' | 'variant_to_create_clicks'
+    variant: HeroExperimentVariantKey | null
+    label: string
+    current: number
+    required: number
+    remaining: number
+    met: boolean
+    message: string
+}
+
 type HeroExperimentThresholds = {
     minTotalHomepageViews: number
     minHomepageViewsPerVariant: number
@@ -90,6 +101,12 @@ type HeroExperimentReadout = {
     winnerCandidate: HeroExperimentVariantKey | null
     thresholds: HeroExperimentThresholds
     thresholdChecks: HeroExperimentThresholdChecks
+    readiness: {
+        readyForComparison: boolean
+        readinessMessage: string
+        progressItems: HeroExperimentThresholdProgressItem[]
+        blockers: string[]
+    }
     totals: {
         homepageViewsOverall: number
         homepageViewsExperimentEligible: number
@@ -420,6 +437,32 @@ function getExperimentVariantMetrics(
     }
 }
 
+function buildProgressItem(params: {
+    metric: HeroExperimentThresholdProgressItem['metric']
+    variant?: HeroExperimentVariantKey
+    label: string
+    metricNameSingular: string
+    contextLabel: string
+    current: number
+    required: number
+}): HeroExperimentThresholdProgressItem {
+    const remaining = Math.max(0, params.required - params.current)
+    const met = remaining === 0
+
+    return {
+        metric: params.metric,
+        variant: params.variant || null,
+        label: params.label,
+        current: params.current,
+        required: params.required,
+        remaining,
+        met,
+        message: met
+            ? `${params.label}: threshold met (${params.current}/${params.required})`
+            : `Need ${remaining} more ${params.metricNameSingular}${remaining === 1 ? '' : 's'} in ${params.contextLabel}.`,
+    }
+}
+
 function buildHeroExperimentReadout(params: {
     pageVariantBreakdown: PageVariantBreakdownRow[]
     homepageViewsOverall: number
@@ -448,6 +491,43 @@ function buildHeroExperimentReadout(params: {
     thresholdChecks.all = thresholdChecks.minTotalHomepageViews
         && thresholdChecks.minHomepageViewsPerVariant
         && thresholdChecks.minToCreateClicksPerVariant
+
+    const progressItems: HeroExperimentThresholdProgressItem[] = [
+        buildProgressItem({
+            metric: 'total_homepage_views',
+            label: 'Total homepage views (experiment variants)',
+            metricNameSingular: 'homepage view',
+            contextLabel: 'experiment',
+            current: homepageViewsExperimentEligible,
+            required: DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minTotalHomepageViews,
+        }),
+        ...variants.map((variant) =>
+            buildProgressItem({
+                metric: 'variant_homepage_views',
+                variant: variant.pageVariant,
+                label: `${variant.pageVariant} views`,
+                metricNameSingular: 'view',
+                contextLabel: variant.pageVariant,
+                current: variant.homepageViews,
+                required: DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minHomepageViewsPerVariant,
+            })
+        ),
+        ...variants.map((variant) =>
+            buildProgressItem({
+                metric: 'variant_to_create_clicks',
+                variant: variant.pageVariant,
+                label: `${variant.pageVariant} to-create clicks`,
+                metricNameSingular: 'to-create click',
+                contextLabel: variant.pageVariant,
+                current: variant.toCreateClicks,
+                required: DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minToCreateClicksPerVariant,
+            })
+        ),
+    ]
+    const blockers = progressItems.filter((item) => !item.met).map((item) => item.message)
+    const readinessMessage = thresholdChecks.all
+        ? 'Hero experiment ready for comparison.'
+        : 'Hero experiment still too immature to compare.'
 
     const ctrDeltaPctPoints = Number((variantA.homepageToCreateCtr - variantB.homepageToCreateCtr).toFixed(2))
     const createStartRateDeltaPctPoints = Number((variantA.createStartRate - variantB.createStartRate).toFixed(2))
@@ -519,6 +599,12 @@ function buildHeroExperimentReadout(params: {
         winnerCandidate,
         thresholds: DEFAULT_HERO_EXPERIMENT_THRESHOLDS,
         thresholdChecks,
+        readiness: {
+            readyForComparison: thresholdChecks.all,
+            readinessMessage,
+            progressItems,
+            blockers,
+        },
         totals: {
             homepageViewsOverall: params.homepageViewsOverall,
             homepageViewsExperimentEligible,

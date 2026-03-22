@@ -67,6 +67,9 @@ describe('homepage funnel report helpers', () => {
     expect(report.heroExperiment.secondaryMetric).toBe('create_start_rate')
     expect(report.heroExperiment.status).toBe('insufficient_data')
     expect(report.heroExperiment.decision).toBe('continue_running')
+    expect(report.heroExperiment.readiness.readyForComparison).toBe(false)
+    expect(report.heroExperiment.readiness.progressItems.length).toBe(5)
+    expect(report.heroExperiment.readiness.blockers.some((message) => message.includes('variant_b'))).toBe(true)
   })
 
   it('builds report from empty real event log without simulation fallback', async () => {
@@ -79,6 +82,7 @@ describe('homepage funnel report helpers', () => {
     expect(report.hasData).toBe(false)
     expect(report.totals.homepageViews).toBe(0)
     expect(report.heroExperiment.status).toBe('insufficient_data')
+    expect(report.heroExperiment.readiness.readinessMessage).toContain('immature')
   })
 
   it('builds report from persisted real event log data', async () => {
@@ -151,6 +155,9 @@ describe('homepage funnel report helpers', () => {
     expect(report.heroExperiment.status).toBe('winner_candidate')
     expect(report.heroExperiment.decision).toBe('ship_winner')
     expect(report.heroExperiment.winnerCandidate).toBe('variant_a')
+    expect(report.heroExperiment.readiness.readyForComparison).toBe(true)
+    expect(report.heroExperiment.readiness.blockers).toHaveLength(0)
+    expect(report.heroExperiment.readiness.readinessMessage).toContain('ready')
   })
 
   it('marks ready_for_comparison when thresholds are met but primary metric gap is too small', () => {
@@ -198,5 +205,20 @@ describe('homepage funnel report helpers', () => {
     expect(report.heroExperiment.status).toBe('inconclusive')
     expect(report.heroExperiment.decision).toBe('investigate_tracking')
     expect(report.heroExperiment.reason).toContain('missing exposure')
+    expect(report.heroExperiment.readiness.blockers.some((message) => message.includes('variant_b'))).toBe(true)
+  })
+
+  it('reports exact remaining counts for threshold progress guidance', () => {
+    const records = [
+      ...Array.from({ length: 80 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 12 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 34 }, () => buildRecord('viewed', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+      ...Array.from({ length: 4 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_b', params: { page_variant: 'variant_b', cta_location: 'hero_primary_create' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.heroExperiment.readiness.blockers).toContain('Need 86 more homepage views in experiment.')
+    expect(report.heroExperiment.readiness.blockers).toContain('Need 41 more views in variant_b.')
+    expect(report.heroExperiment.readiness.blockers).toContain('Need 6 more to-create clicks in variant_b.')
   })
 })

@@ -42,6 +42,28 @@ Interpretation rule:
 - Do not run a new hero copy iteration until the report is at least `ready_for_comparison` (thresholds met).
 - Only promote a variant to control when status is `winner_candidate` with decision `ship_winner`.
 
+## Experiment Operations
+Commands:
+- `npm run analytics:funnel:report`: full funnel + experiment decision report.
+- `npm run analytics:hero:readiness`: concise readiness-focused output showing what is still missing.
+- `npm run analytics:hero:snapshot`: append a dated snapshot row for historical tracking.
+
+Snapshot storage:
+- Default file: `data/analytics/homepage-hero-experiment-snapshots.jsonl`
+- Optional override: `HOMEPAGE_HERO_EXPERIMENT_SNAPSHOT_PATH`
+- Snapshot files are local/internal and ignored by git.
+
+Snapshot row fields:
+- `snapshotAt`, `snapshotDate`, `source`
+- total homepage views/clicks/create-starts
+- per-variant views/clicks/create-starts/rates
+- experiment `status`, `decision`, `winnerCandidate`
+- readiness state (`readyForComparison`, `readinessMessage`, `blockers`)
+
+Readiness progress interpretation:
+- The report/readiness command prints exact remaining counts for each threshold, including variant-specific deficits (for example: additional views or to-create clicks still needed in `variant_b`).
+- Use this output for daily monitoring while traffic accumulates.
+
 ## Collection Pipeline
 1. Client event helpers (`trackHomepage*`) emit GA4 events when `gtag` is available.
 2. Homepage funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.

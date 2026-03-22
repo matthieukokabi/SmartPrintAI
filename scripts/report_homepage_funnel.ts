@@ -65,12 +65,25 @@ async function main() {
     console.log(`Winner candidate: ${report.heroExperiment.winnerCandidate || 'none'}`)
     console.log(`Reason: ${report.heroExperiment.reason}`)
     console.log(`Next action: ${report.heroExperiment.nextAction}`)
+    console.log(`Readiness message: ${report.heroExperiment.readiness.readinessMessage}`)
 
     printSection('Hero Experiment Thresholds')
     console.log(`minTotalHomepageViews: ${report.heroExperiment.thresholds.minTotalHomepageViews} (met=${report.heroExperiment.thresholdChecks.minTotalHomepageViews})`)
     console.log(`minHomepageViewsPerVariant: ${report.heroExperiment.thresholds.minHomepageViewsPerVariant} (met=${report.heroExperiment.thresholdChecks.minHomepageViewsPerVariant})`)
     console.log(`minToCreateClicksPerVariant: ${report.heroExperiment.thresholds.minToCreateClicksPerVariant} (met=${report.heroExperiment.thresholdChecks.minToCreateClicksPerVariant})`)
     console.log(`allThresholdsMet: ${report.heroExperiment.thresholdChecks.all}`)
+
+    printSection('Hero Experiment Threshold Progress')
+    for (const item of report.heroExperiment.readiness.progressItems) {
+        const suffix = item.met ? 'met' : `need ${item.remaining} more`
+        console.log(`${item.label}: ${item.current}/${item.required} (${suffix})`)
+    }
+    if (report.heroExperiment.readiness.blockers.length > 0) {
+        console.log('Readiness blockers:')
+        for (const blocker of report.heroExperiment.readiness.blockers) {
+            console.log(`- ${blocker}`)
+        }
+    }
 
     printSection('Hero Experiment Sample')
     console.log(`Overall homepage views: ${report.heroExperiment.totals.homepageViewsOverall}`)
