@@ -45,6 +45,7 @@ describe('homepage funnel report helpers', () => {
     expect(isHomepageEventName('create_flow_started')).toBe(true)
     expect(isHomepageEventName('create_prompt_started')).toBe(false)
     expect(isFunnelEventName('create_prompt_started')).toBe(true)
+    expect(isFunnelEventName('product_proof_section_viewed')).toBe(true)
     expect(isHomepageEventName('purchase')).toBe(false)
     expect(isFunnelEventName('purchase')).toBe(false)
   })

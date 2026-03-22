@@ -1,6 +1,12 @@
 import { mkdir, readFile, appendFile } from 'node:fs/promises'
 import path from 'node:path'
-import { CREATE_ENTRY_EVENT_NAMES, HOMEPAGE_EVENT_NAMES, type FunnelEventName, type HomepageEventName } from '@/lib/analytics'
+import {
+    CREATE_ENTRY_EVENT_NAMES,
+    HOMEPAGE_EVENT_NAMES,
+    PRODUCT_PROOF_EVENT_NAMES,
+    type FunnelEventName,
+    type HomepageEventName,
+} from '@/lib/analytics'
 
 export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'bot' | 'unknown'
 
@@ -152,6 +158,7 @@ export type HomepageFunnelReport = {
 const HOMEPAGE_EVENT_NAME_SET = new Set<HomepageEventName>(Object.values(HOMEPAGE_EVENT_NAMES))
 const FUNNEL_EVENT_NAME_SET = new Set<FunnelEventName>([
     ...Object.values(HOMEPAGE_EVENT_NAMES),
+    ...Object.values(PRODUCT_PROOF_EVENT_NAMES),
     ...Object.values(CREATE_ENTRY_EVENT_NAMES),
 ])
 const HERO_EXPERIMENT_VARIANTS: HeroExperimentVariantKey[] = ['variant_a', 'variant_b']

@@ -17,12 +17,14 @@ describe('homepage brand v2 regression', () => {
         expect(source).toContain('id="how-it-works"')
         expect(source).toContain('id="why-smartprintai"')
         expect(source).toContain('id="featured-products"')
+        expect(source).toContain('id="product-proof"')
         expect(source).toContain('TRUST_STACK')
         expect(source).toContain('FEATURED_PRODUCT_PREVIEWS')
         expect(source).toContain('<HomeFunnelAnalytics />')
         expect(source).toContain('data-analytics-page="homepage"')
         expect(source).toContain('data-home-section="hero"')
         expect(source).toContain('data-home-section="trust"')
+        expect(source).toContain('data-home-section="product_proof"')
         expect(source).toContain('heroTitleVariantB')
         expect(source).toContain('heroSubtitleVariantB')
         expect(source).toContain('heroPrimaryCtaVariantB')
@@ -38,6 +40,8 @@ describe('homepage brand v2 regression', () => {
         expect(source).toContain('finalCtaTitle')
         expect(source).toContain('heroSupportLine')
         expect(source).toContain('text.heroSecondaryCta')
+        expect(source).toContain('data-home-cta="product_proof_primary_create"')
+        expect(source).toContain('productProofOutcome')
     })
 
     it('keeps shared BrandMark usage in nav and footer', () => {

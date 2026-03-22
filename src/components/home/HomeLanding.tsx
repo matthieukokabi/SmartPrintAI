@@ -41,6 +41,17 @@ type LandingLocaleCopy = {
     howItWorksSteps: { title: string; description: string }[]
     featuredTitle: string
     featuredSubtitle: string
+    productProofTitle: string
+    productProofSubtitle: string
+    productProofPromptLabel: string
+    productProofPromptText: string
+    productProofGeneratedLabel: string
+    productProofGeneratedText: string
+    productProofProductLabel: string
+    productProofProductName: string
+    productProofProductNote: string
+    productProofOutcome: string
+    productProofPrimaryCta: string
     faqTitle: string
     faqItems: { question: string; answer: string }[]
     midCtaTitle: string
@@ -105,6 +116,17 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         ],
         featuredTitle: 'Launch-ready product lineup',
         featuredSubtitle: 'Start with proven formats, then expand once demand is validated.',
+        productProofTitle: 'See the full outcome before you commit',
+        productProofSubtitle: 'One prompt becomes one design, then one checkout-ready product preview in seconds.',
+        productProofPromptLabel: 'Prompt',
+        productProofPromptText: 'Minimal cyber tiger emblem, neon blue and orange, transparent background, centered composition.',
+        productProofGeneratedLabel: 'AI Design Output',
+        productProofGeneratedText: 'Print-ready PNG with clean transparency edges.',
+        productProofProductLabel: 'Applied Product',
+        productProofProductName: 'Premium Heavyweight Tee',
+        productProofProductNote: 'Placement checked for print area, contrast, and scale.',
+        productProofOutcome: 'Idea -> Design -> Product -> Ready to buy.',
+        productProofPrimaryCta: 'Create This Flow',
         faqTitle: 'Frequently asked questions',
         faqItems: [
             {
@@ -180,6 +202,17 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         ],
         featuredTitle: 'Sélection produits prête au lancement',
         featuredSubtitle: 'Commencez avec des formats fiables, puis élargissez selon la demande.',
+        productProofTitle: 'Visualisez le résultat complet avant de lancer',
+        productProofSubtitle: 'Un prompt devient un design, puis un produit prêt au checkout en quelques secondes.',
+        productProofPromptLabel: 'Prompt',
+        productProofPromptText: 'Emblème cyber tigre minimal, bleu et orange néon, fond transparent, composition centrée.',
+        productProofGeneratedLabel: 'Sortie IA',
+        productProofGeneratedText: 'PNG imprimable avec bords de transparence propres.',
+        productProofProductLabel: 'Produit appliqué',
+        productProofProductName: 'T-shirt premium épais',
+        productProofProductNote: 'Placement validé pour zone d’impression, contraste et échelle.',
+        productProofOutcome: 'Idée -> Design -> Produit -> Prêt à vendre.',
+        productProofPrimaryCta: 'Créer ce flux',
         faqTitle: 'Questions fréquentes',
         faqItems: [
             {
@@ -256,6 +289,17 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         ],
         featuredTitle: 'Launch-fähige Produktauswahl',
         featuredSubtitle: 'Mit bewährten Formaten starten, dann kontrolliert erweitern.',
+        productProofTitle: 'Sieh das komplette Ergebnis vor dem Start',
+        productProofSubtitle: 'Ein Prompt wird in Sekunden zu Design und checkout-fertigem Produkt.',
+        productProofPromptLabel: 'Prompt',
+        productProofPromptText: 'Minimales Cyber-Tiger-Emblem, Neon blau/orange, transparenter Hintergrund, zentrierte Komposition.',
+        productProofGeneratedLabel: 'KI-Designausgabe',
+        productProofGeneratedText: 'Druckfertiges PNG mit sauberen Transparenzkanten.',
+        productProofProductLabel: 'Produktanwendung',
+        productProofProductName: 'Premium Heavyweight Tee',
+        productProofProductNote: 'Positionierung auf Druckfläche, Kontrast und Skalierung geprüft.',
+        productProofOutcome: 'Idee -> Design -> Produkt -> Kaufbereit.',
+        productProofPrimaryCta: 'Diesen Flow starten',
         faqTitle: 'Häufige Fragen',
         faqItems: [
             {
@@ -332,6 +376,17 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         ],
         featuredTitle: 'Selección de productos lista para lanzar',
         featuredSubtitle: 'Empieza con formatos confiables y expande según demanda real.',
+        productProofTitle: 'Mira el resultado completo antes de lanzar',
+        productProofSubtitle: 'Un prompt se convierte en diseño y producto listo para checkout en segundos.',
+        productProofPromptLabel: 'Prompt',
+        productProofPromptText: 'Emblema cyber tigre minimal, azul y naranja neón, fondo transparente, composición centrada.',
+        productProofGeneratedLabel: 'Salida de IA',
+        productProofGeneratedText: 'PNG imprimible con bordes de transparencia limpios.',
+        productProofProductLabel: 'Producto aplicado',
+        productProofProductName: 'Camiseta premium pesada',
+        productProofProductNote: 'Ubicación validada para área de impresión, contraste y escala.',
+        productProofOutcome: 'Idea -> Diseño -> Producto -> Listo para comprar.',
+        productProofPrimaryCta: 'Crear este flujo',
         faqTitle: 'Preguntas frecuentes',
         faqItems: [
             {
@@ -526,6 +581,82 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                     {item}
                                 </span>
                             ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section id="product-proof" className="px-4 py-12 sm:px-6 lg:px-8 lg:py-16" data-home-section="product_proof">
+                    <div className="mx-auto max-w-7xl">
+                        <h2 className="max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
+                            {text.productProofTitle}
+                        </h2>
+                        <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300 sm:text-base">{text.productProofSubtitle}</p>
+
+                        <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-center">
+                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
+                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofPromptLabel}</p>
+                                <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                                    <p className="text-sm leading-6 text-zinc-100">{text.productProofPromptText}</p>
+                                </div>
+                            </article>
+
+                            <p className="hidden text-xs uppercase tracking-[0.3em] text-zinc-500 lg:block">Idea -&gt;</p>
+
+                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
+                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofGeneratedLabel}</p>
+                                <div className="relative mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-[#141d33] p-4">
+                                    <div className="pointer-events-none absolute -left-5 -top-5 h-16 w-16 rounded-full bg-orange-500/20 blur-2xl" />
+                                    <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-sky-500/20 blur-2xl" />
+                                    <div className="relative mx-auto flex aspect-square max-w-[220px] items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(135deg,rgba(249,115,22,0.15),rgba(56,189,248,0.12))]">
+                                        <svg viewBox="0 0 220 220" className="h-44 w-44" role="img" aria-label="Generated artwork preview">
+                                            <defs>
+                                                <linearGradient id="proofAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#fb923c" />
+                                                    <stop offset="100%" stopColor="#38bdf8" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path d="M109 28 L130 73 L178 80 L143 114 L151 164 L109 141 L67 164 L75 114 L40 80 L88 73 Z" fill="url(#proofAccent)" fillOpacity="0.92" />
+                                            <circle cx="109" cy="108" r="24" fill="#0b1222" />
+                                            <path d="M92 112 Q109 84 126 112 Q109 135 92 112 Z" fill="#f8fafc" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p className="mt-3 text-sm text-zinc-300">{text.productProofGeneratedText}</p>
+                            </article>
+
+                            <p className="hidden text-xs uppercase tracking-[0.3em] text-zinc-500 lg:block">-&gt; Product</p>
+
+                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
+                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofProductLabel}</p>
+                                <div className="mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-4">
+                                    <svg viewBox="0 0 320 360" className="mx-auto h-52 w-full max-w-[240px]" role="img" aria-label="Generated design on premium t-shirt">
+                                        <path
+                                            d="M80 30 L126 20 L194 20 L240 30 L282 82 L250 110 L240 95 L238 330 L82 330 L80 95 L70 110 L38 82 Z"
+                                            fill="#111827"
+                                            stroke="#3f3f46"
+                                            strokeWidth="4"
+                                            strokeLinejoin="round"
+                                        />
+                                        <rect x="122" y="112" width="76" height="98" rx="8" fill="white" />
+                                        <path d="M160 130 L176 164 L212 170 L185 195 L191 232 L160 215 L129 232 L135 195 L108 170 L144 164 Z" fill="#38bdf8" fillOpacity="0.82" />
+                                        <circle cx="160" cy="172" r="14" fill="#111827" />
+                                    </svg>
+                                </div>
+                                <p className="mt-3 text-sm font-semibold text-white">{text.productProofProductName}</p>
+                                <p className="mt-2 text-sm leading-6 text-zinc-300">{text.productProofProductNote}</p>
+                            </article>
+                        </div>
+
+                        <div className="mt-8 flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm font-medium text-zinc-100 sm:text-base">{text.productProofOutcome}</p>
+                            <Link
+                                href="/create"
+                                data-home-cta="product_proof_primary_create"
+                                data-home-cta-label={text.productProofPrimaryCta}
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                            >
+                                {text.productProofPrimaryCta}
+                            </Link>
                         </div>
                     </div>
                 </section>

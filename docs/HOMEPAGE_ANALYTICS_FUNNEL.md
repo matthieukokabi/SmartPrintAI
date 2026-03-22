@@ -100,39 +100,47 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - Fires: once per milestone per page view (`25`, `50`, `75`, `90`).
 - Properties: `scroll_depth_percent`, `page_variant`.
 
-6. `create_flow_started`
+6. `product_proof_section_viewed`
+- Fires: once when the dedicated homepage product-proof section becomes visible.
+- Properties: `page_variant`.
+
+7. `product_proof_cta_clicked`
+- Fires: when CTA(s) inside the homepage product-proof section are clicked.
+- Properties: `cta_location`, `cta_label`, `destination`, `page_variant`.
+
+8. `create_flow_started`
 - Fires: when `/create` client loads.
 - Properties: `entrypoint` (`homepage` | `other` | `unknown`), `referrer_path`, `locale`, `page_variant`.
 
-7. `create_page_viewed`
+9. `create_page_viewed`
 - Fires: when `/create` entry UI loads.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`.
 
-8. `create_entrypoint_resolved`
+10. `create_entrypoint_resolved`
 - Fires: once when `/create` resolves source classification.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`.
 
-9. `create_prompt_input_focused`
+11. `create_prompt_input_focused`
 - Fires: first time prompt textarea is focused per create-page view.
 - Properties: `entrypoint`, `locale`, `page_variant`.
 
-10. `create_prompt_started`
+12. `create_prompt_started`
 - Fires: first time prompt content becomes non-empty per create-page view.
 - Properties: `entrypoint`, `locale`, `page_variant`, `prompt_length_bucket`.
 
-11. `create_generation_started`
+13. `create_generation_started`
 - Fires: first prompt submission/generation start per create-page view.
 - Properties: `entrypoint`, `locale`, `page_variant`, `prompt_length_bucket`, `template_type`, `has_reference_image`.
 
-12. `create_template_selected`
+14. `create_template_selected`
 - Fires: first style/template change per create-page view.
 - Properties: `entrypoint`, `locale`, `page_variant`, `template_type`.
 
-13. `create_product_selected`
+15. `create_product_selected`
 - Fires: first product selection after generation per create-page view.
 - Properties: `entrypoint`, `locale`, `page_variant`, `product_type`, `product_id`.
 
-14. `create_flow_abandoned_early`
+16. `create_flow_abandoned_early`
 - Fires: when user leaves `/create` without starting generation.
 - Properties: `entrypoint`, `referrer_path`, `locale`, `page_variant`, `last_completed_step`, `prompt_length_bucket`.
 

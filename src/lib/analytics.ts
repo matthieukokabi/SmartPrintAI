@@ -22,6 +22,13 @@ export const HOMEPAGE_EVENT_NAMES = {
 } as const
 
 export type HomepageEventName = (typeof HOMEPAGE_EVENT_NAMES)[keyof typeof HOMEPAGE_EVENT_NAMES]
+
+export const PRODUCT_PROOF_EVENT_NAMES = {
+    sectionViewed: 'product_proof_section_viewed',
+    ctaClicked: 'product_proof_cta_clicked',
+} as const
+
+export type ProductProofEventName = (typeof PRODUCT_PROOF_EVENT_NAMES)[keyof typeof PRODUCT_PROOF_EVENT_NAMES]
 export const CREATE_ENTRY_EVENT_NAMES = {
     pageViewed: 'create_page_viewed',
     entrypointResolved: 'create_entrypoint_resolved',
@@ -34,9 +41,10 @@ export const CREATE_ENTRY_EVENT_NAMES = {
 } as const
 
 export type CreateEntryEventName = (typeof CREATE_ENTRY_EVENT_NAMES)[keyof typeof CREATE_ENTRY_EVENT_NAMES]
-export type FunnelEventName = HomepageEventName | CreateEntryEventName
+export type FunnelEventName = HomepageEventName | CreateEntryEventName | ProductProofEventName
 const FORWARDED_FUNNEL_EVENTS = new Set<FunnelEventName>([
     ...Object.values(HOMEPAGE_EVENT_NAMES),
+    ...Object.values(PRODUCT_PROOF_EVENT_NAMES),
     ...Object.values(CREATE_ENTRY_EVENT_NAMES),
 ])
 
@@ -139,6 +147,21 @@ export function trackHomepageToCreateClicked(params: {
     page_variant?: string
 }): boolean {
     return trackEvent(HOMEPAGE_EVENT_NAMES.toCreateClicked, params)
+}
+
+export function trackProductProofSectionViewed(params: {
+    page_variant?: string
+}): boolean {
+    return trackEvent(PRODUCT_PROOF_EVENT_NAMES.sectionViewed, params)
+}
+
+export function trackProductProofCtaClicked(params: {
+    cta_location: string
+    cta_label?: string
+    destination?: string
+    page_variant?: string
+}): boolean {
+    return trackEvent(PRODUCT_PROOF_EVENT_NAMES.ctaClicked, params)
 }
 
 export function trackCreateFlowStarted(params: {

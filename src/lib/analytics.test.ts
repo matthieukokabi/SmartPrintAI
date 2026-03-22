@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   CREATE_ENTRY_EVENT_NAMES,
   HOMEPAGE_EVENT_NAMES,
+  PRODUCT_PROOF_EVENT_NAMES,
   trackCreateEntrypointResolved,
   trackCreateFlowAbandonedEarly,
   trackCreateFlowStarted,
@@ -17,6 +18,8 @@ import {
   trackHomepageSectionViewed,
   trackHomepageToCreateClicked,
   trackHomepageViewed,
+  trackProductProofCtaClicked,
+  trackProductProofSectionViewed,
   trackPurchase,
 } from './analytics'
 import type { Order } from '@/types'
@@ -60,6 +63,8 @@ describe('homepage analytics helpers', () => {
     expect(HOMEPAGE_EVENT_NAMES.scrollDepthReached).toBe('homepage_scroll_depth_reached')
     expect(HOMEPAGE_EVENT_NAMES.toCreateClicked).toBe('homepage_to_create_clicked')
     expect(HOMEPAGE_EVENT_NAMES.createFlowStarted).toBe('create_flow_started')
+    expect(PRODUCT_PROOF_EVENT_NAMES.sectionViewed).toBe('product_proof_section_viewed')
+    expect(PRODUCT_PROOF_EVENT_NAMES.ctaClicked).toBe('product_proof_cta_clicked')
     expect(CREATE_ENTRY_EVENT_NAMES.pageViewed).toBe('create_page_viewed')
     expect(CREATE_ENTRY_EVENT_NAMES.entrypointResolved).toBe('create_entrypoint_resolved')
     expect(CREATE_ENTRY_EVENT_NAMES.promptInputFocused).toBe('create_prompt_input_focused')
@@ -80,6 +85,8 @@ describe('homepage analytics helpers', () => {
     trackHomepageSectionViewed({ section_name: 'hero', page_variant: 'variant_a' })
     trackHomepageScrollDepthReached({ scroll_depth_percent: 50, page_variant: 'variant_a' })
     trackHomepageToCreateClicked({ cta_location: 'hero_primary_create', destination: '/create' })
+    trackProductProofSectionViewed({ page_variant: 'variant_a' })
+    trackProductProofCtaClicked({ cta_location: 'product_proof_primary_create', destination: '/create' })
     trackCreateFlowStarted({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
     trackCreatePageViewed({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
     trackCreateEntrypointResolved({ entrypoint: 'homepage', referrer_path: '/', locale: 'en', page_variant: 'variant_a' })
@@ -109,6 +116,8 @@ describe('homepage analytics helpers', () => {
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_section_viewed', expect.objectContaining({ section_name: 'hero' }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_scroll_depth_reached', expect.objectContaining({ scroll_depth_percent: 50 }))
     expect(gtag).toHaveBeenCalledWith('event', 'homepage_to_create_clicked', expect.objectContaining({ destination: '/create' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'product_proof_section_viewed', expect.objectContaining({ page_variant: 'variant_a' }))
+    expect(gtag).toHaveBeenCalledWith('event', 'product_proof_cta_clicked', expect.objectContaining({ cta_location: 'product_proof_primary_create' }))
     expect(gtag).toHaveBeenCalledWith('event', 'create_flow_started', expect.objectContaining({ entrypoint: 'homepage', page_variant: 'variant_a' }))
     expect(gtag).toHaveBeenCalledWith('event', 'create_page_viewed', expect.objectContaining({ entrypoint: 'homepage', page_variant: 'variant_a' }))
     expect(gtag).toHaveBeenCalledWith('event', 'create_entrypoint_resolved', expect.objectContaining({ entrypoint: 'homepage' }))

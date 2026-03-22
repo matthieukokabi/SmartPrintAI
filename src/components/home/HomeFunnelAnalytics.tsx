@@ -7,6 +7,8 @@ import {
     trackHomepageSectionViewed,
     trackHomepageToCreateClicked,
     trackHomepageViewed,
+    trackProductProofCtaClicked,
+    trackProductProofSectionViewed,
 } from '@/lib/analytics'
 
 const SECTION_SELECTOR = '[data-home-section]'
@@ -65,6 +67,12 @@ export default function HomeFunnelAnalytics() {
                                 section_name: sectionName,
                                 page_variant: pageVariant,
                             })
+
+                            if (sectionName === 'product_proof') {
+                                trackProductProofSectionViewed({
+                                    page_variant: pageVariant,
+                                })
+                            }
                         }
                     },
                     { threshold: 0.45 }
@@ -117,6 +125,15 @@ export default function HomeFunnelAnalytics() {
                 destination,
                 page_variant: pageVariant,
             })
+
+            if (ctaLocation.startsWith('product_proof_')) {
+                trackProductProofCtaClicked({
+                    cta_location: ctaLocation,
+                    cta_label: ctaLabel,
+                    destination,
+                    page_variant: pageVariant,
+                })
+            }
 
             if (isCreateDestination(destination)) {
                 trackHomepageToCreateClicked({

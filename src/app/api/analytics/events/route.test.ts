@@ -118,4 +118,28 @@ describe('/api/analytics/events POST', () => {
       })
     )
   })
+
+  it('accepts product proof homepage events', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'product_proof_cta_clicked',
+        params: { cta_location: 'product_proof_primary_create', destination: '/create' },
+        path: '/',
+        pageVariant: 'variant_a',
+        locale: 'en',
+      })
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'product_proof_cta_clicked',
+        path: '/',
+        pageVariant: 'variant_a',
+      })
+    )
+  })
 })
