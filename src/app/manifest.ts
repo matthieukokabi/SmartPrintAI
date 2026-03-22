@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
             'Describe your vision, watch AI create it, and get it printed on premium products.',
         start_url: '/',
         display: 'standalone',
-        background_color: '#020617',
-        theme_color: '#9333ea',
+        background_color: '#060b16',
+        theme_color: '#2f6cf3',
         icons: [
             {
                 src: '/icon?size=192',

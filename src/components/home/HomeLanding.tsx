@@ -119,7 +119,7 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         productProofTitle: 'See the full outcome before you commit',
         productProofSubtitle: 'One prompt becomes one design, then one checkout-ready product preview in seconds.',
         productProofPromptLabel: 'Prompt',
-        productProofPromptText: 'Minimal cyber tiger emblem, neon blue and orange, transparent background, centered composition.',
+        productProofPromptText: 'Minimal cyber tiger emblem, neon blue and teal, transparent background, centered composition.',
         productProofGeneratedLabel: 'AI Design Output',
         productProofGeneratedText: 'Print-ready PNG with clean transparency edges.',
         productProofProductLabel: 'Applied Product',
@@ -205,7 +205,7 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         productProofTitle: 'Visualisez le résultat complet avant de lancer',
         productProofSubtitle: 'Un prompt devient un design, puis un produit prêt au checkout en quelques secondes.',
         productProofPromptLabel: 'Prompt',
-        productProofPromptText: 'Emblème cyber tigre minimal, bleu et orange néon, fond transparent, composition centrée.',
+        productProofPromptText: 'Emblème cyber tigre minimal, bleu et teal néon, fond transparent, composition centrée.',
         productProofGeneratedLabel: 'Sortie IA',
         productProofGeneratedText: 'PNG imprimable avec bords de transparence propres.',
         productProofProductLabel: 'Produit appliqué',
@@ -292,7 +292,7 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         productProofTitle: 'Sieh das komplette Ergebnis vor dem Start',
         productProofSubtitle: 'Ein Prompt wird in Sekunden zu Design und checkout-fertigem Produkt.',
         productProofPromptLabel: 'Prompt',
-        productProofPromptText: 'Minimales Cyber-Tiger-Emblem, Neon blau/orange, transparenter Hintergrund, zentrierte Komposition.',
+        productProofPromptText: 'Minimales Cyber-Tiger-Emblem, Neon blau/teal, transparenter Hintergrund, zentrierte Komposition.',
         productProofGeneratedLabel: 'KI-Designausgabe',
         productProofGeneratedText: 'Druckfertiges PNG mit sauberen Transparenzkanten.',
         productProofProductLabel: 'Produktanwendung',
@@ -379,7 +379,7 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         productProofTitle: 'Mira el resultado completo antes de lanzar',
         productProofSubtitle: 'Un prompt se convierte en diseño y producto listo para checkout en segundos.',
         productProofPromptLabel: 'Prompt',
-        productProofPromptText: 'Emblema cyber tigre minimal, azul y naranja neón, fondo transparente, composición centrada.',
+        productProofPromptText: 'Emblema cyber tigre minimal, azul y teal neón, fondo transparente, composición centrada.',
         productProofGeneratedLabel: 'Salida de IA',
         productProofGeneratedText: 'PNG imprimible con bordes de transparencia limpios.',
         productProofProductLabel: 'Producto aplicado',
@@ -442,7 +442,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
     return (
         <>
             <div
-                className="premium-home-shell bg-[#06080f] text-zinc-100"
+                className="premium-home-shell bg-[#050c1a] text-zinc-100"
                 data-analytics-page="homepage"
                 data-page-variant={heroPageVariant}
             >
@@ -460,8 +460,8 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     data-home-section="hero"
                 >
                     <div className="pointer-events-none absolute inset-0">
-                        <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(249,115,22,0.28),_transparent_68%)] blur-3xl" />
-                        <div className="absolute -right-20 top-20 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(14,165,233,0.24),_transparent_70%)] blur-3xl" />
+                        <div className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(47,108,243,0.24),_transparent_68%)] blur-3xl" />
+                        <div className="absolute -right-20 top-20 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(38,212,184,0.2),_transparent_70%)] blur-3xl" />
                     </div>
 
                     <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
@@ -480,7 +480,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                     href="/create"
                                     data-home-cta="hero_primary_create"
                                     data-home-cta-label={heroPrimaryCta}
-                                    className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                                    className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(38,212,184,0.56)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                                 >
                                     {heroPrimaryCta}
                                 </Link>
@@ -500,7 +500,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                         key={assurance}
                                         className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-3 py-1.5 text-xs text-zinc-200"
                                     >
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                                        <span className="h-1.5 w-1.5 rounded-full bg-[#53e9cf]" />
                                         {assurance}
                                     </span>
                                 ))}
@@ -541,18 +541,18 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 shadow-[0_34px_90px_-60px_rgba(14,165,233,0.65)] backdrop-blur-xl sm:p-5">
+                        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-white/[0.02] p-4 shadow-[0_34px_90px_-60px_rgba(38,212,184,0.44)] backdrop-blur-xl sm:p-5">
                             <div className="rounded-2xl border border-white/10 bg-[#0b1020] p-5">
                                 <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{copy.hero.badge}</p>
                                 <p className="mt-3 text-sm text-zinc-200">{copy.hero.samplePrompts[2]}</p>
                                 <div className="mt-4 rounded-xl border border-white/10 bg-gradient-to-b from-zinc-900 to-[#111a2f] p-4">
                                     <div className="mb-3 h-2 w-20 rounded bg-zinc-700/50" />
                                     <div className="grid gap-3 sm:grid-cols-2">
-                                        <div className="rounded-lg border border-white/10 bg-gradient-to-br from-orange-400/20 to-sky-400/20 p-3">
+                                        <div className="rounded-lg border border-white/10 bg-gradient-to-br from-[#2f6cf3]/24 to-[#26d4b8]/20 p-3">
                                             <p className="text-xs uppercase tracking-[0.16em] text-zinc-200">Output Quality</p>
                                             <p className="mt-2 text-sm text-zinc-100">Transparency-safe, print-ready pipeline</p>
                                         </div>
-                                        <div className="rounded-lg border border-white/10 bg-gradient-to-br from-sky-500/20 to-indigo-500/20 p-3">
+                                        <div className="rounded-lg border border-white/10 bg-gradient-to-br from-[#2f6cf3]/20 to-[#26d4b8]/20 p-3">
                                             <p className="text-xs uppercase tracking-[0.16em] text-zinc-200">Checkout Reliability</p>
                                             <p className="mt-2 text-sm text-zinc-100">Provider routing with order tracking</p>
                                         </div>
@@ -605,14 +605,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
                                 <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofGeneratedLabel}</p>
                                 <div className="relative mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-[#141d33] p-4">
-                                    <div className="pointer-events-none absolute -left-5 -top-5 h-16 w-16 rounded-full bg-orange-500/20 blur-2xl" />
-                                    <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-sky-500/20 blur-2xl" />
-                                    <div className="relative mx-auto flex aspect-square max-w-[220px] items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(135deg,rgba(249,115,22,0.15),rgba(56,189,248,0.12))]">
+                                    <div className="pointer-events-none absolute -left-5 -top-5 h-16 w-16 rounded-full bg-[#2f6cf3]/18 blur-2xl" />
+                                    <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-[#26d4b8]/18 blur-2xl" />
+                                    <div className="relative mx-auto flex aspect-square max-w-[220px] items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(135deg,rgba(47,108,243,0.16),rgba(38,212,184,0.14))]">
                                         <svg viewBox="0 0 220 220" className="h-44 w-44" role="img" aria-label="Generated artwork preview">
                                             <defs>
                                                 <linearGradient id="proofAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#fb923c" />
-                                                    <stop offset="100%" stopColor="#38bdf8" />
+                                                    <stop offset="0%" stopColor="#2f6cf3" />
+                                                    <stop offset="100%" stopColor="#26d4b8" />
                                                 </linearGradient>
                                             </defs>
                                             <path d="M109 28 L130 73 L178 80 L143 114 L151 164 L109 141 L67 164 L75 114 L40 80 L88 73 Z" fill="url(#proofAccent)" fillOpacity="0.92" />
@@ -638,7 +638,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                             strokeLinejoin="round"
                                         />
                                         <rect x="122" y="112" width="76" height="98" rx="8" fill="white" />
-                                        <path d="M160 130 L176 164 L212 170 L185 195 L191 232 L160 215 L129 232 L135 195 L108 170 L144 164 Z" fill="#38bdf8" fillOpacity="0.82" />
+                                        <path d="M160 130 L176 164 L212 170 L185 195 L191 232 L160 215 L129 232 L135 195 L108 170 L144 164 Z" fill="#26d4b8" fillOpacity="0.82" />
                                         <circle cx="160" cy="172" r="14" fill="#111827" />
                                     </svg>
                                 </div>
@@ -653,7 +653,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                 href="/create"
                                 data-home-cta="product_proof_primary_create"
                                 data-home-cta-label={text.productProofPrimaryCta}
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(38,212,184,0.56)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.productProofPrimaryCta}
                             </Link>
@@ -695,7 +695,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             <Link
                                 href="/create"
                                 data-home-cta="how_it_works_primary_create"
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(56,189,248,0.7)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 text-sm font-semibold text-white shadow-[0_20px_50px_-28px_rgba(38,212,184,0.56)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.midCtaPrimary}
                             </Link>
@@ -718,7 +718,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                             {FEATURED_PRODUCT_PREVIEWS.map((item, index) => (
                                 <article key={item.name} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                                     <div
-                                        className={`h-40 rounded-xl border border-white/10 bg-gradient-to-br ${index % 2 === 0 ? 'from-orange-500/20 to-sky-500/20' : 'from-sky-500/20 to-indigo-500/20'
+                                        className={`h-40 rounded-xl border border-white/10 bg-gradient-to-br ${index % 2 === 0 ? 'from-[#2f6cf3]/22 to-[#26d4b8]/18' : 'from-[#2f6cf3]/20 to-[#26d4b8]/20'
                                             }`}
                                     />
                                     <div className="mt-4">
@@ -736,14 +736,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                 </section>
 
                 <section className="px-4 py-12 sm:px-6 lg:px-8 lg:py-14">
-                    <div className="mx-auto max-w-6xl rounded-3xl border border-white/12 bg-gradient-to-r from-orange-500/18 via-[#121a2f] to-sky-500/18 p-6 text-center sm:p-10">
+                    <div className="mx-auto max-w-6xl rounded-3xl border border-white/12 bg-gradient-to-r from-[#2f6cf3]/18 via-[#101a2f] to-[#26d4b8]/16 p-6 text-center sm:p-10">
                         <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.midCtaTitle}</h2>
                         <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-zinc-200 sm:text-base">{text.midCtaSubtitle}</p>
                         <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/create"
                                 data-home-cta="mid_band_primary_create"
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(14,165,233,0.75)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(38,212,184,0.58)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.midCtaPrimary}
                             </Link>
@@ -773,14 +773,14 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                 </section>
 
                 <section className="px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pb-24">
-                    <div className="mx-auto max-w-6xl rounded-3xl border border-white/12 bg-gradient-to-r from-orange-500/20 via-[#121a2f] to-sky-500/20 p-6 text-center sm:p-10 lg:p-12">
+                    <div className="mx-auto max-w-6xl rounded-3xl border border-white/12 bg-gradient-to-r from-[#2f6cf3]/20 via-[#111b30] to-[#26d4b8]/18 p-6 text-center sm:p-10 lg:p-12">
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-5xl">{text.finalCtaTitle}</h2>
                         <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-zinc-200 sm:text-base">{text.finalCtaSubtitle}</p>
                         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                             <Link
                                 href="/create"
                                 data-home-cta="final_primary_create"
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(14,165,233,0.75)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(38,212,184,0.58)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
                                 {text.finalCtaPrimary}
                             </Link>

@@ -57,12 +57,12 @@ The new system optimizes for memorability, readability, and conversion trust.
 
 ## 3) Visual Identity Direction
 ### Palette
-- `#06080F` page foundation
+- `#060B16` page foundation
 - `#0B1220` elevated surfaces
-- `#F97316` brand warm accent
-- `#0EA5E9` brand cool accent
-- `#0F172A` structural ink
-- `#E5E7EB` / `#A1A1AA` typography ladder
+- `#2E5FF7` brand gradient start (blue)
+- `#26D4B8` brand gradient end (teal)
+- `#0A1732` structural ink
+- `#E8F2FF` / `#95A9C7` typography ladder
 
 ### Typography
 - UI/body: Manrope (current stack)
@@ -83,7 +83,7 @@ The new system optimizes for memorability, readability, and conversion trust.
 - Cards: low-opacity surfaces + thin borders + controlled elevation
 
 ### Buttons
-- Primary: warm-to-cool gradient, high contrast, compact radius
+- Primary: blue-to-teal gradient, high contrast, compact radius
 - Secondary: low-contrast glass with strong border affordance
 
 ### Section spacing
