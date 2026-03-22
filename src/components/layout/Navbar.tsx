@@ -70,6 +70,7 @@ export default function Navbar() {
                             aria-label="Start creating"
                         >
                             <Sparkles className="w-3.5 h-3.5" />
+                            <span className="sm:hidden">Create</span>
                             <span className="hidden sm:inline">Start Creating</span>
                         </Link>
 

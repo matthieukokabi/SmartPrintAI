@@ -4,6 +4,14 @@ Date: 2026-03-22
 ## Scope
 This instrumentation measures homepage conversion behavior and progression into `/create` without invasive tracking.
 
+## Collection Pipeline
+1. Client event helpers (`trackHomepage*`) emit GA4 events.
+2. Homepage funnel events are also forwarded to `/api/analytics/events` (same-origin).
+3. Server appends validated JSONL records to `data/analytics/homepage-events.jsonl`.
+4. Aggregation utilities build funnel metrics from stored records.
+5. `npm run analytics:funnel:report` prints a readable report and writes:
+- `docs/reports/artifacts/homepage-funnel/latest.json`
+
 ## Event Taxonomy
 All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/lib/analytics.ts).
 
@@ -47,8 +55,20 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 4. Create flow start:
 - [`src/components/create/CreatePageClient.tsx`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/components/create/CreatePageClient.tsx)
 
+5. Event sink API route:
+- [`src/app/api/analytics/events/route.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/app/api/analytics/events/route.ts)
+
+6. Aggregation/reporting utilities:
+- [`src/lib/homepage-funnel-report.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/src/lib/homepage-funnel-report.ts)
+- [`scripts/report_homepage_funnel.ts`](/Users/magikmad/Documents/New%20project/SmartPrintAI/scripts/report_homepage_funnel.ts)
+
 ## Guardrails
 - Section impressions are deduped with per-view `Set`.
 - Scroll milestones are emitted once each per view.
 - CTA tracking is centralized via delegated listener to avoid repetitive inline handlers.
 - Event names are stable constants in `HOMEPAGE_EVENT_NAMES`.
+- Event intake is rate-limited on `/api/analytics/events`.
+- Invalid event names/payloads are rejected server-side.
+
+## Notes
+- If no event log exists yet, report generation falls back to a clearly labeled simulated fixture (`source = simulated_fixture`) to unblock first optimization cycles.

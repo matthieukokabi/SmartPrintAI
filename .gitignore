@@ -40,6 +40,8 @@ yarn-error.log*
 # local temporary files
 TODO.md.bak.*
 .resend_api_key.tmp
+/data/analytics/*.jsonl
+/docs/reports/artifacts/homepage-funnel/latest.json
 
 # vercel
 .vercel

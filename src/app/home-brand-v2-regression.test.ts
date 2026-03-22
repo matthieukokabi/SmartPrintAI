@@ -41,6 +41,7 @@ describe('homepage brand v2 regression', () => {
         expect(navbar).toContain("import BrandMark from '@/components/brand/BrandMark'")
         expect(navbar).toContain('<BrandMark size={18} />')
         expect(navbar).toContain('data-home-cta="navbar_primary_create"')
+        expect(navbar).toContain('<span className="sm:hidden">Create</span>')
 
         expect(footer).toContain("import BrandMark from '@/components/brand/BrandMark'")
         expect(footer).toContain('<BrandMark size={18} />')

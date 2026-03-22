@@ -8,6 +8,9 @@ declare global {
 
 type AnalyticsValue = unknown
 type AnalyticsParams = Record<string, AnalyticsValue>
+type BrowserNavigator = Navigator & {
+    sendBeacon?: (url: string, data?: BodyInit | null) => boolean
+}
 
 export const HOMEPAGE_EVENT_NAMES = {
     viewed: 'homepage_viewed',
@@ -19,6 +22,7 @@ export const HOMEPAGE_EVENT_NAMES = {
 } as const
 
 export type HomepageEventName = (typeof HOMEPAGE_EVENT_NAMES)[keyof typeof HOMEPAGE_EVENT_NAMES]
+const FORWARDED_HOMEPAGE_EVENTS = new Set<HomepageEventName>(Object.values(HOMEPAGE_EVENT_NAMES))
 
 function toNumber(value: unknown): number {
     const n = typeof value === 'number' ? value : Number(value)
@@ -34,12 +38,44 @@ function cleanParams(params: AnalyticsParams): Record<string, unknown> {
     )
 }
 
+function forwardHomepageEvent(eventName: string, params: Record<string, unknown>) {
+    if (typeof window === 'undefined' || !FORWARDED_HOMEPAGE_EVENTS.has(eventName as HomepageEventName)) {
+        return
+    }
+
+    const pathname = typeof window.location?.pathname === 'string' ? window.location.pathname : '/'
+    const search = typeof window.location?.search === 'string' ? window.location.search : ''
+
+    const payload = JSON.stringify({
+        eventName,
+        params,
+        path: `${pathname}${search}`,
+        timestamp: new Date().toISOString(),
+    })
+    const navigatorApi = window.navigator as BrowserNavigator | undefined
+
+    if (navigatorApi?.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigatorApi.sendBeacon('/api/analytics/events', blob)
+        return
+    }
+
+    void fetch('/api/analytics/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+    }).catch(() => undefined)
+}
+
 export function trackEvent(eventName: string, params: AnalyticsParams = {}): boolean {
     if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
         return false
     }
 
-    window.gtag('event', eventName, cleanParams(params))
+    const sanitizedParams = cleanParams(params)
+    window.gtag('event', eventName, sanitizedParams)
+    forwardHomepageEvent(eventName, sanitizedParams)
     return true
 }
 
