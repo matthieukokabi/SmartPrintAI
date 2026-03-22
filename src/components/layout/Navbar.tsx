@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useCart } from '@/store/cart'
 import { ShoppingCart, Sparkles } from 'lucide-react'
 import ThemeToggle from '@/components/theme/ThemeToggle'
+import BrandMark from '@/components/brand/BrandMark'
 
 export default function Navbar() {
     const itemCount = useCart((s) => s.itemCount())
@@ -34,8 +35,8 @@ export default function Navbar() {
             <div className="site-nav-shell mx-auto mt-3 flex max-w-7xl items-center rounded-full border border-border/70 bg-background/80 px-4 shadow-[0_24px_60px_-40px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:px-6">
                 <div className="flex h-16 w-full items-center justify-between gap-4">
                     <Link href="/" className="group flex items-center gap-3">
-                        <div className="site-nav-logoMark flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-sky-500 transition-transform duration-300 group-hover:scale-105">
-                            <Sparkles className="w-4 h-4 text-white" />
+                        <div className="site-nav-logoMark flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105">
+                            <BrandMark size={18} />
                         </div>
                         <span className="site-nav-brand text-base font-semibold uppercase tracking-[0.14em] text-foreground">SmartPrintAI</span>
                     </Link>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
+import BrandMark from '@/components/brand/BrandMark'
 
 export default function Footer() {
     return (
@@ -8,8 +8,8 @@ export default function Footer() {
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="mb-5 flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-sky-500">
-                                <Sparkles className="w-4 h-4 text-white" />
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full">
+                                <BrandMark size={18} />
                             </div>
                             <span className="text-base font-semibold uppercase tracking-[0.14em]">SmartPrintAI</span>
                         </Link>
