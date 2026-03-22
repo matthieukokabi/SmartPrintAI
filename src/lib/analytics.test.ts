@@ -15,9 +15,14 @@ import type { Order } from '@/types'
 describe('trackEvent', () => {
   it('returns false when gtag is unavailable', () => {
     const originalWindow = (globalThis as unknown as { window?: unknown }).window
-    ;(globalThis as unknown as { window?: unknown }).window = {} as Window
+    const sendBeacon = vi.fn(() => true)
+    ;(globalThis as unknown as { window?: unknown }).window = {
+      navigator: { sendBeacon },
+      location: { pathname: '/', search: '' },
+    } as unknown as Window
 
     expect(trackEvent('homepage_viewed', { page_variant: 'premium_v2' })).toBe(false)
+    expect(sendBeacon).toHaveBeenCalledTimes(1)
 
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
   })

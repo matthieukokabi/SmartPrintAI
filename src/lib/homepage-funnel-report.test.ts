@@ -1,10 +1,13 @@
+import { mkdtemp, writeFile } from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   HOMEPAGE_EVENT_NAMES,
 } from '@/lib/analytics'
 import {
   aggregateHomepageFunnel,
-  buildSimulatedHomepageEventRecords,
+  buildHomepageFunnelReport,
   classifyDeviceType,
   isHomepageEventName,
   type HomepageFunnelEventRecord,
@@ -49,7 +52,7 @@ describe('homepage funnel report helpers', () => {
       ...Array.from({ length: 15 }, () => buildRecord('createFlowStarted')),
     ]
 
-    const report = aggregateHomepageFunnel(records, 'event_log')
+    const report = aggregateHomepageFunnel(records)
     expect(report.totals.homepageViews).toBe(100)
     expect(report.totals.homepageToCreateClicks).toBe(30)
     expect(report.totals.createFlowStarts).toBe(15)
@@ -57,13 +60,39 @@ describe('homepage funnel report helpers', () => {
     expect(report.rates.createStartRate).toBe(15)
     expect(report.rates.clickToCreateStartRate).toBe(50)
     expect(report.dropoff.biggestDropoffStep).toBe('before_cta_click')
+    expect(report.source).toBe('event_log')
+    expect(report.recordCount).toBe(145)
+    expect(report.hasData).toBe(true)
   })
 
-  it('returns simulated records with expected event shape', () => {
-    const records = buildSimulatedHomepageEventRecords()
-    expect(records.length).toBeGreaterThan(0)
-    expect(records.some((record) => record.eventName === HOMEPAGE_EVENT_NAMES.viewed)).toBe(true)
-    expect(records.some((record) => record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked)).toBe(true)
-    expect(records.some((record) => record.eventName === HOMEPAGE_EVENT_NAMES.createFlowStarted)).toBe(true)
+  it('builds report from empty real event log without simulation fallback', async () => {
+    const tempDir = await mkdtemp(path.join(os.tmpdir(), 'homepage-funnel-empty-'))
+    const logPath = path.join(tempDir, 'events.jsonl')
+    const report = await buildHomepageFunnelReport(logPath)
+
+    expect(report.source).toBe('event_log')
+    expect(report.recordCount).toBe(0)
+    expect(report.hasData).toBe(false)
+    expect(report.totals.homepageViews).toBe(0)
+  })
+
+  it('builds report from persisted real event log data', async () => {
+    const tempDir = await mkdtemp(path.join(os.tmpdir(), 'homepage-funnel-real-'))
+    const logPath = path.join(tempDir, 'events.jsonl')
+    const rows: HomepageFunnelEventRecord[] = [
+      buildRecord('viewed'),
+      buildRecord('viewed'),
+      buildRecord('toCreateClicked', { params: { cta_location: 'hero_primary_create' } }),
+      buildRecord('createFlowStarted', { path: '/create' }),
+    ]
+    await writeFile(logPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8')
+
+    const report = await buildHomepageFunnelReport(logPath)
+    expect(report.source).toBe('event_log')
+    expect(report.recordCount).toBe(4)
+    expect(report.hasData).toBe(true)
+    expect(report.totals.homepageViews).toBe(2)
+    expect(report.totals.homepageToCreateClicks).toBe(1)
+    expect(report.totals.createFlowStarts).toBe(1)
   })
 })

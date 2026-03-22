@@ -69,14 +69,18 @@ function forwardHomepageEvent(eventName: string, params: Record<string, unknown>
 }
 
 export function trackEvent(eventName: string, params: AnalyticsParams = {}): boolean {
-    if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+    if (typeof window === 'undefined') {
         return false
     }
 
     const sanitizedParams = cleanParams(params)
-    window.gtag('event', eventName, sanitizedParams)
+    const gtag = window.gtag
+    const canUseGtag = typeof gtag === 'function'
+    if (canUseGtag) {
+        gtag('event', eventName, sanitizedParams)
+    }
     forwardHomepageEvent(eventName, sanitizedParams)
-    return true
+    return canUseGtag
 }
 
 export function trackHomepageViewed(params: {

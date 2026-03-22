@@ -37,19 +37,20 @@ type LandingLocaleCopy = {
     midCtaSecondary: string
     finalCtaTitle: string
     finalCtaSubtitle: string
+    finalCtaPrimary: string
     finalCtaSecondary: string
 }
 
 const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
     en: {
         heroLabel: 'Premium Prompt-to-Product Engine',
-        heroTitle: 'Turn one prompt into premium products people actually buy.',
+        heroTitle: 'From one prompt to a product customers can buy today.',
         heroSubtitle:
-            'Generate print-ready artwork, preview it on curated products, and launch checkout with reliable fulfillment in a single flow.',
-        heroPrimaryCta: 'Start Designing Now',
+            'Generate print-ready artwork, approve clean mockups, and open checkout in minutes without design software or production guesswork.',
+        heroPrimaryCta: 'Create My Product',
         heroSecondaryCta: 'View Product Catalog',
-        heroAssurances: ['No design software required', 'Transparency-safe mockup flow', 'Secure Stripe checkout'],
-        heroSupportLine: 'Need help before you launch?',
+        heroAssurances: ['First mockup in under a minute', 'Print-ready output with transparency control', 'Secure checkout + tracked fulfillment'],
+        heroSupportLine: 'Need help launching your first product?',
         trustTitle: 'Operational trust, built into the buying path',
         trustSubtitle: 'Payments, fulfillment, support, and analytics are integrated so creators can focus on selling, not patching ops.',
         whyTitle: 'Why creators choose SmartPrintAI over generic POD tools',
@@ -107,17 +108,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         midCtaSecondary: 'Talk to Support',
         finalCtaTitle: 'Build a cleaner creator-commerce pipeline.',
         finalCtaSubtitle: 'From prompt clarity to fulfillment reliability, SmartPrintAI helps you ship products that look premium and sell with confidence.',
+        finalCtaPrimary: 'Start Designing Now',
         finalCtaSecondary: 'Review Terms',
     },
     fr: {
         heroLabel: 'Moteur premium du prompt au produit',
-        heroTitle: 'Transformez un prompt en produits premium qui se vendent.',
+        heroTitle: 'D’un seul prompt à un produit prêt à être acheté aujourd’hui.',
         heroSubtitle:
-            'Générez un visuel prêt à imprimer, prévisualisez-le sur un catalogue curé, puis lancez le checkout avec un fulfillment fiable.',
-        heroPrimaryCta: 'Commencer à créer',
+            'Générez un visuel prêt à imprimer, validez un mockup propre, puis ouvrez le checkout en quelques minutes sans logiciel design.',
+        heroPrimaryCta: 'Créer mon produit',
         heroSecondaryCta: 'Voir le catalogue',
-        heroAssurances: ['Aucun logiciel design requis', 'Flux mockup sûr pour transparence', 'Paiement Stripe sécurisé'],
-        heroSupportLine: 'Besoin d’aide avant le lancement ?',
+        heroAssurances: ['Premier mockup en moins d’une minute', 'Sortie imprimable avec transparence contrôlée', 'Checkout sécurisé + fulfillment suivi'],
+        heroSupportLine: 'Besoin d’aide pour lancer votre premier produit ?',
         trustTitle: 'Confiance opérationnelle intégrée au parcours d’achat',
         trustSubtitle: 'Paiement, fulfillment, support et analytics sont alignés pour vendre sans friction.',
         whyTitle: 'Pourquoi choisir SmartPrintAI plutôt qu’un POD générique',
@@ -176,17 +178,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         finalCtaTitle: 'Construisez un pipeline creator-commerce plus propre.',
         finalCtaSubtitle:
             'De la clarté du prompt à la fiabilité fulfillment, SmartPrintAI vous aide à vendre avec plus de confiance.',
+        finalCtaPrimary: 'Commencer à créer',
         finalCtaSecondary: 'Voir les conditions',
     },
     de: {
         heroLabel: 'Premium Prompt-to-Product Engine',
-        heroTitle: 'Aus einem Prompt werden Premium-Produkte, die sich verkaufen.',
+        heroTitle: 'Aus einem Prompt wird heute ein kaufbares Premium-Produkt.',
         heroSubtitle:
-            'Erzeuge druckfertige Motive, prüfe sie auf kuratierten Produkten und starte Checkout mit zuverlässigem Fulfillment.',
-        heroPrimaryCta: 'Jetzt Design starten',
+            'Erzeuge druckfertige Motive, prüfe saubere Mockups und öffne den Checkout in Minuten ohne Design-Tool.',
+        heroPrimaryCta: 'Mein Produkt erstellen',
         heroSecondaryCta: 'Produktkatalog ansehen',
-        heroAssurances: ['Keine Design-Software nötig', 'Transparenz-sichere Mockups', 'Sicherer Stripe-Checkout'],
-        heroSupportLine: 'Fragen vor dem Launch?',
+        heroAssurances: ['Erster Mockup in unter einer Minute', 'Druckfertiger Output mit Transparenzkontrolle', 'Sicherer Checkout + verfolgtes Fulfillment'],
+        heroSupportLine: 'Hilfe beim ersten Produkt-Launch?',
         trustTitle: 'Operative Sicherheit direkt im Kaufprozess',
         trustSubtitle: 'Payment, Fulfillment, Support und Analytics greifen sauber ineinander.',
         whyTitle: 'Warum SmartPrintAI statt generischer POD-Tools',
@@ -245,17 +248,18 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         finalCtaTitle: 'Baue eine sauberere Creator-Commerce-Pipeline.',
         finalCtaSubtitle:
             'Von Prompt-Qualität bis Fulfillment-Zuverlässigkeit hilft SmartPrintAI beim stabilen Verkaufen.',
+        finalCtaPrimary: 'Jetzt Design starten',
         finalCtaSecondary: 'AGB ansehen',
     },
     es: {
         heroLabel: 'Motor premium de prompt a producto',
-        heroTitle: 'Convierte un prompt en productos premium que sí venden.',
+        heroTitle: 'De un solo prompt a un producto listo para vender hoy.',
         heroSubtitle:
-            'Genera arte listo para impresión, revísalo en productos curados y lanza checkout con fulfillment confiable.',
-        heroPrimaryCta: 'Empezar a diseñar',
+            'Genera arte listo para impresión, valida mockups limpios y abre checkout en minutos sin software de diseño.',
+        heroPrimaryCta: 'Crear mi producto',
         heroSecondaryCta: 'Ver catálogo de productos',
-        heroAssurances: ['Sin software de diseño', 'Mockups seguros para transparencia', 'Checkout Stripe seguro'],
-        heroSupportLine: '¿Necesitas ayuda antes de lanzar?',
+        heroAssurances: ['Primer mockup en menos de un minuto', 'Salida imprimible con control de transparencia', 'Checkout seguro + fulfillment con seguimiento'],
+        heroSupportLine: '¿Necesitas ayuda para lanzar tu primer producto?',
         trustTitle: 'Confianza operativa dentro del recorrido de compra',
         trustSubtitle: 'Pago, fulfillment, soporte y analytics unidos para vender sin fricción.',
         whyTitle: 'Por qué SmartPrintAI supera a un POD genérico',
@@ -314,6 +318,7 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
         finalCtaTitle: 'Construye un pipeline creator-commerce más limpio.',
         finalCtaSubtitle:
             'Desde la claridad del prompt hasta la confiabilidad del fulfillment, SmartPrintAI te ayuda a vender mejor.',
+        finalCtaPrimary: 'Empezar a diseñar',
         finalCtaSecondary: 'Revisar términos',
     },
 }
@@ -595,7 +600,7 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                                 data-home-cta="final_primary_create"
                                 className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-sky-500 px-7 py-3 text-sm font-semibold text-white shadow-[0_22px_54px_-34px_rgba(14,165,233,0.75)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
                             >
-                                {text.heroPrimaryCta}
+                                {text.finalCtaPrimary}
                             </Link>
                             <Link
                                 href="/terms"

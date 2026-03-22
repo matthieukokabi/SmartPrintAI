@@ -5,8 +5,8 @@ Date: 2026-03-22
 This instrumentation measures homepage conversion behavior and progression into `/create` without invasive tracking.
 
 ## Collection Pipeline
-1. Client event helpers (`trackHomepage*`) emit GA4 events.
-2. Homepage funnel events are also forwarded to `/api/analytics/events` (same-origin).
+1. Client event helpers (`trackHomepage*`) emit GA4 events when `gtag` is available.
+2. Homepage funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.
 3. Server appends validated JSONL records to `data/analytics/homepage-events.jsonl`.
 4. Aggregation utilities build funnel metrics from stored records.
 5. `npm run analytics:funnel:report` prints a readable report and writes:
@@ -71,4 +71,5 @@ All events are emitted through [`src/lib/analytics.ts`](/Users/magikmad/Document
 - Invalid event names/payloads are rejected server-side.
 
 ## Notes
-- If no event log exists yet, report generation falls back to a clearly labeled simulated fixture (`source = simulated_fixture`) to unblock first optimization cycles.
+- Funnel reports are generated from the real event log only (`source = event_log`).
+- If no events are recorded yet, the report returns zeroed metrics with `hasData = false` and `recordCount = 0`.

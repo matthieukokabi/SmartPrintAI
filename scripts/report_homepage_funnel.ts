@@ -18,6 +18,11 @@ async function main() {
     console.log('SmartPrintAI Homepage Funnel Report')
     console.log(`Source: ${report.source}`)
     console.log(`Generated at: ${report.generatedAt}`)
+    console.log(`Recorded events: ${report.recordCount}`)
+
+    if (!report.hasData) {
+        console.log('Note: no homepage funnel events found yet in the real event log.')
+    }
 
     printSection('Core Funnel')
     console.log(`Homepage views: ${report.totals.homepageViews}`)

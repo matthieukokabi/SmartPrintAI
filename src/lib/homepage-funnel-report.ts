@@ -44,8 +44,10 @@ type PageVariantBreakdownRow = {
 }
 
 export type HomepageFunnelReport = {
-    source: 'event_log' | 'simulated_fixture'
+    source: 'event_log'
     generatedAt: string
+    recordCount: number
+    hasData: boolean
     totals: {
         homepageViews: number
         homepageToCreateClicks: number
@@ -230,70 +232,6 @@ export async function readHomepageEventRecords(filePath?: string): Promise<Homep
     }
 }
 
-export function buildSimulatedHomepageEventRecords(): HomepageFunnelEventRecord[] {
-    const records: HomepageFunnelEventRecord[] = []
-    const now = Date.now()
-
-    const push = (
-        eventName: HomepageEventName,
-        count: number,
-        options: {
-            ctaLocation?: string
-            pageVariant?: string
-            deviceType?: DeviceType
-            locale?: string
-            path?: string
-        } = {}
-    ) => {
-        for (let index = 0; index < count; index += 1) {
-            const createdAt = new Date(now - (records.length + index) * 1000).toISOString()
-            const deviceType = options.deviceType || (index % 5 === 0 ? 'mobile' : 'desktop')
-            records.push({
-                eventName,
-                params: {
-                    page_variant: options.pageVariant || 'premium_v2',
-                    cta_location: options.ctaLocation,
-                },
-                path: options.path || '/',
-                pageVariant: options.pageVariant || 'premium_v2',
-                locale: options.locale || 'en',
-                userAgent:
-                    deviceType === 'mobile'
-                        ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
-                        : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36',
-                deviceType,
-                createdAt,
-            })
-        }
-    }
-
-    push(HOMEPAGE_EVENT_NAMES.viewed, 1200)
-    push(HOMEPAGE_EVENT_NAMES.sectionViewed, 1080, { path: '/' })
-    push(HOMEPAGE_EVENT_NAMES.scrollDepthReached, 960, { path: '/' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 210, { ctaLocation: 'hero_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 168, { ctaLocation: 'hero_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 58, { ctaLocation: 'mid_band_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 46, { ctaLocation: 'mid_band_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 43, { ctaLocation: 'how_it_works_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 34, { ctaLocation: 'how_it_works_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 39, { ctaLocation: 'final_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 31, { ctaLocation: 'final_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 24, { ctaLocation: 'navbar_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 18, { ctaLocation: 'navbar_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.ctaClicked, 12, { ctaLocation: 'footer_primary_create' })
-    push(HOMEPAGE_EVENT_NAMES.toCreateClicked, 9, { ctaLocation: 'footer_primary_create' })
-
-    push(HOMEPAGE_EVENT_NAMES.createFlowStarted, 204, { path: '/create' })
-
-    return records
-}
-
 function aggregateByDevice(records: HomepageFunnelEventRecord[]): DeviceBreakdownRow[] {
     const buckets = new Map<DeviceType, { viewed: number; toCreate: number; createStarted: number }>()
 
@@ -400,8 +338,7 @@ function identifyUnderperformingPrimaryCta(ctaBreakdown: CtaBreakdownRow[]): str
 }
 
 export function aggregateHomepageFunnel(
-    records: HomepageFunnelEventRecord[],
-    source: 'event_log' | 'simulated_fixture'
+    records: HomepageFunnelEventRecord[]
 ): HomepageFunnelReport {
     const homepageViews = records.filter((record) => record.eventName === HOMEPAGE_EVENT_NAMES.viewed).length
     const homepageToCreateClicks = records.filter((record) => record.eventName === HOMEPAGE_EVENT_NAMES.toCreateClicked).length
@@ -423,8 +360,10 @@ export function aggregateHomepageFunnel(
     const ctaBreakdown = aggregateCtaBreakdown(records)
 
     return {
-        source,
+        source: 'event_log',
         generatedAt: new Date().toISOString(),
+        recordCount: records.length,
+        hasData: records.length > 0,
         totals: {
             homepageViews,
             homepageToCreateClicks,
@@ -453,8 +392,5 @@ export async function buildHomepageFunnelReport(
     filePath?: string
 ): Promise<HomepageFunnelReport> {
     const records = await readHomepageEventRecords(filePath)
-    if (records.length === 0) {
-        return aggregateHomepageFunnel(buildSimulatedHomepageEventRecords(), 'simulated_fixture')
-    }
-    return aggregateHomepageFunnel(records, 'event_log')
+    return aggregateHomepageFunnel(records)
 }
