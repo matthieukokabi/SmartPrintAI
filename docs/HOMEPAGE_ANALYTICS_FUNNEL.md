@@ -12,6 +12,36 @@ Homepage hero copy is assigned in middleware for deterministic A/B testing:
 3. It deterministically assigns a hero variant from that ID (`variant_a` or `variant_b`) and persists it in `spai_home_hero_variant`.
 4. The assigned variant is passed to SSR via request header `x-spai-home-hero-variant` so the rendered hero does not flicker on hydration.
 
+## Hero Experiment Decision Guardrails
+Primary metric:
+- `homepage_to_create_ctr` by variant (`variant_a` vs `variant_b`)
+
+Secondary metric:
+- `create_start_rate` by variant
+
+Threshold defaults enforced in report logic:
+- `minTotalHomepageViews = 200` (experiment-eligible views only: `variant_a + variant_b`)
+- `minHomepageViewsPerVariant = 75`
+- `minToCreateClicksPerVariant = 10`
+- `minPrimaryMetricLiftPctPoints = 5`
+- `maxSecondaryMetricConflictPctPoints = 2`
+
+Experiment status values:
+- `insufficient_data`: thresholds not yet met.
+- `ready_for_comparison`: thresholds met, but no clear primary-metric winner yet.
+- `winner_candidate`: clear primary-metric winner with no conflicting secondary signal.
+- `inconclusive`: mixed/conflicting data or tracking integrity concerns.
+
+Decision recommendations:
+- `continue_running`
+- `investigate_tracking`
+- `ship_winner`
+- `iterate_loser_dimension`
+
+Interpretation rule:
+- Do not run a new hero copy iteration until the report is at least `ready_for_comparison` (thresholds met).
+- Only promote a variant to control when status is `winner_candidate` with decision `ship_winner`.
+
 ## Collection Pipeline
 1. Client event helpers (`trackHomepage*`) emit GA4 events when `gtag` is available.
 2. Homepage funnel events are always forwarded to `/api/analytics/events` (same-origin), even when GA is unavailable.

@@ -51,6 +51,62 @@ type PageVariantBreakdownRow = {
     biggestDropoffStep: 'before_cta_click' | 'after_cta_click_before_create_start' | 'none'
 }
 
+export type HeroExperimentStatus = 'insufficient_data' | 'ready_for_comparison' | 'winner_candidate' | 'inconclusive'
+export type HeroExperimentDecision = 'continue_running' | 'investigate_tracking' | 'ship_winner' | 'iterate_loser_dimension'
+export type HeroExperimentVariantKey = 'variant_a' | 'variant_b'
+
+type HeroExperimentVariantMetrics = {
+    pageVariant: HeroExperimentVariantKey
+    homepageViews: number
+    toCreateClicks: number
+    createStarts: number
+    homepageToCreateCtr: number
+    createStartRate: number
+    clickToCreateStartRate: number
+}
+
+type HeroExperimentThresholds = {
+    minTotalHomepageViews: number
+    minHomepageViewsPerVariant: number
+    minToCreateClicksPerVariant: number
+    minPrimaryMetricLiftPctPoints: number
+    maxSecondaryMetricConflictPctPoints: number
+}
+
+type HeroExperimentThresholdChecks = {
+    minTotalHomepageViews: boolean
+    minHomepageViewsPerVariant: boolean
+    minToCreateClicksPerVariant: boolean
+    all: boolean
+}
+
+type HeroExperimentReadout = {
+    primaryMetric: 'homepage_to_create_ctr'
+    secondaryMetric: 'create_start_rate'
+    status: HeroExperimentStatus
+    decision: HeroExperimentDecision
+    reason: string
+    nextAction: string
+    winnerCandidate: HeroExperimentVariantKey | null
+    thresholds: HeroExperimentThresholds
+    thresholdChecks: HeroExperimentThresholdChecks
+    totals: {
+        homepageViewsOverall: number
+        homepageViewsExperimentEligible: number
+        legacyOrUnknownVariantViews: number
+        homepageToCreateClicksExperimentEligible: number
+        createFlowStartsExperimentEligible: number
+    }
+    variants: HeroExperimentVariantMetrics[]
+    comparison: {
+        ctrDeltaPctPoints: number
+        createStartRateDeltaPctPoints: number
+        clickToCreateStartRateDeltaPctPoints: number
+        leadingVariant: HeroExperimentVariantKey | null
+        trailingVariant: HeroExperimentVariantKey | null
+    }
+}
+
 export type HomepageFunnelReport = {
     source: 'event_log'
     generatedAt: string
@@ -73,9 +129,18 @@ export type HomepageFunnelReport = {
     underperformingPrimaryCtaLocation: string | null
     deviceBreakdown: DeviceBreakdownRow[]
     pageVariantBreakdown: PageVariantBreakdownRow[]
+    heroExperiment: HeroExperimentReadout
 }
 
 const HOMEPAGE_EVENT_NAME_SET = new Set<HomepageEventName>(Object.values(HOMEPAGE_EVENT_NAMES))
+const HERO_EXPERIMENT_VARIANTS: HeroExperimentVariantKey[] = ['variant_a', 'variant_b']
+const DEFAULT_HERO_EXPERIMENT_THRESHOLDS: HeroExperimentThresholds = {
+    minTotalHomepageViews: 200,
+    minHomepageViewsPerVariant: 75,
+    minToCreateClicksPerVariant: 10,
+    minPrimaryMetricLiftPctPoints: 5,
+    maxSecondaryMetricConflictPctPoints: 2,
+}
 const PRIMARY_CTA_LOCATIONS = [
     'hero_primary_create',
     'navbar_primary_create',
@@ -327,6 +392,151 @@ function aggregateByPageVariant(records: HomepageFunnelEventRecord[]): PageVaria
         .sort((a, b) => b.homepageViews - a.homepageViews)
 }
 
+function getExperimentVariantMetrics(
+    pageVariantBreakdown: PageVariantBreakdownRow[],
+    variant: HeroExperimentVariantKey
+): HeroExperimentVariantMetrics {
+    const row = pageVariantBreakdown.find((entry) => entry.pageVariant === variant)
+    if (row) {
+        return {
+            pageVariant: variant,
+            homepageViews: row.homepageViews,
+            toCreateClicks: row.toCreateClicks,
+            createStarts: row.createStarts,
+            homepageToCreateCtr: row.homepageToCreateCtr,
+            createStartRate: row.createStartRate,
+            clickToCreateStartRate: row.clickToCreateStartRate,
+        }
+    }
+
+    return {
+        pageVariant: variant,
+        homepageViews: 0,
+        toCreateClicks: 0,
+        createStarts: 0,
+        homepageToCreateCtr: 0,
+        createStartRate: 0,
+        clickToCreateStartRate: 0,
+    }
+}
+
+function buildHeroExperimentReadout(params: {
+    pageVariantBreakdown: PageVariantBreakdownRow[]
+    homepageViewsOverall: number
+}): HeroExperimentReadout {
+    const variants = HERO_EXPERIMENT_VARIANTS.map((variant) =>
+        getExperimentVariantMetrics(params.pageVariantBreakdown, variant)
+    )
+    const [variantA, variantB] = variants
+
+    const homepageViewsExperimentEligible = variantA.homepageViews + variantB.homepageViews
+    const legacyOrUnknownVariantViews = Math.max(0, params.homepageViewsOverall - homepageViewsExperimentEligible)
+    const homepageToCreateClicksExperimentEligible = variantA.toCreateClicks + variantB.toCreateClicks
+    const createFlowStartsExperimentEligible = variantA.createStarts + variantB.createStarts
+
+    const thresholdChecks: HeroExperimentThresholdChecks = {
+        minTotalHomepageViews:
+            homepageViewsExperimentEligible >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minTotalHomepageViews,
+        minHomepageViewsPerVariant:
+            variantA.homepageViews >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minHomepageViewsPerVariant
+            && variantB.homepageViews >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minHomepageViewsPerVariant,
+        minToCreateClicksPerVariant:
+            variantA.toCreateClicks >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minToCreateClicksPerVariant
+            && variantB.toCreateClicks >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minToCreateClicksPerVariant,
+        all: false,
+    }
+    thresholdChecks.all = thresholdChecks.minTotalHomepageViews
+        && thresholdChecks.minHomepageViewsPerVariant
+        && thresholdChecks.minToCreateClicksPerVariant
+
+    const ctrDeltaPctPoints = Number((variantA.homepageToCreateCtr - variantB.homepageToCreateCtr).toFixed(2))
+    const createStartRateDeltaPctPoints = Number((variantA.createStartRate - variantB.createStartRate).toFixed(2))
+    const clickToCreateStartRateDeltaPctPoints = Number((variantA.clickToCreateStartRate - variantB.clickToCreateStartRate).toFixed(2))
+
+    const leadingVariant: HeroExperimentVariantKey | null = ctrDeltaPctPoints === 0
+        ? null
+        : (ctrDeltaPctPoints > 0 ? 'variant_a' : 'variant_b')
+    const trailingVariant: HeroExperimentVariantKey | null = leadingVariant === 'variant_a'
+        ? 'variant_b'
+        : (leadingVariant === 'variant_b' ? 'variant_a' : null)
+
+    const oneVariantMissingAtScale = thresholdChecks.minTotalHomepageViews
+        && (variantA.homepageViews === 0 || variantB.homepageViews === 0)
+
+    let status: HeroExperimentStatus
+    let decision: HeroExperimentDecision
+    let reason: string
+    let nextAction: string
+    let winnerCandidate: HeroExperimentVariantKey | null = null
+
+    if (oneVariantMissingAtScale) {
+        status = 'inconclusive'
+        decision = 'investigate_tracking'
+        reason = 'One hero variant is missing exposure at comparison scale; assignment or event propagation should be checked.'
+        nextAction = 'Audit middleware cookie assignment and homepage_viewed page_variant logging before interpreting performance.'
+    } else if (!thresholdChecks.all) {
+        status = 'insufficient_data'
+        decision = 'continue_running'
+        reason = 'Sample thresholds are not met yet for a stable hero comparison.'
+        nextAction = 'Keep traffic collection running until minimum total and per-variant thresholds are satisfied.'
+    } else {
+        const ctrGap = Math.abs(ctrDeltaPctPoints)
+        const clearPrimaryWinner = !!leadingVariant
+            && ctrGap >= DEFAULT_HERO_EXPERIMENT_THRESHOLDS.minPrimaryMetricLiftPctPoints
+
+        if (!clearPrimaryWinner) {
+            status = 'ready_for_comparison'
+            decision = 'continue_running'
+            reason = 'Thresholds are met, but primary metric lift is below winner criteria.'
+            nextAction = 'Keep the test running until a clearer CTR separation appears.'
+        } else {
+            const secondarySupportsLeader = leadingVariant === 'variant_a'
+                ? variantA.createStartRate + DEFAULT_HERO_EXPERIMENT_THRESHOLDS.maxSecondaryMetricConflictPctPoints >= variantB.createStartRate
+                : variantB.createStartRate + DEFAULT_HERO_EXPERIMENT_THRESHOLDS.maxSecondaryMetricConflictPctPoints >= variantA.createStartRate
+
+            if (secondarySupportsLeader) {
+                status = 'winner_candidate'
+                decision = 'ship_winner'
+                winnerCandidate = leadingVariant
+                reason = `Primary metric lift is ${ctrGap.toFixed(2)}pp and secondary metric does not conflict with the leading variant.`
+                nextAction = `Prepare to promote ${leadingVariant} as control after one final sanity check on tracking integrity.`
+            } else {
+                status = 'inconclusive'
+                decision = 'iterate_loser_dimension'
+                reason = 'Primary metric favors one variant, but secondary create-start rate conflicts beyond tolerance.'
+                nextAction = 'Keep current variants live and plan one focused iteration on a single hero dimension after additional data.'
+            }
+        }
+    }
+
+    return {
+        primaryMetric: 'homepage_to_create_ctr',
+        secondaryMetric: 'create_start_rate',
+        status,
+        decision,
+        reason,
+        nextAction,
+        winnerCandidate,
+        thresholds: DEFAULT_HERO_EXPERIMENT_THRESHOLDS,
+        thresholdChecks,
+        totals: {
+            homepageViewsOverall: params.homepageViewsOverall,
+            homepageViewsExperimentEligible,
+            legacyOrUnknownVariantViews,
+            homepageToCreateClicksExperimentEligible,
+            createFlowStartsExperimentEligible,
+        },
+        variants,
+        comparison: {
+            ctrDeltaPctPoints,
+            createStartRateDeltaPctPoints,
+            clickToCreateStartRateDeltaPctPoints,
+            leadingVariant,
+            trailingVariant,
+        },
+    }
+}
+
 function aggregateCtaBreakdown(records: HomepageFunnelEventRecord[]): CtaBreakdownRow[] {
     const counts = new Map<string, number>()
     let totalToCreateClicks = 0
@@ -388,6 +598,11 @@ export function aggregateHomepageFunnel(
     }
 
     const ctaBreakdown = aggregateCtaBreakdown(records)
+    const pageVariantBreakdown = aggregateByPageVariant(records)
+    const heroExperiment = buildHeroExperimentReadout({
+        pageVariantBreakdown,
+        homepageViewsOverall: homepageViews,
+    })
 
     return {
         source: 'event_log',
@@ -414,7 +629,8 @@ export function aggregateHomepageFunnel(
         ctaBreakdown,
         underperformingPrimaryCtaLocation: identifyUnderperformingPrimaryCta(ctaBreakdown),
         deviceBreakdown: aggregateByDevice(records),
-        pageVariantBreakdown: aggregateByPageVariant(records),
+        pageVariantBreakdown,
+        heroExperiment,
     }
 }
 

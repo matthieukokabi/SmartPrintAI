@@ -57,6 +57,42 @@ async function main() {
         )
     }
 
+    printSection('Hero Experiment Readout')
+    console.log(`Primary metric: ${report.heroExperiment.primaryMetric}`)
+    console.log(`Secondary metric: ${report.heroExperiment.secondaryMetric}`)
+    console.log(`Status: ${report.heroExperiment.status}`)
+    console.log(`Decision: ${report.heroExperiment.decision}`)
+    console.log(`Winner candidate: ${report.heroExperiment.winnerCandidate || 'none'}`)
+    console.log(`Reason: ${report.heroExperiment.reason}`)
+    console.log(`Next action: ${report.heroExperiment.nextAction}`)
+
+    printSection('Hero Experiment Thresholds')
+    console.log(`minTotalHomepageViews: ${report.heroExperiment.thresholds.minTotalHomepageViews} (met=${report.heroExperiment.thresholdChecks.minTotalHomepageViews})`)
+    console.log(`minHomepageViewsPerVariant: ${report.heroExperiment.thresholds.minHomepageViewsPerVariant} (met=${report.heroExperiment.thresholdChecks.minHomepageViewsPerVariant})`)
+    console.log(`minToCreateClicksPerVariant: ${report.heroExperiment.thresholds.minToCreateClicksPerVariant} (met=${report.heroExperiment.thresholdChecks.minToCreateClicksPerVariant})`)
+    console.log(`allThresholdsMet: ${report.heroExperiment.thresholdChecks.all}`)
+
+    printSection('Hero Experiment Sample')
+    console.log(`Overall homepage views: ${report.heroExperiment.totals.homepageViewsOverall}`)
+    console.log(`Experiment-eligible views (variant_a + variant_b): ${report.heroExperiment.totals.homepageViewsExperimentEligible}`)
+    console.log(`Legacy/unknown variant views: ${report.heroExperiment.totals.legacyOrUnknownVariantViews}`)
+    console.log(`Experiment-eligible to-create clicks: ${report.heroExperiment.totals.homepageToCreateClicksExperimentEligible}`)
+    console.log(`Experiment-eligible create starts: ${report.heroExperiment.totals.createFlowStartsExperimentEligible}`)
+
+    printSection('Hero Experiment Variant Metrics')
+    for (const row of report.heroExperiment.variants) {
+        console.log(
+            `${row.pageVariant}: views=${row.homepageViews}, clicks=${row.toCreateClicks}, createStarts=${row.createStarts}, ctr=${formatRate(row.homepageToCreateCtr)}, createStartRate=${formatRate(row.createStartRate)}, clickToCreateStartRate=${formatRate(row.clickToCreateStartRate)}`
+        )
+    }
+
+    printSection('Hero Experiment Comparison')
+    console.log(`Leading variant (primary metric): ${report.heroExperiment.comparison.leadingVariant || 'none'}`)
+    console.log(`Trailing variant (primary metric): ${report.heroExperiment.comparison.trailingVariant || 'none'}`)
+    console.log(`CTR delta (variant_a - variant_b): ${formatRate(report.heroExperiment.comparison.ctrDeltaPctPoints)}`)
+    console.log(`Create-start rate delta (variant_a - variant_b): ${formatRate(report.heroExperiment.comparison.createStartRateDeltaPctPoints)}`)
+    console.log(`Click->create-start delta (variant_a - variant_b): ${formatRate(report.heroExperiment.comparison.clickToCreateStartRateDeltaPctPoints)}`)
+
     const artifactDir = path.join(process.cwd(), 'docs', 'reports', 'artifacts', 'homepage-funnel')
     await mkdir(artifactDir, { recursive: true })
     const artifactPath = path.join(artifactDir, 'latest.json')

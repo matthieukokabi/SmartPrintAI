@@ -63,6 +63,10 @@ describe('homepage funnel report helpers', () => {
     expect(report.source).toBe('event_log')
     expect(report.recordCount).toBe(145)
     expect(report.hasData).toBe(true)
+    expect(report.heroExperiment.primaryMetric).toBe('homepage_to_create_ctr')
+    expect(report.heroExperiment.secondaryMetric).toBe('create_start_rate')
+    expect(report.heroExperiment.status).toBe('insufficient_data')
+    expect(report.heroExperiment.decision).toBe('continue_running')
   })
 
   it('builds report from empty real event log without simulation fallback', async () => {
@@ -74,6 +78,7 @@ describe('homepage funnel report helpers', () => {
     expect(report.recordCount).toBe(0)
     expect(report.hasData).toBe(false)
     expect(report.totals.homepageViews).toBe(0)
+    expect(report.heroExperiment.status).toBe('insufficient_data')
   })
 
   it('builds report from persisted real event log data', async () => {
@@ -129,5 +134,69 @@ describe('homepage funnel report helpers', () => {
       clickToCreateStartRate: 33.33,
       biggestDropoffStep: 'before_cta_click',
     }))
+  })
+
+  it('marks winner_candidate when thresholds are met and primary/secondary metrics align', () => {
+    const records = [
+      ...Array.from({ length: 110 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 40 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 22 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 90 }, () => buildRecord('viewed', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+      ...Array.from({ length: 20 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_b', params: { page_variant: 'variant_b', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 12 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.heroExperiment.thresholdChecks.all).toBe(true)
+    expect(report.heroExperiment.status).toBe('winner_candidate')
+    expect(report.heroExperiment.decision).toBe('ship_winner')
+    expect(report.heroExperiment.winnerCandidate).toBe('variant_a')
+  })
+
+  it('marks ready_for_comparison when thresholds are met but primary metric gap is too small', () => {
+    const records = [
+      ...Array.from({ length: 110 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 25 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 12 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 95 }, () => buildRecord('viewed', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+      ...Array.from({ length: 20 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_b', params: { page_variant: 'variant_b', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 10 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.heroExperiment.thresholdChecks.all).toBe(true)
+    expect(report.heroExperiment.status).toBe('ready_for_comparison')
+    expect(report.heroExperiment.decision).toBe('continue_running')
+    expect(report.heroExperiment.winnerCandidate).toBeNull()
+  })
+
+  it('marks inconclusive with iterate_loser_dimension when secondary metric conflicts with primary winner', () => {
+    const records = [
+      ...Array.from({ length: 110 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 35 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 8 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 90 }, () => buildRecord('viewed', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+      ...Array.from({ length: 22 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_b', params: { page_variant: 'variant_b', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 22 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_b', params: { page_variant: 'variant_b' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.heroExperiment.thresholdChecks.all).toBe(true)
+    expect(report.heroExperiment.status).toBe('inconclusive')
+    expect(report.heroExperiment.decision).toBe('iterate_loser_dimension')
+    expect(report.heroExperiment.winnerCandidate).toBeNull()
+  })
+
+  it('flags investigate_tracking when one variant is missing at comparison scale', () => {
+    const records = [
+      ...Array.from({ length: 220 }, () => buildRecord('viewed', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+      ...Array.from({ length: 60 }, () => buildRecord('toCreateClicked', { pageVariant: 'variant_a', params: { page_variant: 'variant_a', cta_location: 'hero_primary_create' } })),
+      ...Array.from({ length: 22 }, () => buildRecord('createFlowStarted', { pageVariant: 'variant_a', params: { page_variant: 'variant_a' } })),
+    ]
+
+    const report = aggregateHomepageFunnel(records)
+    expect(report.heroExperiment.status).toBe('inconclusive')
+    expect(report.heroExperiment.decision).toBe('investigate_tracking')
+    expect(report.heroExperiment.reason).toContain('missing exposure')
   })
 })
