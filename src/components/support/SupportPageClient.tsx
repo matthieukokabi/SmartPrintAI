@@ -165,7 +165,7 @@ export default function SupportPageClient({ locale, copy }: SupportPageClientPro
                         <button
                             type="submit"
                             disabled={submitState === 'submitting'}
-                            className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium disabled:opacity-60"
+                            className="inline-flex items-center rounded-lg bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 disabled:opacity-60"
                         >
                             {submitState === 'submitting' ? copy.sendingLabel : copy.sendLabel}
                         </button>
