@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { HOMEPAGE_VISITOR_ID_COOKIE } from '@/lib/homepage-experiment'
 import {
   CREATE_ENTRY_EVENT_NAMES,
   HOMEPAGE_EVENT_NAMES,
@@ -42,6 +43,7 @@ describe('trackEvent', () => {
   it('sends event with undefined params removed', () => {
     const gtag = vi.fn()
     const originalWindow = (globalThis as unknown as { window?: unknown }).window
+    const docRef = (globalThis as unknown as { document?: Document }).document
     ;(globalThis as unknown as { window?: unknown }).window = { gtag } as unknown as Window
 
     const ok = trackEvent('homepage_viewed', {
@@ -50,7 +52,50 @@ describe('trackEvent', () => {
     })
 
     expect(ok).toBe(true)
-    expect(gtag).toHaveBeenCalledWith('event', 'homepage_viewed', { page_variant: 'variant_a' })
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'homepage_viewed',
+      expect.objectContaining({
+        page_variant: 'variant_a',
+        visitor_id: expect.any(String),
+      })
+    )
+    if (docRef) {
+      docRef.cookie = `${HOMEPAGE_VISITOR_ID_COOKIE}=; Max-Age=0; Path=/`
+    }
+    ;(globalThis as unknown as { window?: unknown }).window = originalWindow
+  })
+
+  it('reuses visitor_id from cookie when params omit it', () => {
+    const gtag = vi.fn()
+    const originalWindow = (globalThis as unknown as { window?: unknown }).window
+    const originalDocument = (globalThis as unknown as { document?: Document }).document
+
+    ;(globalThis as unknown as { window?: unknown }).window = {
+      gtag,
+      navigator: { sendBeacon: vi.fn(() => true) },
+      location: { pathname: '/', search: '', protocol: 'https:' },
+    } as unknown as Window
+    ;(globalThis as unknown as { document?: Document }).document = {
+      cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_abc`,
+    } as unknown as Document
+    const ok = trackEvent('homepage_viewed', { page_variant: 'variant_a' })
+
+    expect(ok).toBe(true)
+    expect(gtag).toHaveBeenCalledWith(
+      'event',
+      'homepage_viewed',
+      expect.objectContaining({
+        page_variant: 'variant_a',
+        visitor_id: 'cookie_visitor_abc',
+      })
+    )
+
+    if (originalDocument) {
+      ;(globalThis as unknown as { document?: Document }).document = originalDocument
+    } else {
+      Reflect.deleteProperty(globalThis as object, 'document')
+    }
     ;(globalThis as unknown as { window?: unknown }).window = originalWindow
   })
 })

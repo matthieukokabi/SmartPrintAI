@@ -150,6 +150,7 @@ Goal:
 
 Linkage model:
 - All homepage/create-start funnel events now include `visitor_id` from cookie `spai_visitor_id` when available.
+- `/api/analytics/events` enforces `visitor_id` integrity server-side: if payload omits it, the route auto-attaches from cookie (or generates one), writes the normalized value into stored params, and sets `spai_visitor_id` when needed.
 - Exposure analysis groups only users with at least one `homepage_viewed` event and a valid `visitor_id`.
 
 Exposure groups:
@@ -275,6 +276,7 @@ Interpretation:
 - Event names are stable constants in `HOMEPAGE_EVENT_NAMES`.
 - Event intake is rate-limited on `/api/analytics/events`.
 - Invalid event names/payloads are rejected server-side.
+- Missing `visitor_id` payloads are explicitly flagged in API logs (`visitor_id_auto_attached`) and repaired before persistence.
 
 ## Notes
 - Funnel reports are generated from the real event log only (`source = event_log`).

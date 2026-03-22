@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { HOMEPAGE_VISITOR_ID_COOKIE } from '@/lib/homepage-experiment'
 
 const mocks = vi.hoisted(() => ({
   rateLimitRequest: vi.fn(),
@@ -88,6 +89,11 @@ describe('/api/analytics/events POST', () => {
     expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         eventName: 'homepage_cta_clicked',
+        params: expect.objectContaining({
+          cta_location: 'hero_primary_create',
+          destination: '/create',
+          visitor_id: expect.any(String),
+        }),
         path: '/',
         pageVariant: 'variant_a',
         locale: 'en',
@@ -113,6 +119,11 @@ describe('/api/analytics/events POST', () => {
     expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         eventName: 'create_prompt_started',
+        params: expect.objectContaining({
+          entrypoint: 'homepage',
+          prompt_length_bucket: '11_30',
+          visitor_id: expect.any(String),
+        }),
         path: '/create',
         pageVariant: 'variant_b',
       })
@@ -137,9 +148,68 @@ describe('/api/analytics/events POST', () => {
     expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         eventName: 'product_proof_cta_clicked',
+        params: expect.objectContaining({
+          cta_location: 'product_proof_primary_create',
+          destination: '/create',
+          visitor_id: expect.any(String),
+        }),
         path: '/',
         pageVariant: 'variant_a',
       })
     )
+  })
+
+  it('reuses visitor_id from request cookie when payload omits it', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/',
+      }),
+      { cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_123` }
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'homepage_viewed',
+        params: expect.objectContaining({
+          page_variant: 'variant_a',
+          visitor_id: 'cookie_visitor_123',
+        }),
+      })
+    )
+    expect(res.headers.get('set-cookie')).toBeNull()
+  })
+
+  it('generates and sets visitor_id cookie when missing in payload and request', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/',
+      })
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.appendHomepageEventRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: 'homepage_viewed',
+        params: expect.objectContaining({
+          page_variant: 'variant_a',
+          visitor_id: expect.any(String),
+        }),
+      })
+    )
+
+    const setCookie = res.headers.get('set-cookie')
+    expect(setCookie).toBeTruthy()
+    expect(setCookie).toContain(`${HOMEPAGE_VISITOR_ID_COOKIE}=`)
   })
 })

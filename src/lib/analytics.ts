@@ -1,4 +1,9 @@
 import type { Order } from '@/types'
+import {
+    HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC,
+    HOMEPAGE_VISITOR_ID_COOKIE,
+    sanitizeVisitorId,
+} from '@/lib/homepage-experiment'
 
 declare global {
     interface Window {
@@ -10,6 +15,71 @@ type AnalyticsValue = unknown
 type AnalyticsParams = Record<string, AnalyticsValue>
 type BrowserNavigator = Navigator & {
     sendBeacon?: (url: string, data?: BodyInit | null) => boolean
+}
+type BrowserLocation = Pick<Location, 'protocol'>
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+function readVisitorIdFromDocumentCookie(): string | undefined {
+    if (typeof document === 'undefined' || typeof document.cookie !== 'string') {
+        return undefined
+    }
+
+    const rawCookieValue = document.cookie
+        .split(';')
+        .map((part) => part.trim())
+        .find((part) => part.startsWith(`${HOMEPAGE_VISITOR_ID_COOKIE}=`))
+        ?.split('=')
+        .slice(1)
+        .join('=')
+
+    if (!rawCookieValue) {
+        return undefined
+    }
+
+    try {
+        return sanitizeVisitorId(decodeURIComponent(rawCookieValue)) || undefined
+    } catch {
+        return sanitizeVisitorId(rawCookieValue) || undefined
+    }
+}
+
+function persistVisitorIdToDocumentCookie(visitorId: string, locationRef: BrowserLocation | undefined) {
+    if (typeof document === 'undefined') {
+        return
+    }
+
+    const secureAttribute = locationRef?.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `${HOMEPAGE_VISITOR_ID_COOKIE}=${encodeURIComponent(visitorId)}; Max-Age=${HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC}; Path=/; SameSite=Lax${secureAttribute}`
+}
+
+function generateFallbackVisitorId(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID()
+    }
+
+    return `spai_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
+}
+
+function ensureVisitorId(
+    params: AnalyticsParams,
+    locationRef: BrowserLocation | undefined
+): string {
+    const fromParams = sanitizeVisitorId(isRecord(params) ? (params.visitor_id as string | null | undefined) : undefined)
+    if (fromParams) {
+        return fromParams
+    }
+
+    const fromCookie = readVisitorIdFromDocumentCookie()
+    if (fromCookie) {
+        return fromCookie
+    }
+
+    const generated = generateFallbackVisitorId()
+    persistVisitorIdToDocumentCookie(generated, locationRef)
+    return generated
 }
 
 export const HOMEPAGE_EVENT_NAMES = {
@@ -100,7 +170,11 @@ export function trackEvent(eventName: string, params: AnalyticsParams = {}): boo
         return false
     }
 
-    const sanitizedParams = cleanParams(params)
+    const visitorId = ensureVisitorId(params, window.location as BrowserLocation | undefined)
+    const sanitizedParams = cleanParams({
+        ...params,
+        visitor_id: visitorId,
+    })
     const gtag = window.gtag
     const canUseGtag = typeof gtag === 'function'
     if (canUseGtag) {
