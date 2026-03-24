@@ -258,15 +258,6 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
         }
     }
 
-    if (existingShippingAddress?.recovery_attempted === true) {
-        return {
-            orderId: order.id,
-            stripeSessionId: order.stripeSessionId,
-            outcome: 'skipped_recovery_already_attempted',
-            detail: 'Recovery was already attempted for this order.',
-        }
-    }
-
     const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId)
 
     if (session.payment_status !== 'paid' || session.status !== 'complete') {
