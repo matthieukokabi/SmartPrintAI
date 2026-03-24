@@ -269,18 +269,6 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
 
     const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId)
 
-    const sessionHasMissingShipping =
-        !session.shipping_details?.address &&
-        !!session.customer_details?.address
-    if (!sessionHasMissingShipping) {
-        return {
-            orderId: order.id,
-            stripeSessionId: order.stripeSessionId,
-            outcome: 'skipped_not_bug_signature',
-            detail: 'Session does not match missing shipping_details + present customer_details.address signature.',
-        }
-    }
-
     if (session.payment_status !== 'paid' || session.status !== 'complete') {
         return {
             orderId: order.id,
@@ -296,8 +284,8 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
         return {
             orderId: order.id,
             stripeSessionId: order.stripeSessionId,
-            outcome: 'skipped_missing_customer_data',
-            detail: 'Could not resolve valid customer email and address from Stripe session.',
+            outcome: 'skipped_not_bug_signature',
+            detail: 'Could not resolve a valid recoverable email/address from Stripe session.',
         }
     }
 
