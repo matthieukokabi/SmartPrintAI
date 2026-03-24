@@ -469,6 +469,7 @@ export async function POST(req: NextRequest) {
             if (printfulItems.length > 0) {
                 const printfulOrder = (await printful.createOrder({
                     email: customerEmail,
+                    externalId: order.id,
                     shippingAddress: {
                         name: recipientName,
                         address1: address.line1!,

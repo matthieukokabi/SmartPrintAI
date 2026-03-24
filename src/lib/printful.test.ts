@@ -55,6 +55,7 @@ describe('Printful createOrder', () => {
 
         expect(result).toEqual({ id: 'pf_order_123' })
         expect(fetchMock).toHaveBeenCalledTimes(2)
+        expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.printful.com/orders?confirm=1')
 
         const retryPayload = JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)
         expect(retryPayload.items[0].options).toEqual([{ id: 'stitch_color', value: 'white' }])
@@ -74,6 +75,7 @@ describe('Printful createOrder', () => {
         const { printful } = await import('./printful')
         await printful.createOrder({
             email: 'buyer@example.com',
+            externalId: 'order_123',
             shippingAddress: {
                 name: 'Buyer',
                 address1: 'Main St 1',
@@ -92,7 +94,9 @@ describe('Printful createOrder', () => {
             ],
         })
 
+        expect(fetchMock.mock.calls[0]?.[0]).toBe('https://api.printful.com/orders?confirm=1&update_existing=1')
         const payload = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)
+        expect(payload.external_id).toBe('order_123')
         expect(payload.items[0].options).toEqual([{ id: 'stitch_color', value: 'black' }])
         expect(fetchMock).toHaveBeenCalledTimes(1)
     })

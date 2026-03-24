@@ -470,6 +470,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
         if (printfulItems.length > 0) {
             const printfulOrder = (await printful.createOrder({
                 email,
+                externalId: order.id,
                 shippingAddress: {
                     name: recipientName,
                     address1: address.line1,

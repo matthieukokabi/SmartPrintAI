@@ -181,6 +181,7 @@ class PrintfulClient {
 
     async createOrder(params: {
         email: string
+        externalId?: string
         shippingAddress: {
             name: string
             address1: string
@@ -218,6 +219,7 @@ class PrintfulClient {
                 zip: params.shippingAddress.zip,
                 email: params.email,
             },
+            ...(params.externalId ? { external_id: params.externalId } : {}),
             items: params.items.map((rawItem) => {
                 const item = itemTransformer ? itemTransformer(rawItem) : rawItem
                 return {
@@ -228,16 +230,18 @@ class PrintfulClient {
                 }
             }),
         })
+        const shouldUpsertExisting = Boolean(params.externalId)
+        const endpoint = shouldUpsertExisting ? '/orders?confirm=1&update_existing=1' : '/orders?confirm=1'
 
         try {
-            return await this.post('/orders', buildPayload())
+            return await this.post(endpoint, buildPayload())
         } catch (error) {
             if (!this.isMissingStitchColorError(error)) {
                 throw error
             }
 
             return this.post(
-                '/orders',
+                endpoint,
                 buildPayload((item) => ({
                     ...item,
                     options: this.ensureStitchColorOption(item.options),
