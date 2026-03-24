@@ -164,6 +164,101 @@ describe('/api/webhooks/stripe POST', () => {
     expect(mocks.sendMakeOrderAlert).not.toHaveBeenCalled()
   })
 
+  it('falls back to customer_details.address when shipping_details is missing', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-1',
+        designId: 'design-1',
+        size: 'M',
+        color: 'Black',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_customer_details_fallback',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 3598,
+          amount_subtotal: 2999,
+          shipping_cost: { amount_total: 599 },
+          customer_email: null,
+          customer_details: {
+            email: 'buyer@example.com',
+            name: 'Buyer Example',
+            address: {
+              line1: 'Main St 1',
+              city: 'Zurich',
+              country: 'CH',
+              postal_code: '8000',
+              state: null,
+              line2: null,
+            },
+          },
+          shipping_details: null,
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-1',
+        sellPrice: 29.99,
+        colors: [{ name: 'Black', printfulVariantId: 1234 }],
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design.png',
+      },
+    ])
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_fallback_1', total: 35.98 })
+    mocks.printful.createOrder.mockResolvedValue({ id: 'pf_fallback_123' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+
+    expect(mocks.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          stripeSessionId: 'cs_test_customer_details_fallback',
+          status: 'paid',
+          shippingAddress: expect.objectContaining({
+            line1: 'Main St 1',
+            city: 'Zurich',
+            country: 'CH',
+            postal_code: '8000',
+          }),
+        }),
+      })
+    )
+    expect(mocks.printful.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'buyer@example.com',
+        shippingAddress: expect.objectContaining({
+          name: 'Buyer Example',
+          address1: 'Main St 1',
+          city: 'Zurich',
+          country_code: 'CH',
+          zip: '8000',
+        }),
+      })
+    )
+    expect(mocks.sendOrderConfirmation).toHaveBeenCalledWith({
+      email: 'buyer@example.com',
+      orderId: 'order_fallback_1',
+      items: metadataItems,
+      total: 35.98,
+    })
+    expect(mocks.sendMakeOrderAlert).toHaveBeenCalled()
+  })
+
   it('sends make order alert after successful order creation + fulfillment', async () => {
     const metadataItems = [
       {

@@ -116,6 +116,34 @@ function parseGootenOrderId(payload: unknown): string | null {
     return null
 }
 
+function resolveRecipientName(session: Stripe.Checkout.Session, fallbackEmail: string): string {
+    const shippingName =
+        (isNonEmptyString(session.shipping_details?.name, 120) && session.shipping_details.name.trim()) ||
+        null
+    const customerName =
+        (isNonEmptyString(session.customer_details?.name, 120) && session.customer_details.name.trim()) ||
+        null
+
+    return shippingName || customerName || fallbackEmail
+}
+
+function splitRecipientName(fullName: string): { firstName: string; lastName: string } {
+    const normalized = fullName.trim()
+    if (!normalized) {
+        return { firstName: 'Customer', lastName: 'Customer' }
+    }
+
+    const parts = normalized.split(/\s+/)
+    if (parts.length === 1) {
+        return { firstName: parts[0], lastName: 'Customer' }
+    }
+
+    return {
+        firstName: parts[0],
+        lastName: parts.slice(1).join(' '),
+    }
+}
+
 export async function POST(req: NextRequest) {
     const route = '/api/webhooks/stripe'
     const requestId = getRequestId(req)
@@ -146,7 +174,6 @@ export async function POST(req: NextRequest) {
         }
 
         const session = event.data.object as Stripe.Checkout.Session
-        const shippingDetails = session.shipping_details
 
         const items = parseCheckoutItems(session.metadata?.items)
         if (!items) {
@@ -310,7 +337,7 @@ export async function POST(req: NextRequest) {
             })
             : null
 
-        const address = shippingDetails?.address
+        const address = session.shipping_details?.address || session.customer_details?.address
         const hasShippingAddress =
             !!address &&
             isNonEmptyString(address.line1, 255) &&
@@ -371,6 +398,9 @@ export async function POST(req: NextRequest) {
             logApiWarn(route, requestId, 'manual_review_created', { stripeSessionId: session.id })
             return respond({ ok: true })
         }
+
+        const recipientName = resolveRecipientName(session, customerEmail)
+        const recipient = splitRecipientName(recipientName)
 
         const shippingAddress = {
             line1: address.line1,
@@ -433,7 +463,7 @@ export async function POST(req: NextRequest) {
                 const printfulOrder = (await printful.createOrder({
                     email: customerEmail,
                     shippingAddress: {
-                        name: shippingDetails?.name || customerEmail,
+                        name: recipientName,
                         address1: address.line1!,
                         city: address.city!,
                         state_code: address.state || '',
@@ -458,8 +488,8 @@ export async function POST(req: NextRequest) {
                     currency: orderCurrency,
                     customerEmail,
                     shippingAddress: {
-                        firstName: shippingDetails?.name?.split(' ')[0] || customerEmail,
-                        lastName: shippingDetails?.name?.split(' ').slice(1).join(' ') || 'Customer',
+                        firstName: recipient.firstName,
+                        lastName: recipient.lastName,
                         addressLine1: address.line1!,
                         addressLine2: address.line2 || '',
                         city: address.city!,
@@ -480,8 +510,8 @@ export async function POST(req: NextRequest) {
 
             if (gootenItems.length > 0) {
                 const gooten = getGootenClient()
-                const firstName = shippingDetails?.name?.split(' ')[0] || customerEmail
-                const lastName = shippingDetails?.name?.split(' ').slice(1).join(' ') || 'Customer'
+                const firstName = recipient.firstName
+                const lastName = recipient.lastName
                 const countryCode = address.country!
 
                 const primaryPayload = {

@@ -28,7 +28,7 @@ const defaultCopy: TimelineCopy = {
     processingDescription: 'Your item is being prepared and printed.',
     shippedLabel: 'Shipped',
     shippedDescription: 'Your package left production and is on the way.',
-    manualReviewNote: 'Order requires manual review before fulfillment starts.',
+    manualReviewNote: 'Address details are being verified. Production starts right after this check.',
     fulfillmentFailedNote: 'Fulfillment failed. Support intervention is required.',
 }
 
@@ -50,7 +50,7 @@ function getStepState(status: string, index: number): StepState {
 
     if (normalized === 'manual_review') {
         if (index === 0) return 'done'
-        if (index === 1) return 'warning'
+        if (index === 1) return 'current'
         return 'pending'
     }
 
@@ -106,7 +106,14 @@ function helperMessage(status: string, copy: TimelineCopy): string | null {
 }
 
 export function getReadableOrderStatus(status: string): string {
-    return toTitleCase(normalizeStatus(status) || 'pending')
+    const normalized = normalizeStatus(status)
+    if (normalized === 'manual_review') {
+        return 'Address verification'
+    }
+    if (normalized === 'fulfillment_failed') {
+        return 'Production issue'
+    }
+    return toTitleCase(normalized || 'pending')
 }
 
 type Props = {
@@ -158,7 +165,7 @@ export default function OrderStatusTimeline({ status, copy = defaultCopy }: Prop
                 })}
             </ol>
 
-            {note ? <p className="text-xs text-yellow-300">{note}</p> : null}
+            {note ? <p className="text-xs text-[#26d4b8]/90">{note}</p> : null}
         </div>
     )
 }

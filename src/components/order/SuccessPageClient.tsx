@@ -90,9 +90,32 @@ export default function SuccessPageClient({ locale, copy, createPath }: SuccessP
                 <h1 className="text-3xl font-bold mb-3">{copy.heading}</h1>
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto">{copy.subtitle}</p>
 
+                <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.04] p-5 text-left">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#26d4b8]/90">{copy.nextStepsLabel}</p>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-[#26d4b8]" />
+                            {copy.fallbackStepOne}
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-[#26d4b8]" />
+                            {copy.fallbackStepTwo}
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-[#26d4b8]" />
+                            {copy.fallbackStepThree}
+                        </li>
+                    </ul>
+                    {order?.status === 'manual_review' ? (
+                        <p className="mt-3 rounded-lg border border-[#2f6cf3]/40 bg-[#2f6cf3]/10 px-3 py-2 text-xs text-[#9dd8ff]">
+                            {copy.manualReviewReassurance}
+                        </p>
+                    ) : null}
+                </div>
+
                 <div className="glass rounded-xl p-6 mb-8 text-left space-y-5">
                     <div className="flex items-center gap-3">
-                        <Package className="w-5 h-5 text-purple-400" />
+                        <Package className="w-5 h-5 text-[#26d4b8]" />
                         <span className="font-medium">{copy.progressLabel}</span>
                     </div>
 
@@ -113,7 +136,7 @@ export default function SuccessPageClient({ locale, copy, createPath }: SuccessP
 
                             <Link
                                 href={`/orders/${order.id}`}
-                                className="inline-flex items-center gap-2 text-sm text-purple-300 hover:text-purple-200"
+                                className="inline-flex items-center gap-2 text-sm text-[#2f6cf3] transition-colors hover:text-[#26d4b8]"
                             >
                                 {copy.viewTrackingLabel}
                                 <ArrowRight className="w-4 h-4" />
@@ -122,15 +145,15 @@ export default function SuccessPageClient({ locale, copy, createPath }: SuccessP
                     ) : (
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li className="flex items-start gap-2">
-                                <span className="text-purple-400 font-bold">1.</span>
+                                <span className="text-[#26d4b8] font-bold">1.</span>
                                 {copy.fallbackStepOne}
                             </li>
                             <li className="flex items-start gap-2">
-                                <span className="text-purple-400 font-bold">2.</span>
+                                <span className="text-[#26d4b8] font-bold">2.</span>
                                 {copy.fallbackStepTwo}
                             </li>
                             <li className="flex items-start gap-2">
-                                <span className="text-purple-400 font-bold">3.</span>
+                                <span className="text-[#26d4b8] font-bold">3.</span>
                                 {copy.fallbackStepThree}
                             </li>
                         </ul>
@@ -139,7 +162,7 @@ export default function SuccessPageClient({ locale, copy, createPath }: SuccessP
 
                 <Link
                     href={createPath}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity"
+                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45"
                 >
                     {copy.createAnotherLabel}
                     <ArrowRight className="w-4 h-4" />

@@ -175,6 +175,8 @@ type SuccessPageCopy = {
     metadataTitle: string
     heading: string
     subtitle: string
+    nextStepsLabel: string
+    manualReviewReassurance: string
     progressLabel: string
     loadingOrderLabel: string
     orderLabel: string
@@ -425,6 +427,8 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             metadataTitle: 'Order Success',
             heading: 'Order Confirmed!',
             subtitle: 'Thank you for your order! Your custom product is being produced and will ship within 3-7 business days.',
+            nextStepsLabel: 'What happens next',
+            manualReviewReassurance: 'We are confirming address details before production. No payment action is needed from you.',
             progressLabel: 'Order progress',
             loadingOrderLabel: 'Loading order details...',
             orderLabel: 'Order',
@@ -442,7 +446,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 processingDescription: 'Your item is being prepared and printed.',
                 shippedLabel: 'Shipped',
                 shippedDescription: 'Your package left production and is on the way.',
-                manualReviewNote: 'Order requires manual review before fulfillment starts.',
+                manualReviewNote: 'Address details are being verified. Production starts right after this check.',
                 fulfillmentFailedNote: 'Fulfillment failed. Support intervention is required.',
             },
         },
@@ -668,6 +672,8 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             metadataTitle: 'Commande confirmee',
             heading: 'Commande confirmee !',
             subtitle: 'Merci pour votre commande ! Votre produit est en production et sera expedie sous 3 a 7 jours ouvres.',
+            nextStepsLabel: 'Prochaines etapes',
+            manualReviewReassurance: 'Nous validons les details de livraison avant lancement production. Aucune action de paiement n est requise.',
             progressLabel: 'Progression de la commande',
             loadingOrderLabel: 'Chargement des details de commande...',
             orderLabel: 'Commande',
@@ -685,7 +691,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 processingDescription: 'Votre article est en preparation et impression.',
                 shippedLabel: 'Expedie',
                 shippedDescription: 'Votre colis est en route.',
-                manualReviewNote: "La commande necessite une verification manuelle avant la production.",
+                manualReviewNote: 'Les details de livraison sont en cours de verification. La production demarre juste apres ce controle.',
                 fulfillmentFailedNote: "La production a echoue. L'intervention du support est requise.",
             },
         },
@@ -911,6 +917,8 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             metadataTitle: 'Bestellung bestaetigt',
             heading: 'Bestellung bestaetigt!',
             subtitle: 'Danke fuer deine Bestellung! Dein Produkt ist in Produktion und wird in 3-7 Werktagen versendet.',
+            nextStepsLabel: 'Was als Naechstes passiert',
+            manualReviewReassurance: 'Wir bestaetigen die Lieferdetails vor Produktionsstart. Keine Zahlungsaktion von dir erforderlich.',
             progressLabel: 'Bestellfortschritt',
             loadingOrderLabel: 'Bestelldetails werden geladen...',
             orderLabel: 'Bestellung',
@@ -928,7 +936,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 processingDescription: 'Dein Artikel wird vorbereitet und gedruckt.',
                 shippedLabel: 'Versendet',
                 shippedDescription: 'Dein Paket ist unterwegs.',
-                manualReviewNote: 'Die Bestellung erfordert eine manuelle Pruefung vor der Produktion.',
+                manualReviewNote: 'Die Lieferdetails werden geprueft. Die Produktion startet direkt danach.',
                 fulfillmentFailedNote: 'Die Produktion ist fehlgeschlagen. Support-Eingriff ist erforderlich.',
             },
         },
@@ -1154,6 +1162,8 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             metadataTitle: 'Pedido confirmado',
             heading: 'Pedido confirmado!',
             subtitle: 'Gracias por tu pedido! Tu producto se esta fabricando y se enviara en 3-7 dias habiles.',
+            nextStepsLabel: 'Que pasa ahora',
+            manualReviewReassurance: 'Estamos verificando los datos de envio antes de produccion. No necesitas hacer ninguna accion de pago.',
             progressLabel: 'Progreso del pedido',
             loadingOrderLabel: 'Cargando detalles del pedido...',
             orderLabel: 'Pedido',
@@ -1171,7 +1181,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 processingDescription: 'Tu articulo se esta preparando e imprimiendo.',
                 shippedLabel: 'Enviado',
                 shippedDescription: 'Tu paquete ya esta en camino.',
-                manualReviewNote: 'El pedido requiere revision manual antes de iniciar la produccion.',
+                manualReviewNote: 'Estamos verificando los datos de envio. La produccion comienza justo despues.',
                 fulfillmentFailedNote: 'La produccion fallo. Se requiere intervencion de soporte.',
             },
         },
