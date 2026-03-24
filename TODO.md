@@ -12,7 +12,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Product listing route fixed and live
 - [x] API validation hardening across routes
 - [x] Stripe webhook idempotency and webhook authenticity verification
-- [x] Stripe webhook shipping-address fallback + manual-review recovery safety patch (2026-03-24: `/api/webhooks/stripe` now falls back to `customer_details.address` when `shipping_details.address` is absent, added regression coverage for this exact payload shape, shipped one-time idempotent recovery utility `npm run orders:recover:manual-review` for paid `manual_review` orders with missing shipping payload, and upgraded post-purchase timeline/CTA trust UX + brand colors on `/success`)
+- [x] Stripe webhook shipping-address fallback + manual-review recovery safety patch (2026-03-24: `/api/webhooks/stripe` now falls back to `customer_details.address` when `shipping_details.address` is absent, added regression coverage for this exact payload shape, shipped one-time idempotent recovery utility `npm run orders:recover:manual-review` for paid `manual_review` orders with missing shipping payload, hardened script env bootstrap on VPS (`.env` + `.env.local` load order), and upgraded post-purchase timeline/CTA trust UX + brand colors on `/success`)
 - [x] Structured API logging + request IDs
 - [x] Rate limiting in place on auth/generation-sensitive paths
 - [x] Test stack in place (unit + API + e2e smoke) and CI check script
