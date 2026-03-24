@@ -17,6 +17,11 @@ type ProductResponse = {
     }
 }
 
+type PrintfulOrderItemOption = {
+    id: string
+    value: string
+}
+
 const IGNORED_MOCKUP_PLACEMENTS = new Set(['mockup'])
 
 class PrintfulClient {
@@ -157,6 +162,23 @@ class PrintfulClient {
         return error.message.includes('"api_error_code":"MG-4"')
     }
 
+    private isMissingStitchColorError(error: unknown): boolean {
+        if (!(error instanceof Error)) return false
+        return error.message.toLowerCase().includes('stitch_color')
+    }
+
+    private ensureStitchColorOption(options: PrintfulOrderItemOption[] = []): PrintfulOrderItemOption[] {
+        const normalized = options
+            .filter(option => option.id.trim().length > 0 && option.value.trim().length > 0)
+            .map(option => ({ id: option.id.trim(), value: option.value.trim() }))
+
+        if (normalized.some(option => option.id === 'stitch_color')) {
+            return normalized
+        }
+
+        return [...normalized, { id: 'stitch_color', value: 'white' }]
+    }
+
     async createOrder(params: {
         email: string
         shippingAddress: {
@@ -171,9 +193,22 @@ class PrintfulClient {
             variantId: number
             quantity: number
             imageUrl: string
+            options?: PrintfulOrderItemOption[]
         }>
     }) {
-        return this.post('/orders', {
+        const buildPayload = (
+            itemTransformer?: (item: {
+                variantId: number
+                quantity: number
+                imageUrl: string
+                options?: PrintfulOrderItemOption[]
+            }) => {
+                variantId: number
+                quantity: number
+                imageUrl: string
+                options?: PrintfulOrderItemOption[]
+            }
+        ) => ({
             recipient: {
                 name: params.shippingAddress.name,
                 address1: params.shippingAddress.address1,
@@ -183,12 +218,32 @@ class PrintfulClient {
                 zip: params.shippingAddress.zip,
                 email: params.email,
             },
-            items: params.items.map(item => ({
-                variant_id: item.variantId,
-                quantity: item.quantity,
-                files: [{ type: 'default', url: item.imageUrl }],
-            })),
+            items: params.items.map((rawItem) => {
+                const item = itemTransformer ? itemTransformer(rawItem) : rawItem
+                return {
+                    variant_id: item.variantId,
+                    quantity: item.quantity,
+                    files: [{ type: 'default', url: item.imageUrl }],
+                    ...(item.options && item.options.length > 0 ? { options: item.options } : {}),
+                }
+            }),
         })
+
+        try {
+            return await this.post('/orders', buildPayload())
+        } catch (error) {
+            if (!this.isMissingStitchColorError(error)) {
+                throw error
+            }
+
+            return this.post(
+                '/orders',
+                buildPayload((item) => ({
+                    ...item,
+                    options: this.ensureStitchColorOption(item.options),
+                }))
+            )
+        }
     }
 }
 
