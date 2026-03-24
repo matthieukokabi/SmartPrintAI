@@ -4,8 +4,22 @@ import { prisma } from '@/lib/prisma'
 import { getReadableOrderStatus } from '@/components/order/OrderStatusTimeline'
 import { readRecentSupportIntakeRecords } from '@/lib/support-intake-log'
 import { requireOwnerPortalSession } from '@/lib/owner-portal-server'
+import {
+    ADMIN_ORDERS_DEFAULT_LIMIT,
+    AdminOrderStatusFilter,
+    buildAdminOrdersWhere,
+    normalizeAdminOrderSearchQuery,
+    normalizeAdminOrderStatusFilter,
+} from '@/lib/admin-orders'
 
 export const dynamic = 'force-dynamic'
+
+type AdminPageProps = {
+    searchParams?: {
+        q?: string
+        status?: string
+    }
+}
 
 function orderLabel(id: string): string {
     return `#${id.slice(-8).toUpperCase()}`
@@ -22,13 +36,34 @@ function statusBadgeClasses(status: string): string {
     return 'border-white/10 bg-white/5 text-muted-foreground'
 }
 
-export default async function OwnerAdminPage() {
+function paymentStatusLabel(status: string): string {
+    const normalized = status.trim().toLowerCase()
+    if (normalized === 'pending') return 'Pending'
+    if (normalized === 'paid' || normalized === 'processing' || normalized === 'shipped') return 'Captured'
+    return 'Captured'
+}
+
+const STATUS_FILTER_OPTIONS: Array<{ value: AdminOrderStatusFilter; label: string }> = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'processing', label: 'Processing' },
+    { value: 'manual_review', label: 'Manual review' },
+    { value: 'fulfillment_failed', label: 'Fulfillment failed' },
+    { value: 'shipped', label: 'Shipped' },
+]
+
+export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
     const session = requireOwnerPortalSession()
+    const searchQuery = normalizeAdminOrderSearchQuery(searchParams?.q)
+    const statusFilter = normalizeAdminOrderStatusFilter(searchParams?.status)
+    const where = buildAdminOrdersWhere(searchQuery, statusFilter)
 
     const [orders, supportRequests] = await Promise.all([
         prisma.order.findMany({
+            where,
             orderBy: { createdAt: 'desc' },
-            take: 75,
+            take: ADMIN_ORDERS_DEFAULT_LIMIT,
             include: {
                 items: {
                     select: {
@@ -104,6 +139,54 @@ export default async function OwnerAdminPage() {
                 </article>
             </section>
 
+            <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#26d4b8]">Order discovery</h2>
+                    <p className="text-xs text-muted-foreground">
+                        Search by order id, short id, email, Stripe session, or fulfillment id.
+                    </p>
+                </div>
+                <form method="get" className="grid gap-3 md:grid-cols-[1fr,220px,auto]">
+                    <input
+                        type="search"
+                        name="q"
+                        defaultValue={searchQuery || ''}
+                        placeholder="Search order id or email"
+                        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-foreground outline-none transition focus:border-[#26d4b8]/60 focus:ring-2 focus:ring-[#26d4b8]/35"
+                    />
+                    <select
+                        name="status"
+                        defaultValue={statusFilter}
+                        className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-foreground outline-none transition focus:border-[#26d4b8]/60 focus:ring-2 focus:ring-[#26d4b8]/35"
+                    >
+                        {STATUS_FILTER_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="flex gap-2">
+                        <button
+                            type="submit"
+                            className="rounded-lg bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 text-sm font-medium text-white shadow-[0_8px_28px_rgba(38,212,184,0.22)] transition hover:brightness-110"
+                        >
+                            Apply
+                        </button>
+                        {(searchQuery || statusFilter !== 'all') ? (
+                            <Link
+                                href="/admin"
+                                className="rounded-lg border border-white/15 px-4 py-2 text-sm text-muted-foreground transition hover:border-white/25 hover:text-foreground"
+                            >
+                                Clear
+                            </Link>
+                        ) : null}
+                    </div>
+                </form>
+                <p className="text-xs text-muted-foreground">
+                    Showing {orders.length} of up to {ADMIN_ORDERS_DEFAULT_LIMIT} recent orders.
+                </p>
+            </section>
+
             <section className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-[#26d4b8]">Orders requiring owner check</h2>
                 {attentionOrders.length === 0 ? (
@@ -144,9 +227,11 @@ export default async function OwnerAdminPage() {
                                 <thead className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
                                     <tr>
                                         <th className="pb-3 pr-3 font-medium">Order</th>
+                                        <th className="pb-3 pr-3 font-medium">Order ID</th>
                                         <th className="pb-3 pr-3 font-medium">Created</th>
                                         <th className="pb-3 pr-3 font-medium">Customer</th>
                                         <th className="pb-3 pr-3 font-medium">Total</th>
+                                        <th className="pb-3 pr-3 font-medium">Payment</th>
                                         <th className="pb-3 pr-3 font-medium">Status</th>
                                         <th className="pb-3 pr-3 font-medium">Fulfillment</th>
                                         <th className="pb-3 font-medium">Items</th>
@@ -160,9 +245,11 @@ export default async function OwnerAdminPage() {
                                                     {orderLabel(order.id)}
                                                 </Link>
                                             </td>
+                                            <td className="py-3 pr-3 text-xs text-muted-foreground">{order.id}</td>
                                             <td className="py-3 pr-3 text-muted-foreground">{new Date(order.createdAt).toLocaleString()}</td>
                                             <td className="py-3 pr-3 text-muted-foreground">{order.email}</td>
                                             <td className="py-3 pr-3 text-foreground">USD {order.total.toFixed(2)}</td>
+                                            <td className="py-3 pr-3 text-muted-foreground">{paymentStatusLabel(order.status)}</td>
                                             <td className="py-3 pr-3">
                                                 <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${statusBadgeClasses(order.status)}`}>
                                                     {getReadableOrderStatus(order.status)}

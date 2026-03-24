@@ -19,4 +19,11 @@ describe('owner operations portal regression guards', () => {
     const supportRoute = readFile('src/app/api/support/route.ts')
     expect(supportRoute).toContain('appendSupportIntakeRecord')
   })
+
+  it('keeps owner order discovery controls in admin portal', () => {
+    const adminPage = readFile('src/app/admin/page.tsx')
+    expect(adminPage).toContain('Search by order id, short id, email')
+    expect(adminPage).toContain('name="q"')
+    expect(adminPage).toContain('name="status"')
+  })
 })

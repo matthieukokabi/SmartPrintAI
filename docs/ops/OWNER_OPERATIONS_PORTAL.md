@@ -40,12 +40,18 @@ Unauthorized users are denied (`404`), and unauthenticated users are redirected 
   - support intake count
 - Recent orders table:
   - order id
+  - short id label (`#XXXXXXXX`) and full id
   - created date
   - customer email
   - total
+  - payment status
   - status
   - fulfillment id
   - item count
+- Order discovery controls:
+  - search by order id, short id, email, Stripe session id, or fulfillment id
+  - status filter
+  - default recent window of up to 250 orders
 - Attention list:
   - manual review
   - fulfillment failed
