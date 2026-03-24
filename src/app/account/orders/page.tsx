@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { getSessionFromCookieStore } from '@/lib/auth-session'
+import { buildSignInPath } from '@/lib/auth-callback'
 import { getReadableOrderStatus } from '@/components/order/OrderStatusTimeline'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,7 @@ function orderLabel(id: string): string {
 export default async function AccountOrdersPage() {
     const session = getSessionFromCookieStore()
     if (!session) {
-        redirect('/signin')
+        redirect(buildSignInPath('/account/orders'))
     }
 
     const orders = await prisma.order.findMany({

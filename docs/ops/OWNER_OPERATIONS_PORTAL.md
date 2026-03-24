@@ -10,14 +10,17 @@ Before this step, SmartPrintAI did not have a dedicated owner backoffice route.
 
 ## Owner portal route
 
-- Route: `/admin`
-- Order detail route: `/admin/orders/[id]`
+- Canonical landing route: `/admin`
+- Canonical order detail route: `/admin/orders/[id]`
+- Compatibility aliases:
+  - `/admin/orders` -> redirects to `/admin`
+  - `/admin/order/[id]` -> redirects to `/admin/orders/[id]`
 
 ## Access control
 
 Access is session-gated and owner-email allowlisted.
 
-1. Sign in via magic link at `/signin`.
+1. Sign in via magic link at `/signin?callbackUrl=/admin` (auto-used when auth redirects from `/admin*`).
 2. The signed-in email must be present in `OWNER_PORTAL_EMAILS`.
 3. If `OWNER_PORTAL_EMAILS` is empty, `SUPPORT_EMAIL` is used as a fallback allowlist entry.
 
@@ -27,7 +30,7 @@ Set this in production:
 OWNER_PORTAL_EMAILS="owner@smartprintai.com,ops@smartprintai.com"
 ```
 
-Unauthorized users are denied (`404`), and unauthenticated users are redirected to `/signin`.
+Unauthorized users are denied (`404`), and unauthenticated users are redirected to `/signin?callbackUrl=<admin-path>`.
 
 ## What owner can see
 
@@ -57,6 +60,12 @@ Unauthorized users are denied (`404`), and unauthenticated users are redirected 
   - fulfillment failed
   - processing orders missing fulfillment id
 - Support intake list (latest submissions)
+
+Manual validation shortcut for known live order:
+
+- Search by short id: `TVKIVXXW`
+- Search by full id: `cmn3p5lxs000c8fl2tvkivxxw`
+- Search by email: `miker327@proton.me`
 
 ### `/admin/orders/[id]`
 

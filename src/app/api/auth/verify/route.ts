@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSessionToken, readSignInLinkToken, setSessionCookie } from '@/lib/auth-session'
 import { prisma } from '@/lib/prisma'
 import { getRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
+import { normalizeAuthCallbackPath } from '@/lib/auth-callback'
 
 function getPublicOrigin(req: NextRequest): string {
     const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim()
@@ -33,7 +34,9 @@ export async function GET(req: NextRequest) {
     logApiInfo(route, requestId, 'request_received')
 
     try {
-        const tokenRaw = new URL(req.url).searchParams.get('token')
+        const requestUrl = new URL(req.url)
+        const tokenRaw = requestUrl.searchParams.get('token')
+        const callbackUrl = normalizeAuthCallbackPath(requestUrl.searchParams.get('callbackUrl'))
         if (!tokenRaw || tokenRaw.length > 4000) {
             logApiWarn(route, requestId, 'missing_token')
             return redirectWithError(req, 'missing_token')
@@ -65,10 +68,10 @@ export async function GET(req: NextRequest) {
 
         const sessionToken = createSessionToken(user.id, user.email)
 
-        const response = NextResponse.redirect(buildPublicUrl(req, '/account/orders'))
+        const response = NextResponse.redirect(buildPublicUrl(req, callbackUrl))
         setSessionCookie(response, sessionToken)
 
-        logApiInfo(route, requestId, 'request_succeeded', { userId: user.id })
+        logApiInfo(route, requestId, 'request_succeeded', { userId: user.id, callbackUrl })
         return response
     } catch (error) {
         logApiError(route, requestId, 'request_failed', error)

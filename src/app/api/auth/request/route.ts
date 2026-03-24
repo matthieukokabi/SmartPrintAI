@@ -3,6 +3,7 @@ import { createSignInLinkToken } from '@/lib/auth-session'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
 import { sendSignInLink } from '@/lib/resend'
+import { isOwnerPortalCallbackPath, normalizeAuthCallbackPath } from '@/lib/auth-callback'
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
@@ -46,14 +47,18 @@ export async function POST(req: NextRequest) {
             logApiWarn(route, requestId, 'invalid_email')
             return respond({ error: 'Invalid email' }, { status: 400 })
         }
+        const callbackUrl = normalizeAuthCallbackPath(
+            typeof payload.callbackUrl === 'string' ? payload.callbackUrl : undefined,
+        )
 
         const token = createSignInLinkToken(email)
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-        const verifyUrl = baseUrl.replace(/\/$/, '') + '/api/auth/verify?token=' + encodeURIComponent(token)
+        const verifyUrl = baseUrl.replace(/\/$/, '') + '/api/auth/verify?token=' + encodeURIComponent(token) + '&callbackUrl=' + encodeURIComponent(callbackUrl)
 
         await sendSignInLink({
             email,
             verifyUrl,
+            context: isOwnerPortalCallbackPath(callbackUrl) ? 'owner_portal' : 'customer_orders',
         })
 
         logApiInfo(route, requestId, 'request_succeeded')

@@ -54,7 +54,7 @@ const STATUS_FILTER_OPTIONS: Array<{ value: AdminOrderStatusFilter; label: strin
 ]
 
 export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
-    const session = requireOwnerPortalSession()
+    const session = requireOwnerPortalSession('/admin')
     const searchQuery = normalizeAdminOrderSearchQuery(searchParams?.q)
     const statusFilter = normalizeAdminOrderStatusFilter(searchParams?.status)
     const where = buildAdminOrdersWhere(searchQuery, statusFilter)
@@ -120,7 +120,7 @@ export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
                 <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
                     <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Recent orders</p>
                     <p className="mt-2 text-3xl font-semibold text-foreground">{orders.length}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Last 75 orders</p>
+                    <p className="mt-1 text-xs text-muted-foreground">Last {ADMIN_ORDERS_DEFAULT_LIMIT} orders</p>
                 </article>
                 <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
                     <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">Needs attention</p>

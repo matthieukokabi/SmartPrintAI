@@ -30,7 +30,7 @@ function stringifyJson(value: unknown): string {
 }
 
 export default async function OwnerOrderDetailPage({ params }: PageProps) {
-    requireOwnerPortalSession()
+    requireOwnerPortalSession(`/admin/orders/${params.id}`)
 
     if (!/^[A-Za-z0-9_-]{1,191}$/.test(params.id)) {
         notFound()
