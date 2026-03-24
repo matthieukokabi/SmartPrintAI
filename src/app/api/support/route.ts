@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { rateLimitRequest } from '@/lib/rate-limit'
 import { sendSupportAutoReply, sendSupportRequest } from '@/lib/resend'
+import { appendSupportIntakeRecord } from '@/lib/support-intake-log'
 
 type SupportPayload = {
     name: string
@@ -118,6 +119,21 @@ export async function POST(req: NextRequest) {
             email,
             orderId,
         })
+
+        try {
+            await appendSupportIntakeRecord({
+                requestId,
+                createdAt: new Date().toISOString(),
+                name,
+                email,
+                subject,
+                orderId: orderId || null,
+            })
+        } catch (error) {
+            logApiWarn(route, requestId, 'support_intake_log_failed', {
+                message: error instanceof Error ? error.message : 'unknown_error',
+            })
+        }
 
         logApiInfo(route, requestId, 'request_succeeded')
         return respond({

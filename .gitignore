@@ -43,6 +43,7 @@ TODO.md.bak.*
 /data/analytics/*.jsonl
 /data/analytics/homepage-hero-experiment-snapshots.jsonl
 /data/analytics/create-entry-funnel-snapshots.jsonl
+/data/support/*.jsonl
 /docs/reports/artifacts/homepage-funnel/latest.json
 
 # vercel

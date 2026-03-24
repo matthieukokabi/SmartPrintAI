@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   rateLimitRequest: vi.fn(),
   sendSupportRequest: vi.fn(),
   sendSupportAutoReply: vi.fn(),
+  appendSupportIntakeRecord: vi.fn(),
 }))
 
 vi.mock('@/lib/rate-limit', () => ({
@@ -14,6 +15,10 @@ vi.mock('@/lib/rate-limit', () => ({
 vi.mock('@/lib/resend', () => ({
   sendSupportRequest: mocks.sendSupportRequest,
   sendSupportAutoReply: mocks.sendSupportAutoReply,
+}))
+
+vi.mock('@/lib/support-intake-log', () => ({
+  appendSupportIntakeRecord: mocks.appendSupportIntakeRecord,
 }))
 
 import { POST } from './route'
@@ -108,6 +113,14 @@ describe('/api/support POST', () => {
       email: 'matt@example.com',
       orderId: 'cmmiupftt0006qjl2yt1s3on5',
     })
+    expect(mocks.appendSupportIntakeRecord).toHaveBeenCalledTimes(1)
+    expect(mocks.appendSupportIntakeRecord).toHaveBeenCalledWith(expect.objectContaining({
+      requestId: 'req-support-ok',
+      name: 'Matt',
+      email: 'matt@example.com',
+      subject: 'Where is my tracking?',
+      orderId: 'cmmiupftt0006qjl2yt1s3on5',
+    }))
   })
 
   it('returns 500 when sending support email fails', async () => {
@@ -124,5 +137,6 @@ describe('/api/support POST', () => {
     expect(res.status).toBe(500)
     await expect(res.json()).resolves.toEqual({ error: 'Support request failed' })
     expect(mocks.sendSupportAutoReply).not.toHaveBeenCalled()
+    expect(mocks.appendSupportIntakeRecord).not.toHaveBeenCalled()
   })
 })
