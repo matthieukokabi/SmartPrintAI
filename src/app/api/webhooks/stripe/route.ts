@@ -513,6 +513,26 @@ export async function POST(req: NextRequest) {
                 const firstName = recipient.firstName
                 const lastName = recipient.lastName
                 const countryCode = address.country!
+                const orderCurrency = isNonEmptyString(session.currency, 10)
+                    ? session.currency.trim().toUpperCase()
+                    : 'USD'
+                const gootenBillingAddress = {
+                    FirstName: firstName,
+                    LastName: lastName,
+                    Line1: address.line1!,
+                    Line2: address.line2 || '',
+                    City: address.city!,
+                    State: address.state || '',
+                    PostalCode: address.postal_code!,
+                    CountryCode: countryCode,
+                    Email: customerEmail,
+                }
+                const gootenPayment = {
+                    CurrencyCode: orderCurrency,
+                    TotalPrice: order.total,
+                    ShippingPrice: order.shippingCost,
+                    TransactionId: session.id,
+                }
 
                 const primaryPayload = {
                     SourceId: order.id,
@@ -528,6 +548,8 @@ export async function POST(req: NextRequest) {
                         CountryCode: countryCode,
                         Email: customerEmail,
                     },
+                    BillingAddress: gootenBillingAddress,
+                    Payment: gootenPayment,
                     Items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
                         SKU: gootenSku!,
                         ProductId: gootenProductId!,
@@ -553,6 +575,23 @@ export async function POST(req: NextRequest) {
                             postalCode: address.postal_code!,
                             countryCode,
                             email: customerEmail,
+                        },
+                        billingAddress: {
+                            firstName,
+                            lastName,
+                            line1: address.line1!,
+                            line2: address.line2 || '',
+                            city: address.city!,
+                            state: address.state || '',
+                            postalCode: address.postal_code!,
+                            countryCode,
+                            email: customerEmail,
+                        },
+                        payment: {
+                            currencyCode: orderCurrency,
+                            totalPrice: order.total,
+                            shippingPrice: order.shippingCost,
+                            transactionId: session.id,
                         },
                         items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
                             sku: gootenSku!,

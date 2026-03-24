@@ -573,7 +573,7 @@ describe('/api/webhooks/stripe POST', () => {
         imageUrl: 'https://example.com/design-gooten.png',
       },
     ])
-    mocks.prisma.order.create.mockResolvedValue({ id: 'order_gooten_1', total: 67.98 })
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_gooten_1', total: 67.98, shippingCost: 5.99 })
     mocks.gooten.createOrder.mockResolvedValue({ OrderId: 'gt_order_123' })
 
     const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-gooten-ok' }))
@@ -587,6 +587,19 @@ describe('/api/webhooks/stripe POST', () => {
       expect.objectContaining({
         SourceId: 'order_gooten_1',
         ExternalId: 'order_gooten_1',
+        BillingAddress: expect.objectContaining({
+          FirstName: 'Gooten',
+          LastName: 'Buyer',
+          Line1: 'Main St 7',
+          CountryCode: 'US',
+          Email: 'gooten@example.com',
+        }),
+        Payment: expect.objectContaining({
+          CurrencyCode: 'USD',
+          TotalPrice: 67.98,
+          ShippingPrice: 5.99,
+          TransactionId: 'cs_test_gooten',
+        }),
         Items: [
           expect.objectContaining({
             SKU: 'sku_white_m',
