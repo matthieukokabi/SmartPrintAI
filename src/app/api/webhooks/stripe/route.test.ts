@@ -78,6 +78,7 @@ describe('/api/webhooks/stripe POST', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
+    process.env.GOOTEN_PARTNER_BILLING_KEY = 'gpk_test'
   })
 
   it('returns 400 when stripe-signature header is missing', async () => {
@@ -595,10 +596,7 @@ describe('/api/webhooks/stripe POST', () => {
           Email: 'gooten@example.com',
         }),
         Payment: expect.objectContaining({
-          CurrencyCode: 'USD',
-          TotalPrice: 67.98,
-          ShippingPrice: 5.99,
-          TransactionId: 'cs_test_gooten',
+          PartnerBillingKey: 'gpk_test',
         }),
         Items: [
           expect.objectContaining({

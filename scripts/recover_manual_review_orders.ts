@@ -413,6 +413,20 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
         })
     }
 
+    const gootenItems = mappedItems.filter((item) => item.provider === 'gooten')
+    const gootenPartnerBillingKey = isNonEmptyString(process.env.GOOTEN_PARTNER_BILLING_KEY, 512)
+        ? process.env.GOOTEN_PARTNER_BILLING_KEY.trim()
+        : null
+
+    if (gootenItems.length > 0 && !gootenPartnerBillingKey) {
+        return {
+            orderId: order.id,
+            stripeSessionId: order.stripeSessionId,
+            outcome: 'skipped_missing_provider_config',
+            detail: 'GOOTEN_PARTNER_BILLING_KEY is missing; cannot safely recover gooten-backed items.',
+        }
+    }
+
     if (!execute) {
         return {
             orderId: order.id,
@@ -445,7 +459,6 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
     try {
         const printfulItems = mappedItems.filter((item) => item.provider === 'printful')
         const gelatoItems = mappedItems.filter((item) => item.provider === 'gelato')
-        const gootenItems = mappedItems.filter((item) => item.provider === 'gooten')
 
         const recipientName = resolveRecipientName(session, email)
         const recipient = splitRecipientName(recipientName)
@@ -505,9 +518,6 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
 
         if (gootenItems.length > 0) {
             const gooten = getGootenClient()
-            const orderCurrency = isNonEmptyString(session.currency, 10)
-                ? session.currency.trim().toUpperCase()
-                : 'USD'
             const gootenBillingAddress = {
                 FirstName: recipient.firstName,
                 LastName: recipient.lastName,
@@ -520,14 +530,12 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                 Email: email,
             }
             const gootenPayment = {
-                CurrencyCode: orderCurrency,
-                TotalPrice: order.total,
-                ShippingPrice: order.shippingCost,
-                TransactionId: session.id,
+                PartnerBillingKey: gootenPartnerBillingKey!,
             }
             const primaryPayload = {
                 SourceId: order.id,
                 ExternalId: order.id,
+                IsPartnerSourceIdUnique: true,
                 ShipToAddress: {
                     FirstName: recipient.firstName,
                     LastName: recipient.lastName,
@@ -544,6 +552,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                 Items: gootenItems.map(({ orderItem, design, gootenSku, gootenProductId }) => ({
                     SKU: gootenSku!,
                     ProductId: gootenProductId!,
+                    ShipType: 'Standard',
                     Quantity: orderItem.quantity,
                     Images: [{ Url: design.imageUrl }],
                 })),
@@ -556,6 +565,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                 gootenResponse = await gooten.createOrder({
                     sourceId: order.id,
                     externalId: order.id,
+                    isPartnerSourceIdUnique: true,
                     shipToAddress: {
                         firstName: recipient.firstName,
                         lastName: recipient.lastName,
@@ -579,14 +589,12 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                         email,
                     },
                     payment: {
-                        currencyCode: orderCurrency,
-                        totalPrice: order.total,
-                        shippingPrice: order.shippingCost,
-                        transactionId: session.id,
+                        partnerBillingKey: gootenPartnerBillingKey!,
                     },
                     items: gootenItems.map(({ orderItem, design, gootenSku, gootenProductId }) => ({
                         sku: gootenSku!,
                         productId: gootenProductId!,
+                        shipType: 'Standard',
                         quantity: orderItem.quantity,
                         images: [{ url: design.imageUrl }],
                     })),

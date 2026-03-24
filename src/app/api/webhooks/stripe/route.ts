@@ -454,6 +454,13 @@ export async function POST(req: NextRequest) {
             const printfulItems = mappedItems.filter((i) => i.provider === 'printful')
             const gelatoItems = mappedItems.filter((i) => i.provider === 'gelato')
             const gootenItems = mappedItems.filter((i) => i.provider === 'gooten')
+            const gootenPartnerBillingKey = isNonEmptyString(process.env.GOOTEN_PARTNER_BILLING_KEY, 512)
+                ? process.env.GOOTEN_PARTNER_BILLING_KEY.trim()
+                : null
+
+            if (gootenItems.length > 0 && !gootenPartnerBillingKey) {
+                throw new Error('GOOTEN_PARTNER_BILLING_KEY is required for gooten order fulfillment.')
+            }
 
             let printfulOrderId: string | null = null
             let gelatoOrderId: string | null = null
@@ -513,9 +520,6 @@ export async function POST(req: NextRequest) {
                 const firstName = recipient.firstName
                 const lastName = recipient.lastName
                 const countryCode = address.country!
-                const orderCurrency = isNonEmptyString(session.currency, 10)
-                    ? session.currency.trim().toUpperCase()
-                    : 'USD'
                 const gootenBillingAddress = {
                     FirstName: firstName,
                     LastName: lastName,
@@ -528,15 +532,13 @@ export async function POST(req: NextRequest) {
                     Email: customerEmail,
                 }
                 const gootenPayment = {
-                    CurrencyCode: orderCurrency,
-                    TotalPrice: order.total,
-                    ShippingPrice: order.shippingCost,
-                    TransactionId: session.id,
+                    PartnerBillingKey: gootenPartnerBillingKey!,
                 }
 
                 const primaryPayload = {
                     SourceId: order.id,
                     ExternalId: order.id,
+                    IsPartnerSourceIdUnique: true,
                     ShipToAddress: {
                         FirstName: firstName,
                         LastName: lastName,
@@ -553,6 +555,7 @@ export async function POST(req: NextRequest) {
                     Items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
                         SKU: gootenSku!,
                         ProductId: gootenProductId!,
+                        ShipType: 'Standard',
                         Quantity: item.quantity,
                         Images: [{ Url: design.imageUrl }],
                     })),
@@ -565,6 +568,7 @@ export async function POST(req: NextRequest) {
                     gootenResponse = await gooten.createOrder({
                         sourceId: order.id,
                         externalId: order.id,
+                        isPartnerSourceIdUnique: true,
                         shipToAddress: {
                             firstName,
                             lastName,
@@ -588,14 +592,12 @@ export async function POST(req: NextRequest) {
                             email: customerEmail,
                         },
                         payment: {
-                            currencyCode: orderCurrency,
-                            totalPrice: order.total,
-                            shippingPrice: order.shippingCost,
-                            transactionId: session.id,
+                            partnerBillingKey: gootenPartnerBillingKey!,
                         },
                         items: gootenItems.map(({ item, design, gootenSku, gootenProductId }) => ({
                             sku: gootenSku!,
                             productId: gootenProductId!,
+                            shipType: 'Standard',
                             quantity: item.quantity,
                             images: [{ url: design.imageUrl }],
                         })),
