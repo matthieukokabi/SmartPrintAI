@@ -15,6 +15,15 @@ model User {
   designs   Design[]
 }
 
+model OwnerCredential {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  mustRotatePassword Boolean @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 model Design {
   id         String      @id @default(cuid())
   userId     String?

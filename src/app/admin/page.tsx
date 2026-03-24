@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getReadableOrderStatus } from '@/components/order/OrderStatusTimeline'
 import { readRecentSupportIntakeRecords } from '@/lib/support-intake-log'
 import { requireOwnerPortalSession } from '@/lib/owner-portal-server'
+import { getOwnerCredentialState } from '@/lib/owner-auth'
 import {
     ADMIN_ORDERS_DEFAULT_LIMIT,
     AdminOrderStatusFilter,
@@ -74,6 +75,7 @@ export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
         }),
         readRecentSupportIntakeRecords(50),
     ])
+    const ownerCredential = await getOwnerCredentialState(session.email)
 
     const attentionOrders = orders.filter((order) => {
         const normalized = order.status.trim().toLowerCase()
@@ -102,19 +104,40 @@ export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                     <Link
+                        href="/admin/security"
+                        className="rounded-lg border border-white/15 px-4 py-2 text-sm text-muted-foreground transition hover:border-white/25 hover:text-foreground"
+                    >
+                        Security
+                    </Link>
+                    <Link
                         href="/account/orders"
                         className="rounded-lg border border-white/15 px-4 py-2 text-sm text-muted-foreground transition hover:border-white/25 hover:text-foreground"
                     >
                         Customer view
                     </Link>
                     <Link
-                        href="/api/auth/logout"
+                        href="/api/admin/auth/logout"
                         className="rounded-lg bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 text-sm font-medium text-white shadow-[0_8px_28px_rgba(38,212,184,0.22)] transition hover:brightness-110"
                     >
                         Sign out
                     </Link>
                 </div>
             </header>
+
+            {ownerCredential.mustRotatePassword ? (
+                <section className="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm text-amber-100">
+                    <p className="font-semibold">Security action required</p>
+                    <p className="mt-1 text-amber-50/90">
+                        This owner account is using a bootstrap password. Update it now from the security page.
+                    </p>
+                    <Link
+                        href="/admin/security?required=1"
+                        className="mt-3 inline-flex rounded-lg bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 text-xs font-semibold text-white shadow-[0_8px_28px_rgba(38,212,184,0.22)] transition hover:brightness-110"
+                    >
+                        Change owner password
+                    </Link>
+                </section>
+            ) : null}
 
             <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">

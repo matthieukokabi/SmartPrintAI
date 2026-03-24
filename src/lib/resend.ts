@@ -18,23 +18,15 @@ function marketingRecipients(): string[] {
 export async function sendSignInLink(params: {
     email: string
     verifyUrl: string
-    context?: 'owner_portal' | 'customer_orders'
 }) {
-    const ownerContext = params.context === 'owner_portal'
-    const subject = ownerContext ? 'Owner portal sign in - SmartPrintAI' : 'Sign in to SmartPrintAI'
-    const heading = ownerContext ? 'SmartPrintAI Owner Sign-In' : 'SmartPrintAI Sign-In'
-    const copy = ownerContext
-        ? 'Click the button below to securely sign in to the owner operations portal.'
-        : 'Click the button below to securely sign in and view your order history.'
-
     await resend.emails.send({
         from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
         to: params.email,
-        subject,
+        subject: 'Sign in to SmartPrintAI',
         html:
             '<div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 20px; background: #0a0a0a; color: #fafafa;">' +
-            '<h1 style="font-size: 24px; margin: 0 0 12px;">' + heading + '</h1>' +
-            '<p style="color: #a1a1aa; margin: 0 0 20px;">' + copy + '</p>' +
+            '<h1 style="font-size: 24px; margin: 0 0 12px;">SmartPrintAI Sign-In</h1>' +
+            '<p style="color: #a1a1aa; margin: 0 0 20px;">Click the button below to securely sign in and view your order history.</p>' +
             '<a href="' + params.verifyUrl + '" style="display: inline-block; padding: 12px 18px; border-radius: 10px; background: linear-gradient(90deg, #9333ea, #ec4899); color: #ffffff; text-decoration: none; font-weight: 600;">Sign In</a>' +
             '<p style="color: #71717a; margin-top: 20px; font-size: 12px;">This link expires in 15 minutes.</p>' +
             '</div>',

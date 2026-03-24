@@ -1,10 +1,16 @@
 export const DEFAULT_AUTH_CALLBACK_PATH = '/account/orders'
-export const OWNER_AUTH_CALLBACK_PATH = '/admin'
 
 const SAFE_CALLBACK_ORIGIN = 'https://smartprintai.com'
 
+function isDisallowedAuthCallbackPath(path: string): boolean {
+    return path === '/admin' || path.startsWith('/admin/')
+}
+
 function toCallbackPath(url: URL): string {
     const path = `${url.pathname}${url.search}${url.hash}`
+    if (isDisallowedAuthCallbackPath(path)) {
+        return DEFAULT_AUTH_CALLBACK_PATH
+    }
     return path || DEFAULT_AUTH_CALLBACK_PATH
 }
 
@@ -59,11 +65,6 @@ export function normalizeAuthCallbackPath(
     } catch {
         return normalizedFallback
     }
-}
-
-export function isOwnerPortalCallbackPath(value: string | null | undefined): boolean {
-    const normalized = normalizeAuthCallbackPath(value, OWNER_AUTH_CALLBACK_PATH)
-    return normalized === OWNER_AUTH_CALLBACK_PATH || normalized.startsWith(`${OWNER_AUTH_CALLBACK_PATH}/`)
 }
 
 export function buildSignInPath(callbackPath: string): string {

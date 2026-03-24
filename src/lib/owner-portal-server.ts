@@ -1,12 +1,13 @@
 import { notFound, redirect } from 'next/navigation'
-import { AuthSession, getSessionFromCookieStore } from '@/lib/auth-session'
+import { OwnerAuthSession, getOwnerSessionFromCookieStore } from '@/lib/owner-auth-session'
 import { canAccessOwnerPortal } from '@/lib/owner-portal'
-import { buildSignInPath, OWNER_AUTH_CALLBACK_PATH } from '@/lib/auth-callback'
+import { buildOwnerLoginPath, OWNER_ADMIN_DEFAULT_PATH, normalizeOwnerAdminPath } from '@/lib/owner-auth-route'
 
-export function requireOwnerPortalSession(callbackPath: string = OWNER_AUTH_CALLBACK_PATH): AuthSession {
-    const session = getSessionFromCookieStore()
+export function requireOwnerPortalSession(callbackPath: string = OWNER_ADMIN_DEFAULT_PATH): OwnerAuthSession {
+    const session = getOwnerSessionFromCookieStore()
+    const normalizedPath = normalizeOwnerAdminPath(callbackPath, OWNER_ADMIN_DEFAULT_PATH)
     if (!session) {
-        redirect(buildSignInPath(callbackPath))
+        redirect(buildOwnerLoginPath(normalizedPath))
     }
     if (!canAccessOwnerPortal(session.email)) {
         notFound()

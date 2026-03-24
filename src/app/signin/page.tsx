@@ -3,7 +3,7 @@
 import { Suspense, FormEvent, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { isOwnerPortalCallbackPath, normalizeAuthCallbackPath } from '@/lib/auth-callback'
+import { normalizeAuthCallbackPath } from '@/lib/auth-callback'
 
 type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -15,7 +15,6 @@ function SignInContent() {
 
     const error = searchParams.get('error')
     const callbackUrl = normalizeAuthCallbackPath(searchParams.get('callbackUrl'))
-    const ownerContext = isOwnerPortalCallbackPath(searchParams.get('callbackUrl'))
 
     async function onSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
@@ -37,7 +36,7 @@ function SignInContent() {
             }
 
             setSubmitState('success')
-            setMessage(ownerContext ? 'Owner sign-in link sent. Check your inbox.' : 'Sign-in link sent. Check your inbox.')
+            setMessage('Sign-in link sent. Check your inbox.')
         } catch {
             setSubmitState('error')
             setMessage('Unable to send sign-in link')
@@ -48,17 +47,10 @@ function SignInContent() {
         <div className="mx-auto max-w-md px-4 py-16 sm:py-24">
             <div className="glass space-y-6 rounded-[2rem] p-7 sm:p-8">
                 <div>
-                    <h1 className="text-2xl font-bold">{ownerContext ? 'Owner / Admin Sign In' : 'Sign In'}</h1>
+                    <h1 className="text-2xl font-bold">Sign In</h1>
                     <p className="mt-2 text-sm text-muted-foreground">
-                        {ownerContext
-                            ? 'Enter your owner email to access the SmartPrintAI operations portal.'
-                            : 'Enter your email to access your SmartPrintAI order history.'}
+                        Enter your email to access your SmartPrintAI order history.
                     </p>
-                    {ownerContext ? (
-                        <p className="mt-1 text-xs text-muted-foreground">
-                            Redirect target: <span className="text-foreground">{callbackUrl}</span>
-                        </p>
-                    ) : null}
                 </div>
 
                 {error && (

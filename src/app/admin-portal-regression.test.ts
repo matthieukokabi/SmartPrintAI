@@ -10,9 +10,11 @@ describe('owner operations portal regression guards', () => {
   it('keeps owner-session gating on admin routes', () => {
     const adminPage = readFile('src/app/admin/page.tsx')
     const adminOrderPage = readFile('src/app/admin/orders/[id]/page.tsx')
+    const ownerPortalServer = readFile('src/lib/owner-portal-server.ts')
 
     expect(adminPage).toContain("requireOwnerPortalSession('/admin')")
     expect(adminOrderPage).toContain('requireOwnerPortalSession(`/admin/orders/${params.id}`)')
+    expect(ownerPortalServer).toContain("buildOwnerLoginPath")
   })
 
   it('keeps admin route aliases consistent', () => {
@@ -33,12 +35,14 @@ describe('owner operations portal regression guards', () => {
     expect(adminPage).toContain('Search by order id, short id, email')
     expect(adminPage).toContain('name="q"')
     expect(adminPage).toContain('name="status"')
+    expect(adminPage).toContain('/api/admin/auth/logout')
   })
 
-  it('shows owner-specific sign-in context copy when callback targets admin', () => {
-    const signInPage = readFile('src/app/signin/page.tsx')
-    expect(signInPage).toContain('Owner / Admin Sign In')
-    expect(signInPage).toContain('operations portal')
-    expect(signInPage).toContain('callbackUrl')
+  it('keeps dedicated admin login route and copy', () => {
+    const adminLoginPage = readFile('src/app/admin/login/page.tsx')
+    const ownerLoginClient = readFile('src/components/admin/OwnerLoginClient.tsx')
+    expect(adminLoginPage).toContain("normalizeOwnerAdminPath")
+    expect(ownerLoginClient).toContain('Owner / Admin Sign In')
+    expect(ownerLoginClient).toContain('/api/admin/auth/login')
   })
 })
