@@ -242,19 +242,14 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
     } = await getRuntimeModules()
 
     const existingShippingAddress = isObject(order.shippingAddress) ? order.shippingAddress : null
-    const hasStoredAddress =
-        isNonEmptyString(existingShippingAddress?.line1, 255) &&
-        isNonEmptyString(existingShippingAddress?.city, 120) &&
-        isNonEmptyString(existingShippingAddress?.country, 2) &&
-        isNonEmptyString(existingShippingAddress?.postal_code, 32)
     const hasManualReviewMarker = existingShippingAddress?.needs_manual_review === true
 
-    if (!hasManualReviewMarker || hasStoredAddress) {
+    if (!hasManualReviewMarker) {
         return {
             orderId: order.id,
             stripeSessionId: order.stripeSessionId,
             outcome: 'skipped_not_bug_signature',
-            detail: 'Order does not match missing-shipping manual_review bug signature.',
+            detail: 'Order does not carry the missing-shipping manual_review marker.',
         }
     }
 
