@@ -189,6 +189,7 @@ describe('/api/webhooks/stripe POST', () => {
           customer_details: {
             email: 'buyer@example.com',
             name: 'Buyer Example',
+            phone: '+12025550199',
             address: {
               line1: 'Main St 1',
               city: 'Zurich',
@@ -248,6 +249,7 @@ describe('/api/webhooks/stripe POST', () => {
           city: 'Zurich',
           country_code: 'CH',
           zip: '8000',
+          phone: '+12025550199',
         }),
       })
     )
@@ -340,6 +342,70 @@ describe('/api/webhooks/stripe POST', () => {
       status: 'processing',
       printfulOrderId: 'pf_12345',
     })
+  })
+
+  it('treats duplicate webhook replays as idempotent and skips fulfillment/email side effects', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-1',
+        designId: 'design-1',
+        size: 'M',
+        color: 'Black',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_duplicate_replay',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 3598,
+          amount_subtotal: 2999,
+          shipping_cost: { amount_total: 599 },
+          customer_email: 'buyer@example.com',
+          customer_details: { email: 'buyer@example.com' },
+          shipping_details: {
+            name: 'Buyer',
+            address: {
+              line1: 'Main St 1',
+              city: 'Zurich',
+              country: 'CH',
+              postal_code: '8000',
+              state: null,
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'user_1' })
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-1',
+        sellPrice: 29.99,
+        colors: [{ name: 'Black', printfulVariantId: 1234 }],
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design.png',
+      },
+    ])
+    mocks.prisma.order.create.mockRejectedValue({ code: 'P2002' })
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+    expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gelato.createOrder).not.toHaveBeenCalled()
+    expect(mocks.gooten.createOrder).not.toHaveBeenCalled()
+    expect(mocks.sendOrderConfirmation).not.toHaveBeenCalled()
+    expect(mocks.sendMakeOrderAlert).not.toHaveBeenCalled()
   })
 
   it('creates Gelato order with required currency and order reference', async () => {
@@ -535,7 +601,7 @@ describe('/api/webhooks/stripe POST', () => {
           shipping_cost: { amount_total: 599 },
           currency: 'usd',
           customer_email: 'gooten@example.com',
-          customer_details: { email: 'gooten@example.com' },
+          customer_details: { email: 'gooten@example.com', phone: '+15125550123' },
           shipping_details: {
             name: 'Gooten Buyer',
             address: {
@@ -594,6 +660,10 @@ describe('/api/webhooks/stripe POST', () => {
           Line1: 'Main St 7',
           CountryCode: 'US',
           Email: 'gooten@example.com',
+          Phone: '+15125550123',
+        }),
+        ShipToAddress: expect.objectContaining({
+          Phone: '+15125550123',
         }),
         Payment: expect.objectContaining({
           PartnerBillingKey: 'gpk_test',

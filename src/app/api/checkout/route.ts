@@ -182,6 +182,9 @@ export async function POST(req: NextRequest) {
             shipping_address_collection: {
                 allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH'],
             },
+            phone_number_collection: {
+                enabled: true,
+            },
             shipping_options: [
                 {
                     shipping_rate_data: {

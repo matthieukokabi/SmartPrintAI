@@ -118,6 +118,9 @@ describe('/api/checkout POST', () => {
     expect(mocks.stripe.checkout.sessions.create).toHaveBeenCalledWith(
       expect.objectContaining({
         customer_email: 'test@example.com',
+        phone_number_collection: {
+          enabled: true,
+        },
         success_url: 'https://smartprintai.com/success?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: 'https://smartprintai.com/cart',
         metadata: expect.objectContaining({

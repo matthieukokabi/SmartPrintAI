@@ -329,6 +329,9 @@ export async function POST(req: NextRequest) {
             (isNonEmptyString(session.customer_email, 254) && session.customer_email.trim().toLowerCase()) ||
             (isNonEmptyString(session.customer_details?.email, 254) && session.customer_details?.email.trim().toLowerCase()) ||
             null
+        const customerPhone =
+            (isNonEmptyString(session.customer_details?.phone, 40) && session.customer_details.phone.trim()) ||
+            null
 
         const existingUser = customerEmail
             ? await prisma.user.findUnique({
@@ -477,6 +480,7 @@ export async function POST(req: NextRequest) {
                         state_code: address.state || '',
                         country_code: address.country!,
                         zip: address.postal_code!,
+                        ...(customerPhone ? { phone: customerPhone } : {}),
                     },
                     items: printfulItems.map(({ item, design, variantId }) => ({
                         variantId: variantId!,
@@ -531,6 +535,7 @@ export async function POST(req: NextRequest) {
                     PostalCode: address.postal_code!,
                     CountryCode: countryCode,
                     Email: customerEmail,
+                    ...(customerPhone ? { Phone: customerPhone } : {}),
                 }
                 const gootenPayment = {
                     PartnerBillingKey: gootenPartnerBillingKey!,
@@ -550,6 +555,7 @@ export async function POST(req: NextRequest) {
                         PostalCode: address.postal_code!,
                         CountryCode: countryCode,
                         Email: customerEmail,
+                        ...(customerPhone ? { Phone: customerPhone } : {}),
                     },
                     BillingAddress: gootenBillingAddress,
                     Payment: gootenPayment,
@@ -580,6 +586,7 @@ export async function POST(req: NextRequest) {
                             postalCode: address.postal_code!,
                             countryCode,
                             email: customerEmail,
+                            ...(customerPhone ? { phone: customerPhone } : {}),
                         },
                         billingAddress: {
                             firstName,
@@ -591,6 +598,7 @@ export async function POST(req: NextRequest) {
                             postalCode: address.postal_code!,
                             countryCode,
                             email: customerEmail,
+                            ...(customerPhone ? { phone: customerPhone } : {}),
                         },
                         payment: {
                             partnerBillingKey: gootenPartnerBillingKey!,

@@ -189,6 +189,7 @@ class PrintfulClient {
             state_code: string
             country_code: string
             zip: string
+            phone?: string
         }
         items: Array<{
             variantId: number
@@ -218,6 +219,7 @@ class PrintfulClient {
                 country_code: params.shippingAddress.country_code,
                 zip: params.shippingAddress.zip,
                 email: params.email,
+                ...(params.shippingAddress.phone ? { phone: params.shippingAddress.phone } : {}),
             },
             ...(params.externalId ? { external_id: params.externalId } : {}),
             items: params.items.map((rawItem) => {

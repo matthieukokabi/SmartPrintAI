@@ -199,6 +199,10 @@ function resolveOrderAddress(
     }
 }
 
+function resolveOrderPhone(session: Stripe.Checkout.Session): string | null {
+    return (isNonEmptyString(session.customer_details?.phone, 40) && session.customer_details.phone.trim()) || null
+}
+
 function parseArgs(argv: string[]): ScriptArgs {
     const args: ScriptArgs = {
         execute: false,
@@ -266,6 +270,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
 
     const email = resolveOrderEmail(session, order.email)
     const address = resolveOrderAddress(session)
+    const phone = resolveOrderPhone(session)
     if (!email || !address) {
         return {
             orderId: order.id,
@@ -478,6 +483,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                     state_code: address.state || '',
                     country_code: address.country,
                     zip: address.postal_code,
+                    ...(phone ? { phone } : {}),
                 },
                 items: printfulItems.map(({ orderItem, design, variantId }) => ({
                     variantId: variantId!,
@@ -529,6 +535,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                 PostalCode: address.postal_code,
                 CountryCode: address.country,
                 Email: email,
+                ...(phone ? { Phone: phone } : {}),
             }
             const gootenPayment = {
                 PartnerBillingKey: gootenPartnerBillingKey!,
@@ -547,6 +554,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                     PostalCode: address.postal_code,
                     CountryCode: address.country,
                     Email: email,
+                    ...(phone ? { Phone: phone } : {}),
                 },
                 BillingAddress: gootenBillingAddress,
                 Payment: gootenPayment,
@@ -577,6 +585,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                         postalCode: address.postal_code,
                         countryCode: address.country,
                         email,
+                        ...(phone ? { phone } : {}),
                     },
                     billingAddress: {
                         firstName: recipient.firstName,
@@ -588,6 +597,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
                         postalCode: address.postal_code,
                         countryCode: address.country,
                         email,
+                        ...(phone ? { phone } : {}),
                     },
                     payment: {
                         partnerBillingKey: gootenPartnerBillingKey!,
