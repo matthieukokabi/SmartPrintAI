@@ -4,13 +4,7 @@ dotenv.config({ path: '.env.local', override: true })
 
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Prisma, PrismaClient } from '@prisma/client'
-import { stripe } from '../src/lib/stripe'
-import { printful } from '../src/lib/printful'
-import { gelato } from '../src/lib/gelato'
-import { getGootenClient } from '../src/lib/gooten'
-import { detectProductProvider } from '../src/lib/product-provider'
-import { sendOrderConfirmation } from '../src/lib/resend'
-import { sendMakeOrderAlert } from '../src/lib/make'
+import Stripe from 'stripe'
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
@@ -44,6 +38,54 @@ type CheckoutAddress = {
 type RecoverableOrder = Prisma.OrderGetPayload<{
     include: { items: true }
 }>
+
+type RuntimeModules = {
+    stripe: typeof import('../src/lib/stripe').stripe
+    printful: typeof import('../src/lib/printful').printful
+    gelato: typeof import('../src/lib/gelato').gelato
+    getGootenClient: typeof import('../src/lib/gooten').getGootenClient
+    detectProductProvider: typeof import('../src/lib/product-provider').detectProductProvider
+    sendOrderConfirmation: typeof import('../src/lib/resend').sendOrderConfirmation
+    sendMakeOrderAlert: typeof import('../src/lib/make').sendMakeOrderAlert
+}
+
+let runtimeModulesPromise: Promise<RuntimeModules> | null = null
+
+async function getRuntimeModules(): Promise<RuntimeModules> {
+    if (!runtimeModulesPromise) {
+        runtimeModulesPromise = (async () => {
+            const [
+                { stripe },
+                { printful },
+                { gelato },
+                { getGootenClient },
+                { detectProductProvider },
+                { sendOrderConfirmation },
+                { sendMakeOrderAlert },
+            ] = await Promise.all([
+                import('../src/lib/stripe'),
+                import('../src/lib/printful'),
+                import('../src/lib/gelato'),
+                import('../src/lib/gooten'),
+                import('../src/lib/product-provider'),
+                import('../src/lib/resend'),
+                import('../src/lib/make'),
+            ])
+
+            return {
+                stripe,
+                printful,
+                gelato,
+                getGootenClient,
+                detectProductProvider,
+                sendOrderConfirmation,
+                sendMakeOrderAlert,
+            }
+        })()
+    }
+
+    return runtimeModulesPromise
+}
 
 function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null
@@ -85,7 +127,7 @@ function parseGootenOrderId(payload: unknown): string | null {
     return null
 }
 
-function resolveRecipientName(session: Awaited<ReturnType<typeof stripe.checkout.sessions.retrieve>>, fallbackEmail: string): string {
+function resolveRecipientName(session: Stripe.Checkout.Session, fallbackEmail: string): string {
     const shippingName =
         (isNonEmptyString(session.shipping_details?.name, 120) && session.shipping_details.name.trim()) ||
         null
@@ -114,7 +156,7 @@ function splitRecipientName(fullName: string): { firstName: string; lastName: st
 }
 
 function resolveOrderEmail(
-    session: Awaited<ReturnType<typeof stripe.checkout.sessions.retrieve>>,
+    session: Stripe.Checkout.Session,
     fallbackEmail: string
 ): string | null {
     const sessionEmail =
@@ -134,7 +176,7 @@ function resolveOrderEmail(
 }
 
 function resolveOrderAddress(
-    session: Awaited<ReturnType<typeof stripe.checkout.sessions.retrieve>>
+    session: Stripe.Checkout.Session
 ): CheckoutAddress | null {
     const address = session.shipping_details?.address || session.customer_details?.address
     if (
@@ -189,6 +231,16 @@ function parseArgs(argv: string[]): ScriptArgs {
 }
 
 async function recoverOrder(order: RecoverableOrder, execute: boolean) {
+    const {
+        stripe,
+        printful,
+        gelato,
+        getGootenClient,
+        detectProductProvider,
+        sendOrderConfirmation,
+        sendMakeOrderAlert,
+    } = await getRuntimeModules()
+
     const existingShippingAddress = isObject(order.shippingAddress) ? order.shippingAddress : null
     const hasStoredAddress =
         isNonEmptyString(existingShippingAddress?.line1, 255) &&
