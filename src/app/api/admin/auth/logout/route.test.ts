@@ -12,12 +12,23 @@ vi.mock('@/lib/owner-auth-session', () => ({
 import { GET, POST } from './route'
 
 describe('/api/admin/auth/logout', () => {
-    it('redirects to /admin/login and clears owner cookie on GET', async () => {
+    it('redirects to /admin/login with default admin next path and clears owner cookie on GET', async () => {
         const req = new NextRequest('http://localhost:3100/api/admin/auth/logout')
         const res = await GET(req)
 
         expect(res.status).toBe(307)
-        expect(res.headers.get('location')).toBe('http://localhost:3100/admin/login')
+        expect(res.headers.get('location')).toBe('http://localhost:3100/admin/login?next=%2Fadmin')
+        expect(mocks.clearOwnerSessionCookie).toHaveBeenCalledTimes(1)
+    })
+
+    it('preserves safe admin next path query on GET', async () => {
+        const req = new NextRequest('http://localhost:3100/api/admin/auth/logout?next=%2Fadmin%2Forders%2Fcmn3p5lxs000c8fl2tvkivxxw')
+        const res = await GET(req)
+
+        expect(res.status).toBe(307)
+        expect(res.headers.get('location')).toBe(
+            'http://localhost:3100/admin/login?next=%2Fadmin%2Forders%2Fcmn3p5lxs000c8fl2tvkivxxw',
+        )
         expect(mocks.clearOwnerSessionCookie).toHaveBeenCalledTimes(1)
     })
 

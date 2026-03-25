@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildOwnerLoginPath, normalizeOwnerAdminPath } from '@/lib/owner-auth-route'
+import { buildOwnerLoginPath, buildOwnerLogoutPath, normalizeOwnerAdminPath } from '@/lib/owner-auth-route'
 
 describe('owner auth route helpers', () => {
     it('normalizes only safe admin paths', () => {
@@ -12,6 +12,12 @@ describe('owner auth route helpers', () => {
     it('builds owner login path with encoded next', () => {
         expect(buildOwnerLoginPath('/admin/orders/cmn3p5lxs000c8fl2tvkivxxw')).toBe(
             '/admin/login?next=%2Fadmin%2Forders%2Fcmn3p5lxs000c8fl2tvkivxxw',
+        )
+    })
+
+    it('builds owner logout path with encoded next', () => {
+        expect(buildOwnerLogoutPath('/admin/orders/cmn3p5lxs000c8fl2tvkivxxw')).toBe(
+            '/api/admin/auth/logout?next=%2Fadmin%2Forders%2Fcmn3p5lxs000c8fl2tvkivxxw',
         )
     })
 })

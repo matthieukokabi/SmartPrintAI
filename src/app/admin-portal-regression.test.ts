@@ -42,6 +42,8 @@ describe('owner operations portal regression guards', () => {
     const adminLoginPage = readFile('src/app/admin/login/page.tsx')
     const ownerLoginClient = readFile('src/components/admin/OwnerLoginClient.tsx')
     expect(adminLoginPage).toContain("normalizeOwnerAdminPath")
+    expect(adminLoginPage).toContain('canAccessOwnerPortal')
+    expect(adminLoginPage).toContain('buildOwnerLogoutPath')
     expect(ownerLoginClient).toContain('Owner / Admin Sign In')
     expect(ownerLoginClient).toContain('/api/admin/auth/login')
   })

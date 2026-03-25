@@ -50,3 +50,9 @@ export function buildOwnerLoginPath(nextPath: string = OWNER_ADMIN_DEFAULT_PATH)
     const params = new URLSearchParams({ next: normalized })
     return `/admin/login?${params.toString()}`
 }
+
+export function buildOwnerLogoutPath(nextPath: string = OWNER_ADMIN_DEFAULT_PATH): string {
+    const normalized = normalizeOwnerAdminPath(nextPath, OWNER_ADMIN_DEFAULT_PATH)
+    const params = new URLSearchParams({ next: normalized })
+    return `/api/admin/auth/logout?${params.toString()}`
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getRequestId, jsonWithRequestId, logApiInfo } from '@/lib/api-logging'
+import { OWNER_ADMIN_DEFAULT_PATH, buildOwnerLoginPath, normalizeOwnerAdminPath } from '@/lib/owner-auth-route'
 import { clearOwnerSessionCookie } from '@/lib/owner-auth-session'
 
 export async function GET(req: NextRequest) {
@@ -7,7 +8,8 @@ export async function GET(req: NextRequest) {
     const requestId = getRequestId(req)
     logApiInfo(route, requestId, 'request_received')
 
-    const response = NextResponse.redirect(new URL('/admin/login', req.url))
+    const nextPath = normalizeOwnerAdminPath(req.nextUrl.searchParams.get('next'), OWNER_ADMIN_DEFAULT_PATH)
+    const response = NextResponse.redirect(new URL(buildOwnerLoginPath(nextPath), req.url))
     clearOwnerSessionCookie(response)
 
     logApiInfo(route, requestId, 'request_succeeded')
