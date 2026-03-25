@@ -8,14 +8,22 @@ import {
 
 function createCookieRecorder() {
     const calls: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
+    const appendedHeaders: string[] = []
     const response = {
         cookies: {
             set(name: string, value: string, options: Record<string, unknown>) {
                 calls.push({ name, value, options })
             },
         },
+        headers: {
+            append(name: string, value: string) {
+                if (name.toLowerCase() === 'set-cookie') {
+                    appendedHeaders.push(value)
+                }
+            },
+        },
     }
-    return { response, calls }
+    return { response, calls, appendedHeaders }
 }
 
 describe('owner auth session token helpers', () => {
@@ -36,27 +44,37 @@ describe('owner auth session token helpers', () => {
 
     it('sets host-only cookie in local environments', () => {
         const token = createOwnerSessionToken('owner@smartprintai.com')
-        const { response, calls } = createCookieRecorder()
+        const { response, calls, appendedHeaders } = createCookieRecorder()
 
         setOwnerSessionCookie(response, token)
 
         expect(calls).toHaveLength(1)
+        expect(appendedHeaders).toHaveLength(0)
         expect(calls[0].options).not.toHaveProperty('domain')
         expect(calls[0].options.path).toBe('/')
         expect(calls[0].options.maxAge).toBe(30 * 24 * 60 * 60)
     })
 
-    it('sets and clears cookie using normalized production domain', () => {
+    it('clears host-only + domain cookie variants to prevent stale owner sessions', () => {
         process.env.NEXT_PUBLIC_APP_URL = 'https://www.smartprintai.com'
         const token = createOwnerSessionToken('owner@smartprintai.com')
-        const { response, calls } = createCookieRecorder()
+        const { response, calls, appendedHeaders } = createCookieRecorder()
 
         setOwnerSessionCookie(response, token)
         clearOwnerSessionCookie(response)
 
-        expect(calls).toHaveLength(2)
+        expect(calls).toHaveLength(1)
         expect(calls[0].options.domain).toBe('smartprintai.com')
-        expect(calls[1].options.domain).toBe('smartprintai.com')
-        expect(calls[1].options.maxAge).toBe(0)
+        expect(appendedHeaders).toEqual(
+            expect.arrayContaining([
+                expect.stringContaining('spai_owner_session=; Path=/;'),
+                expect.stringContaining('spai_owner_session=; Path=/admin;'),
+                expect.stringContaining('Domain=smartprintai.com'),
+                expect.stringContaining('Domain=.smartprintai.com'),
+                expect.stringContaining('Max-Age=0'),
+                expect.stringContaining('Expires=Thu, 01 Jan 1970 00:00:00 GMT'),
+            ]),
+        )
+        expect(appendedHeaders).toHaveLength(6)
     })
 })

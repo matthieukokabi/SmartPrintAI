@@ -25,6 +25,14 @@ type ResponseLike = {
     cookies: {
         set: (name: string, value: string, options: Record<string, unknown>) => void
     }
+    headers?: {
+        append: (name: string, value: string) => void
+    }
+}
+
+type OwnerCookieVariant = {
+    path: string
+    domain?: string
 }
 
 function normalizeCookieDomain(hostname: string): string | null {
@@ -51,6 +59,45 @@ function getCookieDomain(env: NodeJS.ProcessEnv = process.env): string | undefin
     } catch {
         return undefined
     }
+}
+
+function buildOwnerCookieVariants(env: NodeJS.ProcessEnv = process.env): OwnerCookieVariant[] {
+    const domain = getCookieDomain(env)
+    const variants: OwnerCookieVariant[] = [
+        { path: '/' },
+        { path: '/admin' },
+    ]
+
+    if (domain) {
+        variants.push({ path: '/', domain })
+        variants.push({ path: '/admin', domain })
+
+        // Dot-prefixed domains are RFC-equivalent but kept for cleanup compatibility with legacy cookies.
+        variants.push({ path: '/', domain: `.${domain}` })
+        variants.push({ path: '/admin', domain: `.${domain}` })
+    }
+
+    const deduped = new Map<string, OwnerCookieVariant>()
+    for (const variant of variants) {
+        const key = `${variant.path}|${variant.domain || ''}`
+        if (!deduped.has(key)) {
+            deduped.set(key, variant)
+        }
+    }
+    return Array.from(deduped.values())
+}
+
+function serializeClearedOwnerCookie(variant: OwnerCookieVariant): string {
+    const segments = [`${OWNER_AUTH_COOKIE_NAME}=`, `Path=${variant.path}`]
+    if (variant.domain) {
+        segments.push(`Domain=${variant.domain}`)
+    }
+    segments.push('Max-Age=0')
+    segments.push('Expires=Thu, 01 Jan 1970 00:00:00 GMT')
+    segments.push('Secure')
+    segments.push('HttpOnly')
+    segments.push('SameSite=Lax')
+    return segments.join('; ')
 }
 
 function getAuthSecret(): string {
@@ -159,13 +206,23 @@ export function setOwnerSessionCookie(response: ResponseLike, token: string) {
 }
 
 export function clearOwnerSessionCookie(response: ResponseLike) {
-    const domain = getCookieDomain()
-    response.cookies.set(OWNER_AUTH_COOKIE_NAME, '', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 0,
-        ...(domain ? { domain } : {}),
-    })
+    const variants = buildOwnerCookieVariants()
+
+    if (response.headers && typeof response.headers.append === 'function') {
+        for (const variant of variants) {
+            response.headers.append('set-cookie', serializeClearedOwnerCookie(variant))
+        }
+        return
+    }
+
+    for (const variant of variants) {
+        response.cookies.set(OWNER_AUTH_COOKIE_NAME, '', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'lax',
+            path: variant.path,
+            maxAge: 0,
+            ...(variant.domain ? { domain: variant.domain } : {}),
+        })
+    }
 }
