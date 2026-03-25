@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import { cookies } from 'next/headers'
 
 export const OWNER_AUTH_COOKIE_NAME = 'spai_owner_session'
+const IPV4_PATTERN = /^(?:\d{1,3}\.){3}\d{1,3}$/
+const IPV6_PATTERN = /^\[[A-Fa-f0-9:]+\]$/
 
 type OwnerSignedPayload = {
     email: string
@@ -22,6 +24,32 @@ type RequestLike = {
 type ResponseLike = {
     cookies: {
         set: (name: string, value: string, options: Record<string, unknown>) => void
+    }
+}
+
+function normalizeCookieDomain(hostname: string): string | null {
+    const normalized = hostname.trim().toLowerCase().replace(/^\.+/, '')
+    if (!normalized || normalized === 'localhost' || normalized.endsWith('.localhost')) {
+        return null
+    }
+    if (IPV4_PATTERN.test(normalized) || IPV6_PATTERN.test(normalized)) {
+        return null
+    }
+    return normalized.startsWith('www.') ? normalized.slice(4) : normalized
+}
+
+function getCookieDomain(env: NodeJS.ProcessEnv = process.env): string | undefined {
+    const appUrl = env.NEXT_PUBLIC_APP_URL?.trim()
+    if (!appUrl) {
+        return undefined
+    }
+
+    try {
+        const hostname = new URL(appUrl).hostname
+        const domain = normalizeCookieDomain(hostname)
+        return domain || undefined
+    } catch {
+        return undefined
     }
 }
 
@@ -119,21 +147,25 @@ export function getOwnerSessionFromCookieStore(): OwnerAuthSession | null {
 }
 
 export function setOwnerSessionCookie(response: ResponseLike, token: string) {
+    const domain = getCookieDomain()
     response.cookies.set(OWNER_AUTH_COOKIE_NAME, token, {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
         path: '/',
         maxAge: 30 * 24 * 60 * 60,
+        ...(domain ? { domain } : {}),
     })
 }
 
 export function clearOwnerSessionCookie(response: ResponseLike) {
+    const domain = getCookieDomain()
     response.cookies.set(OWNER_AUTH_COOKIE_NAME, '', {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
         path: '/',
         maxAge: 0,
+        ...(domain ? { domain } : {}),
     })
 }

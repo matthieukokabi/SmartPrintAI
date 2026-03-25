@@ -35,7 +35,7 @@ describe('owner operations portal regression guards', () => {
     expect(adminPage).toContain('Search by order id, short id, email')
     expect(adminPage).toContain('name="q"')
     expect(adminPage).toContain('name="status"')
-    expect(adminPage).toContain('/api/admin/auth/logout')
+    expect(adminPage).toContain('buildOwnerLogoutPath')
   })
 
   it('keeps dedicated admin login route and copy', () => {

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getReadableOrderStatus } from '@/components/order/OrderStatusTimeline'
 import { readRecentSupportIntakeRecords } from '@/lib/support-intake-log'
 import { requireOwnerPortalSession } from '@/lib/owner-portal-server'
+import { buildOwnerLogoutPath } from '@/lib/owner-auth-route'
 import { getOwnerCredentialState } from '@/lib/owner-auth'
 import {
     ADMIN_ORDERS_DEFAULT_LIMIT,
@@ -56,6 +57,7 @@ const STATUS_FILTER_OPTIONS: Array<{ value: AdminOrderStatusFilter; label: strin
 
 export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
     const session = requireOwnerPortalSession('/admin')
+    const logoutPath = buildOwnerLogoutPath('/admin')
     const searchQuery = normalizeAdminOrderSearchQuery(searchParams?.q)
     const statusFilter = normalizeAdminOrderStatusFilter(searchParams?.status)
     const where = buildAdminOrdersWhere(searchQuery, statusFilter)
@@ -115,12 +117,12 @@ export default async function OwnerAdminPage({ searchParams }: AdminPageProps) {
                     >
                         Customer view
                     </Link>
-                    <Link
-                        href="/api/admin/auth/logout"
+                    <a
+                        href={logoutPath}
                         className="rounded-lg bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 text-sm font-medium text-white shadow-[0_8px_28px_rgba(38,212,184,0.22)] transition hover:brightness-110"
                     >
                         Sign out
-                    </Link>
+                    </a>
                 </div>
             </header>
 
