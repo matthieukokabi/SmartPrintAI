@@ -1,9 +1,15 @@
 import { NextRequest } from 'next/server'
+import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { sendMakeAbandonedCartCandidate } from '@/lib/make'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
+import {
+    BASE_CHECKOUT_ALLOWED_COUNTRIES,
+    findUnsupportedProductsForDestination,
+    getAllowedCountriesForCart,
+} from '@/lib/product-destination-safety'
 
 type CheckoutItem = {
     productId: string
@@ -17,6 +23,7 @@ type CheckoutPayload = {
     items: CheckoutItem[]
     email?: string
     sessionId?: string
+    destinationCountry?: string
 }
 
 const MAX_ITEMS = 25
@@ -98,12 +105,25 @@ function validateCheckoutPayload(input: unknown):
         sessionId = input.sessionId.trim()
     }
 
+    let destinationCountry: string | undefined
+    if (input.destinationCountry !== undefined && input.destinationCountry !== null) {
+        if (
+            typeof input.destinationCountry !== 'string' ||
+            !/^[a-z]{2}$/i.test(input.destinationCountry.trim())
+        ) {
+            return { ok: false, error: 'Invalid destinationCountry' }
+        }
+
+        destinationCountry = input.destinationCountry.trim().toUpperCase()
+    }
+
     return {
         ok: true,
         data: {
             items,
             email,
             sessionId,
+            destinationCountry,
         },
     }
 }
@@ -130,7 +150,7 @@ export async function POST(req: NextRequest) {
             return respond({ error: validation.error }, { status: 400 })
         }
 
-        const { items, email, sessionId } = validation.data
+        const { items, email, sessionId, destinationCountry } = validation.data
 
         const products = await prisma.product.findMany({
             where: { id: { in: items.map((i) => i.productId) } },
@@ -155,6 +175,50 @@ export async function POST(req: NextRequest) {
                 },
                 { status: 409 }
             )
+        }
+
+        const cartAllowedCountries = getAllowedCountriesForCart(products, BASE_CHECKOUT_ALLOWED_COUNTRIES) as
+            Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[]
+        if (cartAllowedCountries.length === 0) {
+            logApiWarn(route, requestId, 'checkout_country_gate_empty', {
+                productIds: products.map((product) => product.id),
+                providerRefs: products.map((product) => product.printfulId),
+            })
+            return respond(
+                {
+                    error: 'One or more items cannot be shipped right now. Please remove them and try again.',
+                },
+                { status: 409 }
+            )
+        }
+
+        if (destinationCountry) {
+            if (
+                !cartAllowedCountries.includes(
+                    destinationCountry as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry
+                )
+            ) {
+                const unsupportedProducts = findUnsupportedProductsForDestination(
+                    products,
+                    destinationCountry,
+                    BASE_CHECKOUT_ALLOWED_COUNTRIES
+                )
+                const blockedProductIds = unsupportedProducts.map((product) => product.productId)
+                logApiWarn(route, requestId, 'checkout_destination_country_blocked', {
+                    destinationCountry,
+                    blockedProductIds,
+                    cartAllowedCountries,
+                })
+                return respond(
+                    {
+                        error: `Some items in your cart are not available for shipping to ${destinationCountry}.`,
+                        blockedProductIds,
+                        destinationCountry,
+                        allowedCountries: cartAllowedCountries,
+                    },
+                    { status: 409 }
+                )
+            }
         }
 
         const productById = new Map(products.map((product) => [product.id, product]))
@@ -197,7 +261,7 @@ export async function POST(req: NextRequest) {
             mode: 'payment',
             customer_email: email,
             shipping_address_collection: {
-                allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH'],
+                allowed_countries: cartAllowedCountries,
             },
             phone_number_collection: {
                 enabled: true,

@@ -86,6 +86,7 @@ describe('/api/checkout POST', () => {
       {
         id: 'prod-1',
         name: 'Premium Tee',
+        printfulId: '401',
         sellPrice: 29.99,
       },
     ])
@@ -120,6 +121,9 @@ describe('/api/checkout POST', () => {
         customer_email: 'test@example.com',
         phone_number_collection: {
           enabled: true,
+        },
+        shipping_address_collection: {
+          allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH'],
         },
         success_url: 'https://smartprintai.com/success?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: 'https://smartprintai.com/cart',
@@ -187,5 +191,80 @@ describe('/api/checkout POST', () => {
     })
     expect(mocks.stripe.checkout.sessions.create).not.toHaveBeenCalled()
     expect(mocks.sendMakeAbandonedCartCandidate).not.toHaveBeenCalled()
+  })
+
+  it('blocks destination country before Stripe session when product is US-only', async () => {
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-us-only',
+        name: 'Acrylic Ornaments',
+        printfulId: '793',
+        sellPrice: 14.5,
+      },
+    ])
+
+    const payload = {
+      items: [
+        {
+          productId: 'prod-us-only',
+          designId: 'design-1',
+          size: 'One Size',
+          color: 'Default',
+          quantity: 1,
+        },
+      ],
+      destinationCountry: 'FR',
+    }
+
+    const res = await POST(createRequest(JSON.stringify(payload)))
+
+    expect(res.status).toBe(409)
+    await expect(res.json()).resolves.toEqual({
+      error: 'Some items in your cart are not available for shipping to FR.',
+      blockedProductIds: ['prod-us-only'],
+      destinationCountry: 'FR',
+      allowedCountries: ['US'],
+    })
+    expect(mocks.stripe.checkout.sessions.create).not.toHaveBeenCalled()
+    expect(mocks.sendMakeAbandonedCartCandidate).not.toHaveBeenCalled()
+  })
+
+  it('restricts checkout shipping countries to US for known US-only products', async () => {
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-us-only',
+        name: 'Acrylic Ornaments',
+        printfulId: '793',
+        sellPrice: 14.5,
+      },
+    ])
+
+    mocks.stripe.checkout.sessions.create.mockResolvedValue({
+      id: 'cs_test_usa_only',
+      url: 'https://checkout.stripe.test/session_us_only',
+    })
+
+    const payload = {
+      items: [
+        {
+          productId: 'prod-us-only',
+          designId: 'design-1',
+          size: 'One Size',
+          color: 'Default',
+          quantity: 1,
+        },
+      ],
+    }
+
+    const res = await POST(createRequest(JSON.stringify(payload)))
+
+    expect(res.status).toBe(200)
+    expect(mocks.stripe.checkout.sessions.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        shipping_address_collection: {
+          allowed_countries: ['US'],
+        },
+      })
+    )
   })
 })
