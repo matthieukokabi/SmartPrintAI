@@ -9,6 +9,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 - [x] Domain DNS pointed and production reachable at https://smartprintai.com
 - [x] Production app service running via systemd (smartprintai)
 - [x] Printful catalog sync flow implemented and active products cleaned
+- [x] Internal Printful first-wave promotion shortlist documented (`docs/ops/PRINTFUL_SAFE_PROMOTION_SHORTLIST.md`) with explicit safe-first set and do-not-promote-yet exclusions (2026-03-26)
 - [x] Product listing route fixed and live
 - [x] API validation hardening across routes
 - [x] Stripe webhook idempotency and webhook authenticity verification
