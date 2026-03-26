@@ -10,6 +10,7 @@ import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLocaleCopy, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { isBlockedGootenReadyToBuyProduct } from '@/lib/gooten-ready-to-buy-safety'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
 import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from '@/lib/schema'
@@ -67,7 +68,7 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
     const detailCopy = getLocaleCopy(locale).productDetail
     const product = await getProduct(params.id)
 
-    if (!product) {
+    if (!product || isBlockedGootenReadyToBuyProduct(product)) {
         return {
             title: detailCopy.notFoundSeoTitle,
             description: detailCopy.notFoundDescription,
@@ -110,7 +111,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
     const detailCopy = getLocaleCopy(locale).productDetail
 
     const product = await getProduct(params.id)
-    if (!product) {
+    if (!product || isBlockedGootenReadyToBuyProduct(product)) {
         notFound()
     }
 

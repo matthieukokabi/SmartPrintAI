@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { sendMakeAbandonedCartCandidate } from '@/lib/make'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 
 type CheckoutItem = {
     productId: string
@@ -138,6 +139,22 @@ export async function POST(req: NextRequest) {
         if (products.length !== new Set(items.map((i) => i.productId)).size) {
             logApiWarn(route, requestId, 'product_not_found', { itemCount: items.length })
             return respond({ error: 'One or more products were not found' }, { status: 400 })
+        }
+
+        const { blocked: blockedProducts } = splitBlockedGootenReadyToBuyProducts(products)
+        if (blockedProducts.length > 0) {
+            const blockedProductIds = blockedProducts.map((product) => product.id)
+            logApiWarn(route, requestId, 'blocked_unsafe_gooten_ready_to_buy_checkout', {
+                blockedProductIds,
+                blockedProviderRefs: blockedProducts.map((product) => product.printfulId),
+            })
+            return respond(
+                {
+                    error: 'One or more items are temporarily unavailable while we update print production settings.',
+                    blockedProductIds,
+                },
+                { status: 409 }
+            )
         }
 
         const productById = new Map(products.map((product) => [product.id, product]))

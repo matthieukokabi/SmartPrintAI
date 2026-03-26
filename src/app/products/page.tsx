@@ -9,6 +9,7 @@ import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
 
 export const dynamic = 'force-dynamic'
@@ -35,7 +36,8 @@ export default async function ProductsPage() {
         where: { active: true },
         orderBy: { name: 'asc' },
     })
-    const products = allProducts.filter((product) => product.imageUrl.trim().length > 0)
+    const { sellable } = splitBlockedGootenReadyToBuyProducts(allProducts)
+    const products = sellable.filter((product) => product.imageUrl.trim().length > 0)
     const customizableProducts = products.filter((product) =>
         isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
     )

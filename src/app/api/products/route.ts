@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getRequestId, jsonWithRequestId, logApiError, logApiInfo, logApiWarn } from '@/lib/api-logging'
 import { detectProductProvider } from '@/lib/product-provider'
 import { pickCoreColorSubset } from '@/lib/product-colors'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,7 +80,19 @@ export async function GET(req: NextRequest) {
             orderBy: { name: 'asc' },
         })
 
-        const responseProducts = products.map((product) => {
+        const { blocked: blockedProducts, sellable } = splitBlockedGootenReadyToBuyProducts(products)
+
+        if (blockedProducts.length > 0) {
+            logApiWarn(route, requestId, 'gooten_ready_to_buy_hidden', {
+                blockedCount: blockedProducts.length,
+                blockedProducts: blockedProducts.map((product) => ({
+                    id: product.id,
+                    printfulId: product.printfulId,
+                })),
+            })
+        }
+
+        const responseProducts = sellable.map((product) => {
             if (detectProductProvider(product.printfulId) !== 'gooten') {
                 return product
             }

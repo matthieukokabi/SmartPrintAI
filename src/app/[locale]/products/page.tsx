@@ -9,6 +9,7 @@ import { SUPPORTED_LOCALES, buildLocaleAlternates, buildLocaleCanonical, getLoca
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
 import { isGelatoProduct } from '@/lib/product-provider'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 import { buildBreadcrumbList, buildLocalizedSchemaUrl, getBreadcrumbLabel } from '@/lib/schema'
 
 type LocaleProductsPageProps = {
@@ -143,7 +144,8 @@ export default async function LocalizedProductsPage({ params }: LocaleProductsPa
         where: { active: true },
         orderBy: { name: 'asc' },
     })
-    const products = allProducts.filter((product) => product.imageUrl.trim().length > 0)
+    const { sellable } = splitBlockedGootenReadyToBuyProducts(allProducts)
+    const products = sellable.filter((product) => product.imageUrl.trim().length > 0)
     const customizableProducts = products.filter((product) =>
         isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
     )

@@ -41,10 +41,18 @@ export default function CartSummary({ copy }: CartSummaryProps) {
                     })),
                 }),
             })
-            const data = await res.json()
-            if (data.url) window.location.href = data.url
-        } catch {
-            alert(copy.checkoutFailedLabel)
+            const data = await res.json().catch(() => null)
+            if (!res.ok || !data?.url) {
+                throw new Error(typeof data?.error === 'string' ? data.error : copy.checkoutFailedLabel)
+            }
+
+            window.location.href = data.url
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error && error.message.trim().length > 0
+                    ? error.message
+                    : copy.checkoutFailedLabel
+            alert(errorMessage)
         } finally {
             setIsLoading(false)
         }

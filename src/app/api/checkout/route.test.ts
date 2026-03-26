@@ -148,4 +148,44 @@ describe('/api/checkout POST', () => {
       ],
     })
   })
+
+  it('returns 409 when cart contains blocked gooten ready-to-buy product', async () => {
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-gooten-411',
+        name: 'Stainless Steel Travel Mug',
+        printfulId: 'gooten:411',
+        sellPrice: 40.48,
+        printArea: {
+          providerProductId: '411',
+          providerDefaultSku: 'StainlessSteelTravelMugsHandle-PolarCamel-20oz',
+          variantMapping: {
+            white: 'StainlessSteelTravelMugsHandle-PolarCamel-20oz',
+          },
+        },
+      },
+    ])
+
+    const payload = {
+      items: [
+        {
+          productId: 'prod-gooten-411',
+          designId: 'ready_prod-gooten-411',
+          size: 'One Size',
+          color: 'Default',
+          quantity: 1,
+        },
+      ],
+    }
+
+    const res = await POST(createRequest(JSON.stringify(payload)))
+
+    expect(res.status).toBe(409)
+    await expect(res.json()).resolves.toEqual({
+      error: 'One or more items are temporarily unavailable while we update print production settings.',
+      blockedProductIds: ['prod-gooten-411'],
+    })
+    expect(mocks.stripe.checkout.sessions.create).not.toHaveBeenCalled()
+    expect(mocks.sendMakeAbandonedCartCandidate).not.toHaveBeenCalled()
+  })
 })

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getSiteUrl } from '@/lib/site'
 import { BLOG_POSTS } from '@/content/blogPosts'
 import { SUPPORTED_LOCALES } from '@/lib/i18n'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 
 export const revalidate = 3600
 export const dynamic = 'force-dynamic'
@@ -64,11 +65,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const products = await prisma.product.findMany({
         where: { active: true },
-        select: { id: true },
+        select: { id: true, name: true, printfulId: true, printArea: true },
         orderBy: { name: 'asc' },
     })
+    const { sellable: sellableProducts } = splitBlockedGootenReadyToBuyProducts(products)
 
-    const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
+    const productRoutes: MetadataRoute.Sitemap = sellableProducts.map((product) => ({
         url: `${siteUrl}/products/${product.id}`,
         lastModified: now,
         changeFrequency: 'weekly',
@@ -76,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
 
     const localizedProductRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
-        products.map((product) => ({
+        sellableProducts.map((product) => ({
             url: `${siteUrl}/${locale}/products/${product.id}`,
             lastModified: now,
             changeFrequency: 'weekly',
