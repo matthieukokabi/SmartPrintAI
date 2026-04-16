@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
 
     const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
     const description = normalizeProductDescription(product.description, fallbackDescription, 260)
-    const imageUrl = toAbsoluteUrl(product.imageUrl || '/favicon.ico')
+    const imageUrl = toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')
     const canonicalPath = buildLocaleCanonical(locale, `/products/${product.id}`)
     const socialTitle = `${product.name} | SmartPrintAI`
 
@@ -158,7 +158,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         name: product.name,
         description: normalizedDescription,
         category: product.category,
-        image: [toAbsoluteUrl(product.imageUrl || '/favicon.ico')],
+        image: [toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')],
         brand: {
             '@type': 'Brand',
             name: 'SmartPrintAI',

@@ -10,6 +10,7 @@ import TrustSignalStrip from '@/components/shared/TrustSignalStrip'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
+import { detectProductProvider } from '@/lib/product-provider'
 import { isBlockedGootenReadyToBuyProduct } from '@/lib/gooten-ready-to-buy-safety'
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
@@ -69,7 +70,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
     const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
     const description = normalizeProductDescription(product.description, fallbackDescription, 260)
-    const imageUrl = toAbsoluteUrl(product.imageUrl || '/favicon.ico')
+    const imageUrl = toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')
     const socialTitle = `${product.name} | SmartPrintAI`
 
     return {
@@ -136,7 +137,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         name: product.name,
         description: normalizedDescription,
         category: product.category,
-        image: [toAbsoluteUrl(product.imageUrl || '/favicon.ico')],
+        image: [toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')],
         brand: {
             '@type': 'Brand',
             name: 'SmartPrintAI',
@@ -176,6 +177,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 product={productForClient}
                 cartPath="/cart"
                 canDesignWithAI={canDesignWithAI}
+                isGootenProduct={detectProductProvider(product.printfulId) === 'gooten'}
                 copy={{
                     availableSizesLabel: copy.availableSizesLabel,
                     colorsLabel: copy.colorsLabel,

@@ -99,8 +99,22 @@ export function buildProductOfferSchema(input: ProductOfferSchemaInput) {
         },
         hasMerchantReturnPolicy: {
             '@type': 'MerchantReturnPolicy',
-            returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
-            url: toAbsoluteUrl('/terms'),
+            '@id': 'https://smartprintai.com/returns#policy',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 30,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn',
+            refundType: 'https://schema.org/FullRefund',
+            applicableCountry: [
+                'US','CA','GB','DE','FR','ES','IT','NL','BE','AT','CH','SE','DK','NO','FI',
+                'IE','PT','PL','CZ','RO','HU','BG','HR','SK','SI','LT','LV','EE','MT','CY',
+                'LU','GR','AU','NZ','JP','KR','SG','HK','TW','MY','TH','PH','ID','VN','IN',
+                'AE','SA','QA','KW','BH','OM','IL','TR','ZA','NG','KE','GH','EG','MA','TN',
+                'MX','BR','AR','CL','CO','PE','EC','UY','CR','PA','DO','GT','JM','TT','PR',
+                'IS','RS','BA','MK','ME','AL','GE','AM','AZ','KZ','UZ','UA','MD','BY','RU',
+                'PK','BD','LK','NP','MN','MU',
+            ],
+            url: toAbsoluteUrl('/returns'),
         },
     }
 }

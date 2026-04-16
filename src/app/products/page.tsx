@@ -8,9 +8,10 @@ import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
 import { buildLocalizedSocialMetadata } from '@/lib/metadata'
 import { isMockupEligibleProduct } from '@/lib/mockup-eligibility'
-import { isGelatoProduct } from '@/lib/product-provider'
+import { detectProductProvider } from '@/lib/product-provider'
 import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 import { buildBreadcrumbList, getBreadcrumbLabel } from '@/lib/schema'
+import CategoryFilter from '@/components/products/CategoryFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,29 +32,40 @@ export const metadata: Metadata = {
     }),
 }
 
-export default async function ProductsPage() {
+export default async function ProductsPage(props: { searchParams: Promise<{ category?: string }> }) {
+    const searchParams = await props.searchParams
+    const selectedCategory = searchParams.category || null
     const allProducts = await prisma.product.findMany({
         where: { active: true },
         orderBy: { name: 'asc' },
     })
     const { sellable } = splitBlockedGootenReadyToBuyProducts(allProducts)
     const products = sellable.filter((product) => product.imageUrl.trim().length > 0)
-    const customizableProducts = products.filter((product) =>
-        isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
-    )
-    const printableCatalogProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea }) &&
-        isGelatoProduct(product.printfulId)
-    )
-    const readyToBuyProducts = products.filter((product) =>
-        !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea }) &&
-        !isGelatoProduct(product.printfulId)
+    const filteredProducts = selectedCategory
+        ? products.filter((p) => p.category === selectedCategory)
+        : products
+
+    const READY_TO_BUY_IDS = ['531', '638', '655', '770']
+
+    const customizableProducts = filteredProducts.filter((product) => {
+        if (READY_TO_BUY_IDS.includes(product.printfulId)) return false
+        if (detectProductProvider(product.printfulId) === 'gooten') return false
+        return isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
+    })
+    const printableCatalogProducts = filteredProducts.filter((product) => {
+        if (READY_TO_BUY_IDS.includes(product.printfulId)) return false
+        const provider = detectProductProvider(product.printfulId)
+        if (provider === 'gooten') return true
+        return !isMockupEligibleProduct({ name: product.name, printfulId: product.printfulId, printArea: product.printArea })
+    })
+    const readyToBuyProducts = filteredProducts.filter((product) =>
+        READY_TO_BUY_IDS.includes(product.printfulId)
     )
 
     const itemListSchema = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        itemListElement: products.map((product, index) => ({
+        itemListElement: filteredProducts.map((product, index) => ({
             '@type': 'ListItem',
             position: index + 1,
             url: toAbsoluteUrl(`/products/${product.id}`),
@@ -87,6 +99,8 @@ export default async function ProductsPage() {
 
             <TrustSignalStrip locale={DEFAULT_LOCALE} className="mb-8" />
 
+            <CategoryFilter selected={selectedCategory} />
+
             <section className="mb-12 grid gap-3 sm:grid-cols-2">
                 <Link href="/create" className="glass rounded-2xl p-4 transition-colors hover:border-purple-400/60">
                     <p className="text-sm font-semibold">Design your own product</p>
@@ -98,7 +112,7 @@ export default async function ProductsPage() {
                 </Link>
             </section>
 
-            {products.length === 0 ? (
+            {filteredProducts.length === 0 ? (
                 <div className="glass rounded-2xl p-10 text-center">
                     <p className="text-muted-foreground">{copy.emptyState}</p>
                 </div>
@@ -132,7 +146,7 @@ export default async function ProductsPage() {
                             <div className="space-y-1">
                                 <h2 className="text-2xl font-semibold">Printable Catalog</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    These products are printable on demand via Gelato and are currently sold as catalog items.
+                                    Order these products with your custom design. Color shown is a reference — your order will be fulfilled in the color you select.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -155,7 +169,7 @@ export default async function ProductsPage() {
                             <div className="space-y-1">
                                 <h2 className="text-2xl font-semibold">Ready-to-Buy</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    These products are sold as standard catalog items without AI customization.
+                                    Premium branded products, ready to ship as-is. No customization needed.
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

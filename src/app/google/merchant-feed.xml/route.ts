@@ -83,7 +83,7 @@ function resolvePrimarySize(sizes: string[]): string | null {
 
 function productToItemXml(product: FeedProduct): string {
     const productUrl = toAbsoluteUrl(`/products/${product.id}`)
-    const imageUrl = toAbsoluteUrl(product.imageUrl)
+    const imageUrl = product.imageUrl
     const description =
         product.description?.trim() ||
         `Customize ${product.name} with AI-generated artwork and order it on SmartPrintAI.`
@@ -134,7 +134,7 @@ function buildFeedXml(products: FeedProduct[]): string {
 export async function GET() {
     try {
         const products = await prisma.product.findMany({
-            where: { active: true },
+            where: { active: true, imageUrl: { not: '' } },
             select: {
                 id: true,
                 name: true,
@@ -148,7 +148,8 @@ export async function GET() {
             orderBy: { name: 'asc' },
         })
 
-        const xml = buildFeedXml(products)
+        const feedProducts = products.filter((p) => p.imageUrl && p.imageUrl.trim().length > 0)
+        const xml = buildFeedXml(feedProducts)
         return new NextResponse(xml, {
             status: 200,
             headers: {

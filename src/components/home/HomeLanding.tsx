@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { cookies, headers } from 'next/headers'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import FirstOrderDiscountPopup from '@/components/marketing/FirstOrderDiscountPopup'
@@ -417,10 +418,10 @@ const LANDING_COPY: Record<SupportedLocale, LandingLocaleCopy> = {
 const TRUST_STACK = ['Stripe', 'Printful', 'Gooten', 'Resend', 'GA4', 'Search Console']
 
 const FEATURED_PRODUCT_PREVIEWS = [
-    { name: 'Premium Heavyweight Tee', price: '$49', provider: 'Printful', fit: 'Best for statement drops' },
-    { name: 'All-Over Zip Hoodie', price: '$113', provider: 'Gooten', fit: 'Best for high-impact graphics' },
-    { name: 'Embroidered Dad Cap', price: '$33', provider: 'Printful', fit: 'Best for logo-first brands' },
-    { name: 'Canvas Wall Piece', price: '$74', provider: 'Gooten', fit: 'Best for premium home decor' },
+    { name: 'Premium Heavyweight Tee', price: '$49', provider: 'Printful', fit: 'Best for statement drops',    imageUrl: 'https://files.cdn.printful.com/o/upload/product-catalog-img/9d/9dc2eede066f8fda36fbf719caffde32_l' },
+    { name: 'All-Over Zip Hoodie',     price: '$113', provider: 'Gooten',   fit: 'Best for high-impact graphics', imageUrl: 'https://files.cdn.printful.com/o/upload/product-catalog-img/45/45c2d1c38858cdb2861c9d601ee4a3f5_l' },
+    { name: 'Embroidered Dad Cap',     price: '$33', provider: 'Printful', fit: 'Best for logo-first brands',  imageUrl: 'https://files.cdn.printful.com/o/upload/product-catalog-img/c4/c45ba3c882b8ecb672b30ac5c1041955_l' },
+    { name: 'Canvas Wall Piece',       price: '$74', provider: 'Gooten',   fit: 'Best for premium home decor', imageUrl: 'https://files.cdn.printful.com/o/upload/product-catalog-img/ff/ffb57c4bdb5235917d3ad7cae6594de5_l' },
 ]
 
 function resolveHomepageHeroVariant(): HomepageHeroVariant {
@@ -563,6 +564,23 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                     </div>
                 </section>
 
+
+                {/* Brand Video Showcase */}
+                <div className="mx-auto mt-8 max-w-5xl px-4 sm:px-6 lg:px-8">
+                    <div className="overflow-hidden rounded-2xl border border-white/10 shadow-[0_0_80px_rgba(47,108,243,0.18)]">
+                        <video
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            preload="metadata"
+                            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%230b1222'/%3E%3C/svg%3E"
+                            className="w-full aspect-video"
+                        >
+                            <source src="/videos/spai_brand_reveal.mp4" type="video/mp4" />
+                        </video>
+                    </div>
+                </div>
                 <section
                     className="border-y border-white/10 bg-[#070b16]/80 px-4 py-5 sm:px-6 lg:px-8"
                     data-home-section="trust"
@@ -592,59 +610,34 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                         </h2>
                         <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-300 sm:text-base">{text.productProofSubtitle}</p>
 
-                        <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-center">
-                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
-                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofPromptLabel}</p>
-                                <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                                    <p className="text-sm leading-6 text-zinc-100">{text.productProofPromptText}</p>
-                                </div>
-                            </article>
-
-                            <p className="hidden text-xs uppercase tracking-[0.3em] text-zinc-500 lg:block">Idea -&gt;</p>
-
-                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
-                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofGeneratedLabel}</p>
-                                <div className="relative mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-zinc-900 to-[#141d33] p-4">
-                                    <div className="pointer-events-none absolute -left-5 -top-5 h-16 w-16 rounded-full bg-[#2f6cf3]/18 blur-2xl" />
-                                    <div className="pointer-events-none absolute -bottom-6 -right-6 h-20 w-20 rounded-full bg-[#26d4b8]/18 blur-2xl" />
-                                    <div className="relative mx-auto flex aspect-square max-w-[220px] items-center justify-center rounded-2xl border border-white/12 bg-[linear-gradient(135deg,rgba(47,108,243,0.16),rgba(38,212,184,0.14))]">
-                                        <svg viewBox="0 0 220 220" className="h-44 w-44" role="img" aria-label="Generated artwork preview">
-                                            <defs>
-                                                <linearGradient id="proofAccent" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#2f6cf3" />
-                                                    <stop offset="100%" stopColor="#26d4b8" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path d="M109 28 L130 73 L178 80 L143 114 L151 164 L109 141 L67 164 L75 114 L40 80 L88 73 Z" fill="url(#proofAccent)" fillOpacity="0.92" />
-                                            <circle cx="109" cy="108" r="24" fill="#0b1222" />
-                                            <path d="M92 112 Q109 84 126 112 Q109 135 92 112 Z" fill="#f8fafc" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <p className="mt-3 text-sm text-zinc-300">{text.productProofGeneratedText}</p>
-                            </article>
-
-                            <p className="hidden text-xs uppercase tracking-[0.3em] text-zinc-500 lg:block">-&gt; Product</p>
-
-                            <article className="rounded-2xl border border-white/12 bg-[#0b1222] p-5">
-                                <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">{text.productProofProductLabel}</p>
-                                <div className="mt-4 rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-4">
-                                    <svg viewBox="0 0 320 360" className="mx-auto h-52 w-full max-w-[240px]" role="img" aria-label="Generated design on premium t-shirt">
-                                        <path
-                                            d="M80 30 L126 20 L194 20 L240 30 L282 82 L250 110 L240 95 L238 330 L82 330 L80 95 L70 110 L38 82 Z"
-                                            fill="#111827"
-                                            stroke="#3f3f46"
-                                            strokeWidth="4"
-                                            strokeLinejoin="round"
-                                        />
-                                        <rect x="122" y="112" width="76" height="98" rx="8" fill="white" />
-                                        <path d="M160 130 L176 164 L212 170 L185 195 L191 232 L160 215 L129 232 L135 195 L108 170 L144 164 Z" fill="#26d4b8" fillOpacity="0.82" />
-                                        <circle cx="160" cy="172" r="14" fill="#111827" />
-                                    </svg>
-                                </div>
-                                <p className="mt-3 text-sm font-semibold text-white">{text.productProofProductName}</p>
-                                <p className="mt-2 text-sm leading-6 text-zinc-300">{text.productProofProductNote}</p>
-                            </article>
+                        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                            <div className="overflow-hidden rounded-2xl border border-white/10">
+                                <Image
+                                    src="/images/step1_prompt.png"
+                                    alt="Type a prompt. Get a real product."
+                                    width={700}
+                                    height={700}
+                                    className="w-full object-cover"
+                                />
+                            </div>
+                            <div className="overflow-hidden rounded-2xl border border-white/10">
+                                <Image
+                                    src="/images/step2_ai_design.png"
+                                    alt="AI Design. Generated in seconds."
+                                    width={700}
+                                    height={700}
+                                    className="w-full object-cover"
+                                />
+                            </div>
+                            <div className="overflow-hidden rounded-2xl border border-white/10">
+                                <Image
+                                    src="/images/step3_ready_to_buy.png"
+                                    alt="Ready to buy. Try it now."
+                                    width={700}
+                                    height={700}
+                                    className="w-full object-cover"
+                                />
+                            </div>
                         </div>
 
                         <div className="mt-8 flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -715,12 +708,17 @@ export default function HomeLanding({ locale, copy }: HomeLandingProps) {
                         <h2 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">{text.featuredTitle}</h2>
                         <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-300 sm:text-base">{text.featuredSubtitle}</p>
                         <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                            {FEATURED_PRODUCT_PREVIEWS.map((item, index) => (
+                            {FEATURED_PRODUCT_PREVIEWS.map((item) => (
                                 <article key={item.name} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                                    <div
-                                        className={`h-40 rounded-xl border border-white/10 bg-gradient-to-br ${index % 2 === 0 ? 'from-[#2f6cf3]/22 to-[#26d4b8]/18' : 'from-[#2f6cf3]/20 to-[#26d4b8]/20'
-                                            }`}
-                                    />
+                                    <div className="relative h-40 overflow-hidden rounded-xl border border-white/10">
+                                        <Image
+                                            src={item.imageUrl}
+                                            alt={item.name}
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, 25vw"
+                                            className="object-cover object-center"
+                                        />
+                                    </div>
                                     <div className="mt-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <h3 className="text-sm font-semibold text-zinc-100">{item.name}</h3>

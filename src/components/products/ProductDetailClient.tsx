@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Shirt } from 'lucide-react'
@@ -30,6 +30,7 @@ type Props = {
     createPath?: string
     cartPath?: string
     canDesignWithAI?: boolean
+    isGootenProduct?: boolean
     copy?: {
         availableSizesLabel: string
         colorsLabel: string
@@ -38,7 +39,6 @@ type Props = {
         readyToBuyAddToCartLabel: string
         readyToBuyAddedToCartLabel: string
         readyToBuyGoToCartLabel: string
-        fallbackPreviewNote?: string
     }
 }
 
@@ -50,8 +50,6 @@ const defaultCopy = {
     readyToBuyAddToCartLabel: 'Add to Cart',
     readyToBuyAddedToCartLabel: 'Added to Cart',
     readyToBuyGoToCartLabel: 'Go to Cart',
-    fallbackPreviewNote:
-        'Color-specific preview is not available for this item yet. Your selected color will still be used for ordering.',
 }
 
 function colorDotStyle(name: string, hex: string) {
@@ -65,6 +63,7 @@ export default function ProductDetailClient({
     createPath = '/create',
     cartPath = '/cart',
     canDesignWithAI = true,
+    isGootenProduct = false,
     copy = defaultCopy,
 }: Props) {
     const initialColor = product.colors[0]?.name ?? 'Default'
@@ -75,24 +74,8 @@ export default function ProductDetailClient({
     const [added, setAdded] = useState(false)
     const addItem = useCart((s) => s.addItem)
 
-    const selectedColorData = useMemo(
-        () => product.colors.find((color) => color.name === selectedColor) ?? product.colors[0],
-        [product.colors, selectedColor]
-    )
+    const imageUrl = product.imageUrl || '/images/placeholder-product.png'
 
-    const selectedColorRawHex = selectedColorData?.hex ?? '#FFFFFF'
-    const selectedColorHasValidHex = /^#[0-9a-f]{6}$/i.test(selectedColorRawHex)
-    const selectedColorHex = selectedColorData
-        ? selectedColorHasValidHex && selectedColorRawHex.toLowerCase() !== '#ffffff'
-            ? selectedColorRawHex
-            : resolveColorHexFromName(selectedColorData.name)
-        : '#ffffff'
-    const selectedColorPreviewUrl =
-        typeof selectedColorData?.previewImageUrl === 'string' && selectedColorData.previewImageUrl.trim().length > 0
-            ? selectedColorData.previewImageUrl.trim()
-            : null
-    const imageUrl = selectedColorPreviewUrl || product.imageUrl
-    const isFallbackColorPreview = Boolean(!selectedColorPreviewUrl && product.imageUrl)
     const createHref =
         `${createPath}?productId=${encodeURIComponent(product.id)}` +
         `&color=${encodeURIComponent(selectedColor)}` +
@@ -132,16 +115,7 @@ export default function ProductDetailClient({
                             className="object-cover"
                             priority
                         />
-                        {isFallbackColorPreview ? (
-                            <div
-                                className="absolute bottom-3 left-3 pointer-events-none rounded-md border border-border bg-background/85 px-2 py-1 text-[11px] leading-tight text-muted-foreground backdrop-blur"
-                                style={{
-                                    boxShadow: `inset 0 0 0 1px ${selectedColorHex}33`,
-                                }}
-                            >
-                                {copy.fallbackPreviewNote || defaultCopy.fallbackPreviewNote}
-                            </div>
-                        ) : null}
+
                     </>
                 ) : (
                     <Shirt className="w-32 h-32 text-muted-foreground/30" />
@@ -195,14 +169,29 @@ export default function ProductDetailClient({
                             ))}
                         </div>
                     </div>
+                    {isGootenProduct && (
+                        <div className="flex items-start gap-2 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3">
+                            <span className="text-blue-400 text-sm mt-0.5">ℹ️</span>
+                            <p className="text-xs text-muted-foreground">
+                                Color preview is for reference only. Your order will be fulfilled in the exact color you select.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
-                {canDesignWithAI ? (
+                {canDesignWithAI && !isGootenProduct ? (
                     <Link
                         href={createHref}
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
                     >
                         {copy.designButtonLabel}
+                    </Link>
+                ) : isGootenProduct ? (
+                    <Link
+                        href={createHref}
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity w-full justify-center"
+                    >
+                        Order This Product
                     </Link>
                 ) : (
                     <div className="space-y-3">

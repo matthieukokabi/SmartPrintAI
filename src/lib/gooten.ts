@@ -110,6 +110,11 @@ function sanitizeGootenImageUrl(value: unknown, options: { requireReliableHost?:
         return null
     }
 
+    const pathLower = parsed.pathname.toLowerCase()
+    if (options.requireReliableHost && !/\.(jpe?g|png|gif|webp|svg|avif)$/.test(pathLower)) {
+        return null
+    }
+
     if (!GOOTEN_IMAGE_PATH_PATTERN.test(parsed.pathname)) {
         return null
     }
@@ -415,6 +420,21 @@ function mapUniqueRecordKey(mapping: Record<string, string>, key: string, sku: s
     }
 }
 
+function extractGootenColorOptionImageUrl(variant: unknown): string | null {
+    if (!variant || typeof variant !== "object") return null
+    const options = (variant as Record<string, unknown>).Options || (variant as Record<string, unknown>).options
+    if (!Array.isArray(options)) return null
+    for (const opt of options) {
+        if (!opt || typeof opt !== "object") continue
+        const name = ((opt as Record<string, unknown>).Name || (opt as Record<string, unknown>).name || "") as string
+        if (name.toLowerCase() === "color") {
+            const url = ((opt as Record<string, unknown>).ImageUrl || (opt as Record<string, unknown>).imageUrl || "") as string
+            if (url.trim()) return url.trim()
+        }
+    }
+    return null
+}
+
 export function extractGootenVariantMapping(payload: unknown): GootenVariantMapping {
     const variants = extractGootenVariants(payload)
     const mapping: Record<string, string> = {}
@@ -433,7 +453,9 @@ export function extractGootenVariantMapping(payload: unknown): GootenVariantMapp
 
         const color = extractGootenVariantColor(variant)
         const size = extractGootenVariantSize(variant)
-        const previewImageUrl = sanitizeGootenImageUrl(extractGootenPreviewUrl(variant), { requireReliableHost: true })
+        const variantPreviewUrl = sanitizeGootenImageUrl(extractGootenPreviewUrl(variant), { requireReliableHost: true })
+        const colorOptionImageUrl = extractGootenColorOptionImageUrl(variant)
+        const previewImageUrl = variantPreviewUrl || sanitizeGootenImageUrl(colorOptionImageUrl, { requireReliableHost: true })
 
         if (color) {
             mapUniqueRecordKey(mapping, color, sku)
@@ -480,6 +502,27 @@ export function extractGootenProductDescription(productPayload: unknown): string
 export function extractGootenProductCategory(productPayload: unknown): string | null {
     if (!isObject(productPayload)) return null
     return pickString(productPayload, ['Category', 'category', 'ProductCategory', 'Department', 'type'])
+}
+
+export function extractGootenModelImageUrl(variantsPayload: unknown): string | null {
+    const variants = extractGootenVariants(variantsPayload)
+    for (const variant of variants) {
+        if (!isObject(variant)) continue
+        const options = (variant as Record<string, unknown>).Options || (variant as Record<string, unknown>).options
+        if (!Array.isArray(options)) continue
+        for (const opt of options) {
+            if (!isObject(opt)) continue
+            const name = ((opt as Record<string, unknown>).Name || (opt as Record<string, unknown>).name || "") as string
+            if (name === "Model") {
+                const url = sanitizeGootenImageUrl(
+                    ((opt as Record<string, unknown>).ImageUrl || (opt as Record<string, unknown>).imageUrl || "") as string,
+                    { requireReliableHost: true }
+                )
+                if (url) return url
+            }
+        }
+    }
+    return null
 }
 
 export function extractGootenProductImageUrl(productPayload: unknown): string | null {

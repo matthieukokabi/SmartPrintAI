@@ -8,6 +8,16 @@ import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-
 export const revalidate = 3600
 export const dynamic = 'force-dynamic'
 
+function buildAlternates(siteUrl: string, path: string) {
+    const languages: Record<string, string> = {
+        'x-default': `${siteUrl}${path}`,
+    }
+    for (const locale of SUPPORTED_LOCALES) {
+        languages[locale] = `${siteUrl}/${locale}${path}`
+    }
+    return { languages }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const siteUrl = getSiteUrl()
     const now = new Date()
@@ -18,24 +28,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: now,
             changeFrequency: 'daily',
             priority: 1,
+            alternates: buildAlternates(siteUrl, '/'),
         },
         {
             url: `${siteUrl}/products`,
             lastModified: now,
             changeFrequency: 'daily',
             priority: 0.9,
+            alternates: buildAlternates(siteUrl, '/products'),
         },
         {
             url: `${siteUrl}/create`,
             lastModified: now,
             changeFrequency: 'daily',
             priority: 0.9,
+            alternates: buildAlternates(siteUrl, '/create'),
         },
         {
             url: `${siteUrl}/support`,
             lastModified: now,
             changeFrequency: 'monthly',
             priority: 0.6,
+            alternates: buildAlternates(siteUrl, '/support'),
         },
         {
             url: `${siteUrl}/about`,
@@ -56,10 +70,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.4,
         },
         {
+            url: `${siteUrl}/returns`,
+            lastModified: now,
+            changeFrequency: 'yearly',
+            priority: 0.4,
+        },
+        {
+            url: `${siteUrl}/shipping`,
+            lastModified: now,
+            changeFrequency: 'yearly',
+            priority: 0.4,
+        },
+        {
             url: `${siteUrl}/blog`,
             lastModified: now,
             changeFrequency: 'weekly',
             priority: 0.8,
+            alternates: buildAlternates(siteUrl, '/blog'),
         },
     ]
 
@@ -73,15 +100,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const productRoutes: MetadataRoute.Sitemap = sellableProducts.map((product) => ({
         url: `${siteUrl}/products/${product.id}`,
         lastModified: now,
-        changeFrequency: 'weekly',
+        changeFrequency: 'weekly' as const,
         priority: 0.8,
+        alternates: buildAlternates(siteUrl, `/products/${product.id}`),
     }))
 
     const localizedProductRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap((locale) =>
         sellableProducts.map((product) => ({
             url: `${siteUrl}/${locale}/products/${product.id}`,
             lastModified: now,
-            changeFrequency: 'weekly',
+            changeFrequency: 'weekly' as const,
             priority: locale === 'en' ? 0.75 : 0.65,
         }))
     )
@@ -89,8 +117,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const blogRoutes: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
         url: `${siteUrl}/blog/${post.slug}`,
         lastModified: new Date(post.publishedAt),
-        changeFrequency: 'monthly',
+        changeFrequency: 'monthly' as const,
         priority: 0.7,
+        alternates: buildAlternates(siteUrl, `/blog/${post.slug}`),
     }))
 
     const localizedBlogRoutes: MetadataRoute.Sitemap = SUPPORTED_LOCALES.flatMap<MetadataRoute.Sitemap[number]>(
@@ -114,25 +143,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         {
             url: `${siteUrl}/${locale}`,
             lastModified: now,
-            changeFrequency: 'weekly',
+            changeFrequency: 'weekly' as const,
             priority: locale === 'en' ? 0.85 : 0.75,
         },
         {
             url: `${siteUrl}/${locale}/products`,
             lastModified: now,
-            changeFrequency: 'daily',
+            changeFrequency: 'daily' as const,
             priority: locale === 'en' ? 0.8 : 0.7,
         },
         {
             url: `${siteUrl}/${locale}/create`,
             lastModified: now,
-            changeFrequency: 'daily',
+            changeFrequency: 'daily' as const,
             priority: locale === 'en' ? 0.82 : 0.72,
         },
         {
             url: `${siteUrl}/${locale}/support`,
             lastModified: now,
-            changeFrequency: 'monthly',
+            changeFrequency: 'monthly' as const,
             priority: locale === 'en' ? 0.58 : 0.5,
         },
     ])

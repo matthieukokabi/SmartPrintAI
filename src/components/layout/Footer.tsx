@@ -1,65 +1,69 @@
 import Link from 'next/link'
-import BrandMark from '@/components/brand/BrandMark'
+import Image from 'next/image'
 
 export default function Footer() {
     return (
-        <footer className="site-footer mt-24 border-t border-border/60">
-            <div className="max-w-7xl mx-auto px-4 py-14 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
-                    <div className="col-span-1 md:col-span-2">
-                        <Link href="/" className="mb-5 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-2xl">
-                                <BrandMark size={18} />
-                            </div>
-                            <span className="text-lg font-semibold tracking-[-0.015em] text-foreground">
-                                <span>SmartPrint</span>
-                                <span className="bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] bg-clip-text text-transparent">AI</span>
-                            </span>
-                        </Link>
-                        <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-                            Describe your vision, watch AI create it, and get it printed on premium products. No design skills needed.
+        <footer
+            style={{
+                borderTop: '1px solid var(--border)',
+                padding: '48px 24px',
+                background: 'var(--surface)',
+            }}
+        >
+            <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <div
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: 40,
+                        marginBottom: 40,
+                    }}
+                >
+                    <div>
+                        <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Image src="/images/logo.svg" alt="SmartPrintAI" width={24} height={24} />
+                            <span className="gradient-text">SmartPrintAI</span>
+                        </h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
+                            Describe it. AI creates it. We print and ship it.
                         </p>
                     </div>
-
                     <div>
-                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Product</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li>
-                                <Link
-                                    href="/create"
-                                    data-home-cta="footer_primary_create"
-                                    className="hover:text-foreground transition-colors"
-                                >
-                                    Create Design
-                                </Link>
-                            </li>
-                            <li><Link href="/products" className="hover:text-foreground transition-colors">Products</Link></li>
-                            <li><Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
-                            <li><Link href="#how-it-works" className="hover:text-foreground transition-colors">How It Works</Link></li>
-                        </ul>
+                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Products</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                T-Shirts
+                            </Link>
+                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Hoodies
+                            </Link>
+                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Mugs
+                            </Link>
+                            <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Wall Art
+                            </Link>
+                        </div>
                     </div>
-
                     <div>
-                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Support</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/support" className="hover:text-foreground transition-colors">Contact</Link></li>
-                            <li><Link href="/support#faq" className="hover:text-foreground transition-colors">FAQ</Link></li>
-                            <li><Link href="/support#shipping" className="hover:text-foreground transition-colors">Shipping</Link></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">Trust</h4>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                            <li><Link href="/about" className="hover:text-foreground transition-colors">About</Link></li>
-                            <li><Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
-                        </ul>
+                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Support</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>help@smartprintai.com</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Shipping Info</span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Returns Policy</span>
+                        </div>
                     </div>
                 </div>
-
-                <div className="mt-10 border-t border-border/60 pt-8 text-center text-xs text-muted-foreground">
-                    © {new Date().getFullYear()} SmartPrintAI. All rights reserved.
+                <div
+                    style={{
+                        borderTop: '1px solid var(--border)',
+                        paddingTop: 24,
+                        textAlign: 'center',
+                        color: 'var(--text-muted)',
+                        fontSize: 13,
+                    }}
+                >
+                    © 2026 SmartPrintAI. All rights reserved.
                 </div>
             </div>
         </footer>

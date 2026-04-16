@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
         }
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
+            payment_method_types: ['card', 'paypal', 'link'],
             line_items: lineItems,
             mode: 'payment',
             customer_email: email,
@@ -266,19 +266,35 @@ export async function POST(req: NextRequest) {
             phone_number_collection: {
                 enabled: true,
             },
-            shipping_options: [
-                {
-                    shipping_rate_data: {
-                        type: 'fixed_amount',
-                        fixed_amount: { amount: 599, currency: 'usd' },
-                        display_name: 'Standard Shipping',
-                        delivery_estimate: {
-                            minimum: { unit: 'business_day', value: 5 },
-                            maximum: { unit: 'business_day', value: 10 },
+            shipping_options: (() => {
+                const subtotalCents = lineItems.reduce((sum, li) => sum + (li.price_data.unit_amount * li.quantity), 0)
+                const freeShipping = subtotalCents >= 10000
+                const opts: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
+                    {
+                        shipping_rate_data: {
+                            type: 'fixed_amount',
+                            fixed_amount: { amount: freeShipping ? 0 : 599, currency: 'usd' },
+                            display_name: freeShipping ? 'Free Standard Shipping' : 'Standard Shipping',
+                            delivery_estimate: {
+                                minimum: { unit: 'business_day', value: 5 },
+                                maximum: { unit: 'business_day', value: 10 },
+                            },
                         },
                     },
-                },
-            ],
+                    {
+                        shipping_rate_data: {
+                            type: 'fixed_amount',
+                            fixed_amount: { amount: freeShipping ? 599 : 1299, currency: 'usd' },
+                            display_name: 'Express Shipping',
+                            delivery_estimate: {
+                                minimum: { unit: 'business_day', value: 2 },
+                                maximum: { unit: 'business_day', value: 4 },
+                            },
+                        },
+                    },
+                ]
+                return opts
+            })(),
             metadata,
             success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
