@@ -52,3 +52,5 @@ TODO.md.bak.*
 # typescript
 *.tsbuildinfo
 .npm-cache/
+ops/n8n_local/*.env*
+prisma/*.db
