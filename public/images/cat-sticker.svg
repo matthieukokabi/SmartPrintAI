@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="cs-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#cs-bg)"/>
+  <!-- Sticker 1 - circle -->
+  <circle cx="80" cy="80" r="35" fill="#141420" stroke="#A78BFA" stroke-width="1.5" opacity="0.8"/>
+  <path d="M65 95 L80 60 L95 95 Z" fill="#7C3AED" opacity="0.3"/>
+  <circle cx="88" cy="68" r="5" fill="#06B6D4" opacity="0.3"/>
+  <!-- Sticker 2 - rounded square -->
+  <rect x="95" y="90" width="65" height="65" rx="12" fill="#141420" stroke="#06B6D4" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="127" cy="122" r="16" fill="#A78BFA" opacity="0.2"/>
+  <circle cx="127" cy="122" r="8" fill="#06B6D4" opacity="0.2"/>
+  <!-- Sticker 3 - small -->
+  <circle cx="135" cy="65" r="22" fill="#141420" stroke="#2a2a40" stroke-width="1.5"/>
+  <path d="M128 72 L135 55 L142 72 Z" fill="#A78BFA" opacity="0.35"/>
+  <!-- Peel effect on sticker 1 -->
+  <path d="M105 105 Q115 95 115 110 Q105 115 105 105 Z" fill="#1e1e30" stroke="#2a2a40" stroke-width="0.5"/>
+  <text x="100" y="185" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$12.99</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="ctote-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#ctote-bg)"/>
+  <!-- Handles -->
+  <path d="M70 60 Q70 30 85 30 Q100 30 100 60" fill="none" stroke="#2a2a40" stroke-width="2.5"/>
+  <path d="M100 60 Q100 30 115 30 Q130 30 130 60" fill="none" stroke="#2a2a40" stroke-width="2.5"/>
+  <!-- Bag body -->
+  <path d="M45 60 L50 160 L150 160 L155 60 Z" fill="#141420" stroke="#2a2a40" stroke-width="1.5"/>
+  <!-- Design on bag -->
+  <rect x="65" y="75" width="70" height="55" rx="4" fill="#0a0a0f" opacity="0.5"/>
+  <!-- Abstract art -->
+  <circle cx="100" cy="100" r="18" fill="#7C3AED" opacity="0.2"/>
+  <circle cx="90" cy="95" r="12" fill="#06B6D4" opacity="0.2"/>
+  <circle cx="110" cy="105" r="10" fill="#A78BFA" opacity="0.2"/>
+  <text x="100" y="185" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$22.99</text>
+</svg>

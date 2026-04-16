@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="ch-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#ch-bg)"/>
+  <!-- Hoodie -->
+  <path d="M60 55 L42 65 L30 82 L45 90 L55 80 L55 158 L145 158 L145 80 L155 90 L170 82 L158 65 L140 55 L125 55 Q118 70 100 70 Q82 70 75 55 Z"
+        fill="#141420" stroke="#2a2a40" stroke-width="1.5"/>
+  <!-- Hood -->
+  <path d="M60 55 Q60 35 80 30 Q100 25 120 30 Q140 35 140 55" fill="none" stroke="#2a2a40" stroke-width="1.5"/>
+  <!-- Pocket -->
+  <rect x="72" y="120" width="56" height="25" rx="4" fill="none" stroke="#2a2a40" stroke-width="1"/>
+  <!-- Design on hoodie -->
+  <rect x="72" y="78" width="56" height="38" rx="4" fill="#0a0a0f" opacity="0.5"/>
+  <!-- Mountain design -->
+  <path d="M78 112 L92 85 L100 95 L110 82 L128 112 Z" fill="#7C3AED" opacity="0.3"/>
+  <path d="M78 112 L95 90 L108 102 L128 112 Z" fill="#06B6D4" opacity="0.25"/>
+  <circle cx="118" cy="84" r="4" fill="#A78BFA" opacity="0.4"/>
+  <text x="100" y="185" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$59.99</text>
+</svg>

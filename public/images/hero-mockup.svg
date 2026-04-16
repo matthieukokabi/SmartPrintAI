@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="520" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0.1"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="shirt-body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background glow -->
+  <ellipse cx="260" cy="200" rx="220" ry="170" fill="url(#g1)"/>
+
+  <!-- T-shirt shape -->
+  <path d="M180 100 L155 115 L130 140 L150 155 L170 140 L170 300 L350 300 L350 140 L370 155 L390 140 L365 115 L340 100 L300 100 Q290 130 260 130 Q230 130 220 100 Z"
+        fill="url(#shirt-body)" stroke="#2a2a40" stroke-width="2"/>
+
+  <!-- Design on shirt - abstract mountain landscape -->
+  <g transform="translate(195, 155)">
+    <rect width="130" height="110" rx="6" fill="#0a0a0f" opacity="0.6"/>
+    <!-- Mountains -->
+    <path d="M10 100 L35 45 L55 75 L75 30 L95 65 L120 100 Z" fill="#7C3AED" opacity="0.4"/>
+    <path d="M10 100 L45 55 L70 80 L100 40 L120 100 Z" fill="#06B6D4" opacity="0.3"/>
+    <!-- Sun/moon -->
+    <circle cx="95" cy="30" r="12" fill="#A78BFA" opacity="0.6"/>
+    <!-- Stars -->
+    <circle cx="25" cy="20" r="1.5" fill="#f0f0f5" opacity="0.7"/>
+    <circle cx="50" cy="15" r="1" fill="#f0f0f5" opacity="0.5"/>
+    <circle cx="75" cy="22" r="1.5" fill="#f0f0f5" opacity="0.6"/>
+    <circle cx="110" cy="18" r="1" fill="#f0f0f5" opacity="0.4"/>
+  </g>
+
+  <!-- Mug to the right -->
+  <g transform="translate(370, 200)">
+    <rect x="0" y="0" width="60" height="70" rx="6" fill="url(#shirt-body)" stroke="#2a2a40" stroke-width="1.5"/>
+    <path d="M60 15 Q85 15 85 40 Q85 60 60 60" fill="none" stroke="#2a2a40" stroke-width="1.5"/>
+    <!-- Design on mug -->
+    <rect x="10" y="12" width="40" height="35" rx="3" fill="#0a0a0f" opacity="0.6"/>
+    <circle cx="30" cy="29" r="10" fill="#7C3AED" opacity="0.3"/>
+    <path d="M22 34 L30 22 L38 34 Z" fill="#06B6D4" opacity="0.4"/>
+  </g>
+
+  <!-- Phone case to the left -->
+  <g transform="translate(80, 180)">
+    <rect width="45" height="80" rx="8" fill="url(#shirt-body)" stroke="#2a2a40" stroke-width="1.5"/>
+    <!-- Screen -->
+    <rect x="4" y="12" width="37" height="55" rx="4" fill="#0a0a0f" opacity="0.6"/>
+    <!-- Design on phone -->
+    <circle cx="22" cy="39" r="12" fill="#A78BFA" opacity="0.2"/>
+    <path d="M14 48 L22 28 L30 48 Z" fill="#06B6D4" opacity="0.35"/>
+    <!-- Notch -->
+    <rect x="14" y="4" width="17" height="4" rx="2" fill="#2a2a40"/>
+  </g>
+
+  <!-- Floating sparkles -->
+  <circle cx="140" cy="130" r="3" fill="#A78BFA" opacity="0.6"/>
+  <circle cx="400" cy="150" r="2.5" fill="#06B6D4" opacity="0.5"/>
+  <circle cx="180" cy="330" r="2" fill="#A78BFA" opacity="0.4"/>
+  <circle cx="360" cy="320" r="3" fill="#06B6D4" opacity="0.5"/>
+
+  <!-- AI wand/magic lines -->
+  <line x1="145" y1="85" x2="155" y2="95" stroke="url(#g2)" stroke-width="1.5" opacity="0.6"/>
+  <line x1="155" y1="85" x2="145" y2="95" stroke="url(#g2)" stroke-width="1.5" opacity="0.6"/>
+  <line x1="375" y1="170" x2="385" y2="180" stroke="url(#g2)" stroke-width="1.5" opacity="0.5"/>
+  <line x1="385" y1="170" x2="375" y2="180" stroke="url(#g2)" stroke-width="1.5" opacity="0.5"/>
+</svg>

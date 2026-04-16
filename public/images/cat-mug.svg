@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="cm-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#cm-bg)"/>
+  <!-- Mug body -->
+  <rect x="45" y="50" width="85" height="100" rx="8" fill="#141420" stroke="#2a2a40" stroke-width="1.5"/>
+  <!-- Handle -->
+  <path d="M130 70 Q160 70 160 100 Q160 130 130 130" fill="none" stroke="#2a2a40" stroke-width="2"/>
+  <!-- Design on mug -->
+  <rect x="55" y="65" width="65" height="55" rx="4" fill="#0a0a0f" opacity="0.5"/>
+  <!-- Wolf face on mug -->
+  <path d="M87 72 L70 110 L87 120 L105 110 Z" fill="none" stroke="#A78BFA" stroke-width="1.2" opacity="0.6"/>
+  <path d="M87 72 L87 120" stroke="#A78BFA" stroke-width="0.8" opacity="0.3"/>
+  <circle cx="80" cy="96" r="3" fill="#06B6D4" opacity="0.5"/>
+  <circle cx="95" cy="96" r="3" fill="#06B6D4" opacity="0.5"/>
+  <!-- Steam -->
+  <path d="M65 45 Q70 35 65 25" fill="none" stroke="#9ca3af" stroke-width="1" opacity="0.3"/>
+  <path d="M85 42 Q90 30 85 20" fill="none" stroke="#9ca3af" stroke-width="1" opacity="0.25"/>
+  <path d="M105 45 Q110 35 105 28" fill="none" stroke="#9ca3af" stroke-width="1" opacity="0.2"/>
+  <text x="100" y="180" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$18.99</text>
+</svg>

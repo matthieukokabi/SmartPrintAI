@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="ct-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#ct-bg)"/>
+  <!-- T-shirt -->
+  <path d="M65 50 L50 57 L35 70 L48 78 L58 70 L58 155 L142 155 L142 70 L152 78 L165 70 L150 57 L135 50 L120 50 Q115 65 100 65 Q85 65 80 50 Z"
+        fill="#141420" stroke="#2a2a40" stroke-width="1.5"/>
+  <!-- Design area -->
+  <rect x="72" y="75" width="56" height="50" rx="4" fill="#0a0a0f" opacity="0.5"/>
+  <!-- Mini cat face on shirt -->
+  <circle cx="100" cy="95" r="14" fill="none" stroke="#A78BFA" stroke-width="1" opacity="0.6"/>
+  <path d="M90 85 L93 75 L98 85" fill="#A78BFA" opacity="0.4"/>
+  <path d="M102 85 L107 75 L110 85" fill="#A78BFA" opacity="0.4"/>
+  <circle cx="95" cy="93" r="2" fill="#06B6D4" opacity="0.6"/>
+  <circle cx="105" cy="93" r="2" fill="#06B6D4" opacity="0.6"/>
+  <path d="M98 99 L100 102 L102 99" fill="#A78BFA" opacity="0.5"/>
+  <!-- Price tag -->
+  <text x="100" y="180" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$29.99</text>
+</svg>

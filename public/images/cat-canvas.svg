@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="cc-bg" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" rx="16" fill="url(#cc-bg)"/>
+  <!-- Canvas frame -->
+  <rect x="35" y="30" width="130" height="120" rx="2" fill="#0a0a0f" stroke="#2a2a40" stroke-width="2"/>
+  <!-- Inner frame border -->
+  <rect x="40" y="35" width="120" height="110" rx="1" fill="none" stroke="#2a2a40" stroke-width="0.5"/>
+  <!-- Landscape art on canvas -->
+  <rect x="45" y="40" width="110" height="100" fill="#0a0a0f"/>
+  <!-- Night sky -->
+  <circle cx="120" cy="55" r="12" fill="#A78BFA" opacity="0.3"/>
+  <circle cx="120" cy="55" r="8" fill="#A78BFA" opacity="0.2"/>
+  <!-- Mountains -->
+  <path d="M45 130 L70 65 L90 95 L110 55 L130 85 L155 130 Z" fill="#7C3AED" opacity="0.25"/>
+  <path d="M45 130 L80 80 L105 100 L140 65 L155 130 Z" fill="#06B6D4" opacity="0.2"/>
+  <!-- Trees -->
+  <rect x="60" y="105" width="3" height="20" fill="#2a2a40"/>
+  <path d="M50 105 L61 80 L73 105 Z" fill="#7C3AED" opacity="0.2"/>
+  <!-- Stars -->
+  <circle cx="65" cy="50" r="1" fill="#f0f0f5" opacity="0.5"/>
+  <circle cx="90" cy="48" r="1.5" fill="#f0f0f5" opacity="0.4"/>
+  <!-- Wall shadow -->
+  <line x1="35" y1="155" x2="165" y2="155" stroke="#2a2a40" stroke-width="1" opacity="0.3"/>
+  <text x="100" y="180" text-anchor="middle" fill="#A78BFA" font-family="Inter, sans-serif" font-size="13" font-weight="600">$39.99</text>
+</svg>

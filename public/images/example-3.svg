@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <defs>
+    <linearGradient id="e3bg" x1="0" y1="0" x2="300" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e1e30"/>
+      <stop offset="100%" stop-color="#141420"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" rx="16" fill="url(#e3bg)"/>
+  <!-- Cat astronaut -->
+  <g transform="translate(85, 40)">
+    <!-- Helmet -->
+    <circle cx="65" cy="85" r="55" fill="none" stroke="#2a2a40" stroke-width="3"/>
+    <circle cx="65" cy="85" r="50" fill="none" stroke="#A78BFA" stroke-width="1.5" opacity="0.4"/>
+    <!-- Visor reflection -->
+    <path d="M30 70 Q65 50 100 70 Q100 110 65 120 Q30 110 30 70 Z" fill="#7C3AED" opacity="0.12"/>
+    <!-- Cat face -->
+    <!-- Ears -->
+    <path d="M40 50 L50 25 L60 50" fill="#1e1e30" stroke="#A78BFA" stroke-width="1.5" opacity="0.7"/>
+    <path d="M70 50 L80 25 L90 50" fill="#1e1e30" stroke="#A78BFA" stroke-width="1.5" opacity="0.7"/>
+    <!-- Eyes -->
+    <ellipse cx="50" cy="80" rx="6" ry="7" fill="#06B6D4" opacity="0.7"/>
+    <ellipse cx="80" cy="80" rx="6" ry="7" fill="#06B6D4" opacity="0.7"/>
+    <!-- Pupils -->
+    <ellipse cx="52" cy="80" rx="2.5" ry="5" fill="#0a0a0f"/>
+    <ellipse cx="82" cy="80" rx="2.5" ry="5" fill="#0a0a0f"/>
+    <!-- Nose -->
+    <path d="M62 93 L65 98 L68 93 Z" fill="#A78BFA" opacity="0.6"/>
+    <!-- Whiskers -->
+    <line x1="30" y1="93" x2="55" y2="96" stroke="#9ca3af" stroke-width="0.8" opacity="0.4"/>
+    <line x1="30" y1="100" x2="55" y2="100" stroke="#9ca3af" stroke-width="0.8" opacity="0.4"/>
+    <line x1="75" y1="96" x2="100" y2="93" stroke="#9ca3af" stroke-width="0.8" opacity="0.4"/>
+    <line x1="75" y1="100" x2="100" y2="100" stroke="#9ca3af" stroke-width="0.8" opacity="0.4"/>
+    <!-- Body suit -->
+    <path d="M30 135 L25 190 L50 190 L55 155 L75 155 L80 190 L105 190 L100 135 Z" fill="#1e1e30" stroke="#2a2a40" stroke-width="1.5"/>
+    <!-- Badge -->
+    <circle cx="65" cy="160" r="8" fill="none" stroke="#A78BFA" stroke-width="1" opacity="0.5"/>
+    <circle cx="65" cy="160" r="3" fill="#06B6D4" opacity="0.4"/>
+  </g>
+  <!-- Floating stars around -->
+  <circle cx="50" cy="60" r="2" fill="#f0f0f5" opacity="0.5"/>
+  <circle cx="250" cy="80" r="1.5" fill="#f0f0f5" opacity="0.4"/>
+  <circle cx="40" cy="200" r="1.5" fill="#f0f0f5" opacity="0.3"/>
+  <circle cx="260" cy="220" r="2" fill="#f0f0f5" opacity="0.5"/>
+  <circle cx="230" cy="50" r="1" fill="#A78BFA" opacity="0.4"/>
+  <text x="150" y="275" text-anchor="middle" fill="#9ca3af" font-family="Inter, sans-serif" font-size="13" font-weight="500">"Cat Astronaut"</text>
+</svg>
