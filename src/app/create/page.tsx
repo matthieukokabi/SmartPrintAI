@@ -1,21 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Suspense } from 'react'
 import Image from 'next/image'
 import { useCart } from '@/store/cart'
 
-const PRODUCTS = [
-    { id: 'tshirt', name: 'Unisex T-Shirt', price: 29.99, image: '/images/cat-tshirt.svg', size: 'M', color: 'Black' },
-    { id: 'hoodie', name: 'Premium Hoodie', price: 59.99, image: '/images/cat-hoodie.svg', size: 'L', color: 'Black' },
-    { id: 'mug', name: 'White Mug 11oz', price: 18.99, image: '/images/cat-mug.svg', size: '11oz', color: 'White' },
-    { id: 'canvas', name: 'Canvas Print 12x12', price: 39.99, image: '/images/cat-canvas.svg', size: '12x12', color: 'White' },
-    { id: 'phone', name: 'Phone Case', price: 24.99, image: '/images/cat-phone.svg', size: 'iPhone 15', color: 'Clear' },
-    { id: 'tote', name: 'Tote Bag', price: 22.99, image: '/images/cat-tote.svg', size: 'One Size', color: 'Black' },
-    { id: 'sticker', name: 'Sticker Sheet', price: 12.99, image: '/images/cat-sticker.svg', size: '4x4', color: 'White' },
-    { id: 'blanket', name: 'Fleece Blanket', price: 64.99, image: '/images/cat-blanket.svg', size: '50x60', color: 'White' },
-]
+interface ApiProductColor {
+    name: string
+    hex: string
+    printfulVariantId: number
+    previewImageUrl?: string | null
+}
+
+interface ApiProduct {
+    id: string
+    name: string
+    printfulId: string
+    description: string
+    category: string
+    basePrice: number
+    sellPrice: number
+    sizes: string[]
+    colors: ApiProductColor[]
+    imageUrl: string
+    active: boolean
+}
 
 const STYLES = [
     { id: 'artistic', label: '🎨 Artistic', desc: 'Vibrant & bold' },
@@ -38,11 +48,93 @@ function CreatePageContent() {
     const [error, setError] = useState<string | null>(null)
     const [showProductPicker, setShowProductPicker] = useState(false)
 
+    const [products, setProducts] = useState<ApiProduct[]>([])
+    const [productsLoading, setProductsLoading] = useState(true)
+    const [productSearch, setProductSearch] = useState('')
+    const [activeCategory, setActiveCategory] = useState<string>('all')
+    const [brokenImageById, setBrokenImageById] = useState<Record<string, true>>({})
+    const autoAppliedRef = useRef(false)
+
+    const preselectedProductId = searchParams.get('productId')
+    const preselectedColor = searchParams.get('color') || ''
+    const preselectedSize = searchParams.get('size') || ''
+
+    useEffect(() => {
+        let cancelled = false
+        fetch('/api/products')
+            .then((r) => r.json())
+            .then((data) => {
+                if (cancelled) return
+                if (Array.isArray(data)) setProducts(data)
+            })
+            .catch(() => { /* keep page usable even if products fetch fails */ })
+            .finally(() => { if (!cancelled) setProductsLoading(false) })
+        return () => { cancelled = true }
+    }, [])
+
+    const categories = useMemo(() => {
+        const set = new Set<string>()
+        for (const p of products) if (p.category) set.add(p.category)
+        return ['all', ...Array.from(set).sort()]
+    }, [products])
+
+    const filteredProducts = useMemo(() => {
+        const q = productSearch.trim().toLowerCase()
+        return products.filter((p) => {
+            if (activeCategory !== 'all' && p.category !== activeCategory) return false
+            if (q && !(p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))) return false
+            return true
+        })
+    }, [products, productSearch, activeCategory])
+
+    const preselectedProduct = useMemo(() => (
+        preselectedProductId ? products.find((p) => p.id === preselectedProductId) || null : null
+    ), [products, preselectedProductId])
+
+    function pickVariant(product: ApiProduct, urlSize?: string, urlColor?: string) {
+        const size = (urlSize && product.sizes.includes(urlSize))
+            ? urlSize
+            : (product.sizes[0] || 'One size')
+        const color = (urlColor && product.colors.some((c) => c.name === urlColor))
+            ? urlColor
+            : (product.colors[0]?.name || 'Default')
+        return { size, color }
+    }
+
+    function applyDesignToProduct(product: ApiProduct) {
+        if (!designId || !generatedImage) return
+        const { size, color } = pickVariant(product, preselectedSize, preselectedColor)
+        addItem({
+            id: `${designId}-${product.id}`,
+            productId: product.id,
+            productName: product.name,
+            designId,
+            imageUrl: generatedImage,
+            mockupUrl: '',
+            size,
+            color,
+            quantity: 1,
+            price: product.sellPrice,
+        })
+        setShowProductPicker(false)
+        router.push('/cart')
+    }
+
+    useEffect(() => {
+        if (!generatedImage || !designId) return
+        if (!preselectedProduct) return
+        if (autoAppliedRef.current) return
+        autoAppliedRef.current = true
+        applyDesignToProduct(preselectedProduct)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [generatedImage, designId, preselectedProduct])
+
     const handleGenerate = async () => {
         if (!prompt.trim() || prompt.length < 3) return
         setLoading(true)
         setError(null)
         setGeneratedImage(null)
+        autoAppliedRef.current = false
 
         try {
             const res = await fetch('/api/generate', {
@@ -50,10 +142,8 @@ function CreatePageContent() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt.trim(), style }),
             })
-
             const data = await res.json()
             if (!res.ok) throw new Error(data.error || 'Generation failed')
-
             setGeneratedImage(data.imageUrl)
             setDesignId(data.designId)
         } catch (err: unknown) {
@@ -72,7 +162,30 @@ function CreatePageContent() {
                 Describe what you want, pick a style, and let AI create it.
             </p>
 
-            {/* Prompt Input */}
+            {preselectedProduct && (
+                <div className="glass-card" style={{ padding: 16, marginBottom: 24, display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
+                        <Image
+                            src={preselectedProduct.imageUrl}
+                            alt={preselectedProduct.name}
+                            fill
+                            sizes="56px"
+                            unoptimized
+                            style={{ objectFit: 'cover' }}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Designing for</div>
+                        <div style={{ fontWeight: 600 }}>{preselectedProduct.name}</div>
+                        {(preselectedSize || preselectedColor) && (
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                                {[preselectedSize, preselectedColor].filter(Boolean).join(' · ')}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <div className="glass-card" style={{ padding: 28, marginBottom: 24 }}>
                 <label style={{ fontWeight: 600, marginBottom: 8, display: 'block' }}>
                     Describe your design
@@ -109,7 +222,6 @@ function CreatePageContent() {
                 </div>
             </div>
 
-            {/* Style Selector */}
             <div className="glass-card" style={{ padding: 28, marginBottom: 24 }}>
                 <label style={{ fontWeight: 600, marginBottom: 12, display: 'block' }}>
                     Choose a style
@@ -143,7 +255,6 @@ function CreatePageContent() {
                 </div>
             </div>
 
-            {/* Generate Button */}
             <button
                 onClick={handleGenerate}
                 disabled={loading || prompt.trim().length < 3}
@@ -169,7 +280,6 @@ function CreatePageContent() {
                 )}
             </button>
 
-            {/* Error */}
             {error && (
                 <div
                     style={{
@@ -185,7 +295,6 @@ function CreatePageContent() {
                 </div>
             )}
 
-            {/* Loading Skeleton */}
             {loading && (
                 <div
                     className="glass-card shimmer"
@@ -199,7 +308,6 @@ function CreatePageContent() {
                 />
             )}
 
-            {/* Generated Image */}
             {generatedImage && !loading && (
                 <div className="fade-in" style={{ textAlign: 'center' }}>
                     <div className="glass-card" style={{ padding: 16, display: 'inline-block' }}>
@@ -230,7 +338,6 @@ function CreatePageContent() {
                 </div>
             )}
 
-            {/* Product Picker Modal */}
             {showProductPicker && generatedImage && (
                 <div
                     style={{
@@ -243,7 +350,6 @@ function CreatePageContent() {
                         padding: 24,
                     }}
                 >
-                    {/* Backdrop */}
                     <div
                         onClick={() => setShowProductPicker(false)}
                         style={{
@@ -253,20 +359,19 @@ function CreatePageContent() {
                             backdropFilter: 'blur(4px)',
                         }}
                     />
-
-                    {/* Modal */}
                     <div
                         className="glass-card fade-in"
                         style={{
                             position: 'relative',
                             width: '100%',
-                            maxWidth: 720,
+                            maxWidth: 960,
                             maxHeight: '85vh',
-                            overflowY: 'auto',
-                            padding: 32,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: 28,
                         }}
                     >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                             <div>
                                 <h2 style={{ fontSize: 22, fontWeight: 700 }}>
                                     Pick a <span className="gradient-text">Product</span>
@@ -291,69 +396,126 @@ function CreatePageContent() {
                             </button>
                         </div>
 
-                        <div
+                        <input
+                            type="search"
+                            value={productSearch}
+                            onChange={(e) => setProductSearch(e.target.value)}
+                            placeholder="Search products…"
                             style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                                gap: 14,
+                                width: '100%',
+                                padding: '10px 14px',
+                                borderRadius: 10,
+                                border: '1px solid var(--border)',
+                                background: 'var(--surface)',
+                                color: 'var(--foreground)',
+                                fontSize: 14,
+                                outline: 'none',
+                                marginBottom: 12,
                             }}
-                        >
-                            {PRODUCTS.map((product) => (
+                        />
+
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+                            {categories.map((c) => (
                                 <button
-                                    key={product.id}
-                                    onClick={() => {
-                                        addItem({
-                                            id: `${designId}-${product.id}`,
-                                            productId: product.id,
-                                            productName: product.name,
-                                            designId: designId!,
-                                            imageUrl: generatedImage,
-                                            mockupUrl: '',
-                                            size: product.size,
-                                            color: product.color,
-                                            quantity: 1,
-                                            price: product.price,
-                                        })
-                                        setShowProductPicker(false)
-                                        router.push('/cart')
-                                    }}
+                                    key={c}
+                                    onClick={() => setActiveCategory(c)}
                                     style={{
-                                        background: 'var(--surface)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: 14,
-                                        padding: 0,
-                                        cursor: 'pointer',
-                                        overflow: 'hidden',
-                                        transition: 'all 0.2s ease',
-                                        textAlign: 'center',
+                                        padding: '6px 12px',
+                                        borderRadius: 999,
+                                        border: `1px solid ${activeCategory === c ? 'var(--primary)' : 'var(--border)'}`,
+                                        background: activeCategory === c ? 'rgba(124,58,237,0.15)' : 'transparent',
                                         color: 'var(--foreground)',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.currentTarget.style.borderColor = 'var(--primary)'
-                                        e.currentTarget.style.transform = 'translateY(-3px)'
-                                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(124,58,237,0.2)'
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = 'var(--border)'
-                                        e.currentTarget.style.transform = 'translateY(0)'
-                                        e.currentTarget.style.boxShadow = 'none'
+                                        fontSize: 13,
+                                        cursor: 'pointer',
+                                        textTransform: 'capitalize',
                                     }}
                                 >
-                                    <Image
-                                        src={product.image}
-                                        alt={product.name}
-                                        width={150}
-                                        height={150}
-                                        style={{ width: '100%', height: 'auto', display: 'block' }}
-                                    />
-                                    <div style={{ padding: '10px 12px 14px' }}>
-                                        <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>{product.name}</div>
-                                        <div style={{ color: 'var(--primary-light)', fontSize: 14, fontWeight: 600 }}>
-                                            ${product.price.toFixed(2)}
-                                        </div>
-                                    </div>
+                                    {c === 'all' ? 'All' : c}
                                 </button>
                             ))}
+                        </div>
+
+                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>
+                            {productsLoading
+                                ? 'Loading products…'
+                                : `${filteredProducts.length} of ${products.length} products`}
+                        </div>
+
+                        <div style={{ overflowY: 'auto', flex: 1, paddingRight: 4 }}>
+                            {productsLoading ? (
+                                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>Loading…</p>
+                            ) : filteredProducts.length === 0 ? (
+                                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 24 }}>
+                                    No products match your search.
+                                </p>
+                            ) : (
+                                <div
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                                        gap: 14,
+                                    }}
+                                >
+                                    {filteredProducts.map((product) => {
+                                        const hasImage = Boolean(product.imageUrl) && !brokenImageById[product.id]
+                                        return (
+                                            <button
+                                                key={product.id}
+                                                onClick={() => applyDesignToProduct(product)}
+                                                style={{
+                                                    background: 'var(--surface)',
+                                                    border: '1px solid var(--border)',
+                                                    borderRadius: 14,
+                                                    padding: 0,
+                                                    cursor: 'pointer',
+                                                    overflow: 'hidden',
+                                                    transition: 'all 0.2s ease',
+                                                    textAlign: 'center',
+                                                    color: 'var(--foreground)',
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.borderColor = 'var(--primary)'
+                                                    e.currentTarget.style.transform = 'translateY(-3px)'
+                                                    e.currentTarget.style.boxShadow = '0 4px 20px rgba(124,58,237,0.2)'
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.borderColor = 'var(--border)'
+                                                    e.currentTarget.style.transform = 'translateY(0)'
+                                                    e.currentTarget.style.boxShadow = 'none'
+                                                }}
+                                            >
+                                                <div style={{ position: 'relative', width: '100%', aspectRatio: '1', background: 'rgba(255,255,255,0.05)' }}>
+                                                    {hasImage ? (
+                                                        <Image
+                                                            src={product.imageUrl}
+                                                            alt={product.name}
+                                                            fill
+                                                            sizes="(max-width: 640px) 45vw, 200px"
+                                                            unoptimized
+                                                            style={{ objectFit: 'cover' }}
+                                                            onError={() => {
+                                                                setBrokenImageById((prev) => ({ ...prev, [product.id]: true }))
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
+                                                            No image
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div style={{ padding: '10px 12px 14px' }}>
+                                                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {product.name}
+                                                    </div>
+                                                    <div style={{ color: 'var(--primary-light)', fontSize: 14, fontWeight: 600 }}>
+                                                        ${product.sellPrice.toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
