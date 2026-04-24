@@ -48,9 +48,24 @@ export default function Footer() {
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Support</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>help@smartprintai.com</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Shipping Info</span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: 14 }}>Returns Policy</span>
+                            <a
+                                href="mailto:help@smartprintai.com"
+                                style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}
+                            >
+                                help@smartprintai.com
+                            </a>
+                            <Link href="/shipping" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Shipping Info
+                            </Link>
+                            <Link href="/returns" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Returns Policy
+                            </Link>
+                            <Link href="/terms" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Terms
+                            </Link>
+                            <Link href="/privacy" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
+                                Privacy
+                            </Link>
                         </div>
                     </div>
                 </div>
