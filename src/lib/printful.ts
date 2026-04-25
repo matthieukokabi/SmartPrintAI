@@ -2,6 +2,10 @@ const PRINTFUL_BASE = 'https://api.printful.com'
 const DEFAULT_MOCKUP_POLL_ATTEMPTS = 12
 const DEFAULT_MOCKUP_POLL_INTERVAL_MS = 1500
 
+if (!process.env.PRINTFUL_API_KEY || !process.env.PRINTFUL_STORE_ID) {
+    console.warn('[printful] Missing PRINTFUL_API_KEY or PRINTFUL_STORE_ID env var; Printful calls will fail.')
+}
+
 type MockupRecord = { mockup_url: string }
 type ProductFileRecord = { type?: string | null }
 
@@ -31,6 +35,7 @@ class PrintfulClient {
         this.headers = {
             'Authorization': `Bearer ${process.env.PRINTFUL_API_KEY}`,
             'Content-Type': 'application/json',
+            'X-PF-Store-Id': process.env.PRINTFUL_STORE_ID!,
         }
     }
 
