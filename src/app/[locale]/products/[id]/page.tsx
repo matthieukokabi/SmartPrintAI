@@ -14,6 +14,7 @@ import { isBlockedGootenReadyToBuyProduct } from '@/lib/gooten-ready-to-buy-safe
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
 import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from '@/lib/schema'
+import { localized } from '@/lib/localized-product'
 
 type ProductColor = {
     name: string
@@ -79,14 +80,16 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
         }
     }
 
-    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
-    const description = normalizeProductDescription(product.description, fallbackDescription, 260)
+    const localizedName = localized(product, locale, 'name')
+    const localizedDescriptionRaw = localized(product, locale, 'description')
+    const fallbackDescription = `Customize ${localizedName} with your AI-generated design and order it online.`
+    const description = normalizeProductDescription(localizedDescriptionRaw, fallbackDescription, 260)
     const imageUrl = toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')
     const canonicalPath = buildLocaleCanonical(locale, `/products/${product.id}`)
-    const socialTitle = `${product.name} | SmartPrintAI`
+    const socialTitle = `${localizedName} | SmartPrintAI`
 
     return {
-        title: product.name,
+        title: localizedName,
         description,
         alternates: {
             canonical: canonicalPath,
@@ -115,8 +118,10 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
         notFound()
     }
 
-    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
-    const normalizedDescription = normalizeProductDescription(product.description, fallbackDescription)
+    const localizedName = localized(product, locale, 'name')
+    const localizedDescriptionRaw = localized(product, locale, 'description')
+    const fallbackDescription = `Customize ${localizedName} with your AI-generated design and order it online.`
+    const normalizedDescription = normalizeProductDescription(localizedDescriptionRaw, fallbackDescription)
 
     const colors = Array.isArray(product.colors)
         ? product.colors
@@ -136,7 +141,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
 
     const productForClient = {
         id: product.id,
-        name: product.name,
+        name: localizedName,
         description: normalizedDescription,
         category: product.category,
         sellPrice: product.sellPrice,
@@ -155,7 +160,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
     const productSchema = {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: product.name,
+        name: localizedName,
         description: normalizedDescription,
         category: product.category,
         image: [toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')],
@@ -174,7 +179,7 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
     const breadcrumbSchema = buildBreadcrumbList([
         { name: getBreadcrumbLabel(locale, 'home'), path: homePath },
         { name: getBreadcrumbLabel(locale, 'products'), path: productsPath },
-        { name: product.name, path: productPath },
+        { name: localizedName, path: productPath },
     ])
 
     return (

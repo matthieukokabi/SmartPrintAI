@@ -15,6 +15,7 @@ import { isBlockedGootenReadyToBuyProduct } from '@/lib/gooten-ready-to-buy-safe
 import { normalizeProductDescription } from '@/lib/product-description'
 import { pickCoreColorSubset } from '@/lib/product-colors'
 import { buildBreadcrumbList, buildProductOfferSchema, getBreadcrumbLabel } from '@/lib/schema'
+import { localized } from '@/lib/localized-product'
 
 type ProductColor = {
     name: string
@@ -68,13 +69,15 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         }
     }
 
-    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
-    const description = normalizeProductDescription(product.description, fallbackDescription, 260)
+    const localizedName = localized(product, DEFAULT_LOCALE, 'name')
+    const localizedDescriptionRaw = localized(product, DEFAULT_LOCALE, 'description')
+    const fallbackDescription = `Customize ${localizedName} with your AI-generated design and order it online.`
+    const description = normalizeProductDescription(localizedDescriptionRaw, fallbackDescription, 260)
     const imageUrl = toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')
-    const socialTitle = `${product.name} | SmartPrintAI`
+    const socialTitle = `${localizedName} | SmartPrintAI`
 
     return {
-        title: product.name,
+        title: localizedName,
         description,
         alternates: {
             canonical: `/products/${product.id}`,
@@ -96,8 +99,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         notFound()
     }
 
-    const fallbackDescription = `Customize ${product.name} with your AI-generated design and order it online.`
-    const normalizedDescription = normalizeProductDescription(product.description, fallbackDescription)
+    const localizedName = localized(product, DEFAULT_LOCALE, 'name')
+    const localizedDescriptionRaw = localized(product, DEFAULT_LOCALE, 'description')
+    const fallbackDescription = `Customize ${localizedName} with your AI-generated design and order it online.`
+    const normalizedDescription = normalizeProductDescription(localizedDescriptionRaw, fallbackDescription)
 
     const colors = Array.isArray(product.colors)
         ? product.colors
@@ -117,7 +122,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
     const productForClient = {
         id: product.id,
-        name: product.name,
+        name: localizedName,
         description: normalizedDescription,
         category: product.category,
         sellPrice: product.sellPrice,
@@ -134,7 +139,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const productSchema = {
         '@context': 'https://schema.org',
         '@type': 'Product',
-        name: product.name,
+        name: localizedName,
         description: normalizedDescription,
         category: product.category,
         image: [toAbsoluteUrl(product.imageUrl || '/images/placeholder-product.png')],
@@ -151,7 +156,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     const breadcrumbSchema = buildBreadcrumbList([
         { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'home'), path: '/' },
         { name: getBreadcrumbLabel(DEFAULT_LOCALE, 'products'), path: '/products' },
-        { name: product.name, path: `/products/${product.id}` },
+        { name: localizedName, path: `/products/${product.id}` },
     ])
 
     return (

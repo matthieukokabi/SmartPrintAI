@@ -39,20 +39,22 @@ model Design {
 }
 
 model Product {
-  id           String      @id @default(cuid())
-  name         String
-  printfulId   String      @unique
-  description  String
-  category     String
-  basePrice    Float
-  sellPrice    Float
-  sizes        String[]
-  colors       Json
-  imageUrl     String
-  printArea    Json
-  active       Boolean     @default(true)
-  mockups      Mockup[]
-  orderItems   OrderItem[]
+  id                      String      @id @default(cuid())
+  name                    String
+  printfulId              String      @unique
+  description             String
+  category                String
+  basePrice               Float
+  sellPrice               Float
+  sizes                   String[]
+  colors                  Json
+  imageUrl                String
+  printArea               Json
+  active                  Boolean     @default(true)
+  nameTranslations        Json?
+  descriptionTranslations Json?
+  mockups                 Mockup[]
+  orderItems              OrderItem[]
 }
 
 model Mockup {
