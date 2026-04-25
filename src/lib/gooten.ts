@@ -219,6 +219,19 @@ export class GootenClient {
         })
     }
 
+    /**
+     * Retrieve a Gooten order by its full id (the value Gooten returned
+     * from createOrder, in the form "<recipeId>-<orderUuid>").
+     * Returns the parsed JSON or throws on non-2xx.
+     * Tested against the V1 API endpoint:
+     *   GET /v/201608/orders/<orderId>?recipeid=…&partnerBillingKey=…
+     */
+    async getOrder(orderId: string): Promise<unknown> {
+        return this.request(`/v/201608/orders/${encodeURIComponent(orderId)}`, {
+            method: 'GET',
+        })
+    }
+
     private async requestCatalogFeed(): Promise<unknown> {
         const response = await fetch(GOOTEN_CATALOG_URL)
         const raw = await response.text()
