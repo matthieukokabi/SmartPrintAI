@@ -54,3 +54,4 @@ TODO.md.bak.*
 .npm-cache/
 ops/n8n_local/*.env*
 prisma/*.db
+*.bak.*
