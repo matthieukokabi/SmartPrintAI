@@ -118,7 +118,7 @@ async function main() {
 
     const updated = await prisma.order.update({
         where: { id: orderId },
-        data: { printfulOrderId, updatedAt: new Date() },
+        data: { printfulOrderId, printfulCalledAt: new Date(), updatedAt: new Date() },
     })
     console.log(`[recover] Order ${orderId} updated: printfulOrderId=${updated.printfulOrderId}, status=${updated.status}`)
 }

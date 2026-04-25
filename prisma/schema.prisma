@@ -19,7 +19,7 @@ model OwnerCredential {
   id               String   @id @default(cuid())
   email            String   @unique
   passwordHash     String
-  mustRotatePassword Boolean @default(false)
+  mustRotatePassword Boolean @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -81,6 +81,13 @@ model Order {
   shippingAddress Json
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  trackingNumber  String?
+  trackingCarrier String?
+  shippedAt       DateTime?
+  trackingUrl     String?
+  emailSentAt     DateTime?
+  printfulCalledAt DateTime?
+  paymentProvider String?
   user            User?       @relation(fields: [userId], references: [id])
   items           OrderItem[]
 }

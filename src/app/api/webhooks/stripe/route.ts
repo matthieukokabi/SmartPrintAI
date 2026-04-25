@@ -46,12 +46,36 @@ function getShippingDetails(session: Stripe.Checkout.Session): Stripe.Checkout.S
     return collected?.shipping_details ?? null
 }
 
-async function processCheckoutSession(session: Stripe.Checkout.Session): Promise<void> {
+function derivePaymentProvider(
+    session: Stripe.Checkout.Session,
+    eventType: string
+): string {
+    if (eventType === 'checkout.session.async_payment_succeeded') {
+        return 'paypal'
+    }
+    const types = session.payment_method_types || []
+    if (types.length === 1) return types[0]
+    const pi = session.payment_intent
+    if (pi && typeof pi !== 'string') {
+        const charges = (pi as unknown as { charges?: { data?: Array<{ payment_method_details?: { type?: string } }> } }).charges?.data
+        const t = charges?.[0]?.payment_method_details?.type
+        if (t) return t
+    }
+    return types[0] || 'unknown'
+}
+
+async function processCheckoutSession(
+    session: Stripe.Checkout.Session,
+    eventType: string
+): Promise<void> {
     const existing = await prisma.order.findUnique({ where: { stripeSessionId: session.id } })
     if (existing) {
         console.log(`order_already_exists_idempotent: ${session.id} -> ${existing.id}`)
         return
     }
+
+    let printfulCalledAt: Date | null = null
+    const paymentProvider = derivePaymentProvider(session, eventType)
 
     const items: CheckoutItem[] = JSON.parse(session.metadata?.items || '[]')
     const shippingDetails = getShippingDetails(session)
@@ -96,6 +120,7 @@ async function processCheckoutSession(session: Stripe.Checkout.Session): Promise
     // ── Printful fulfillment ───────────────────────────────
     if (printfulItems.length > 0) {
         try {
+            printfulCalledAt = new Date()
             const printfulOrder = await printful.createOrder({
                 email: customerEmail,
                 shippingAddress: {
@@ -197,6 +222,8 @@ async function processCheckoutSession(session: Stripe.Checkout.Session): Promise
                     : 5.99,
                 total: session.amount_total! / 100,
                 shippingAddress: { ...shippingDetails.address },
+                printfulCalledAt,
+                paymentProvider,
                 items: {
                     create: items.map((item) => ({
                         productId: item.productId,
@@ -216,6 +243,15 @@ async function processCheckoutSession(session: Stripe.Checkout.Session): Promise
             items,
             total: order.total,
         })
+
+        try {
+            await prisma.order.update({
+                where: { id: order.id },
+                data: { emailSentAt: new Date() },
+            })
+        } catch (e) {
+            console.error('Failed to record emailSentAt:', e)
+        }
     } catch (err) {
         console.error('Order DB/email error:', err)
     }
@@ -236,7 +272,7 @@ export async function POST(req: NextRequest) {
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.payment_status === 'paid') {
-            await processCheckoutSession(session)
+            await processCheckoutSession(session, event.type)
         } else if (session.payment_status === 'unpaid') {
             console.log(`async_payment_pending: ${session.id}`)
         } else {
@@ -247,7 +283,7 @@ export async function POST(req: NextRequest) {
         const fullSession = await stripe.checkout.sessions.retrieve(stub.id, {
             expand: ['line_items', 'line_items.data.price.product', 'customer_details'],
         })
-        await processCheckoutSession(fullSession)
+        await processCheckoutSession(fullSession, event.type)
     } else if (event.type === 'checkout.session.async_payment_failed') {
         const session = event.data.object as Stripe.Checkout.Session
         console.warn(`async_payment_failed: ${session.id} payment_status=${session.payment_status}`)
