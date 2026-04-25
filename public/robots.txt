@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /signin
+Disallow: /account
+Disallow: /orders
+Disallow: /cart
+Disallow: /success
+Disallow: /admin
+Disallow: /create?
+Disallow: /*?productId=
+Disallow: /*?color=
+Disallow: /*?size=
+
+Sitemap: https://smartprintai.com/sitemap.xml
+Host: https://smartprintai.com
