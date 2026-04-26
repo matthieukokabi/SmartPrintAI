@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     description: 'Describe your vision, watch AI create it, and get it printed on premium products. T-shirts, hoodies, mugs, canvas — all custom designed by AI in seconds.',
     keywords: 'custom ai art, print on demand, ai design, custom t-shirt, personalized gifts',
     alternates: {
-        canonical: '/',
+        canonical: 'https://smartprintai.com',
     },
     manifest: '/manifest.webmanifest',
     icons: {

@@ -25,6 +25,7 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig = {
+  trailingSlash: false,
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 86400,

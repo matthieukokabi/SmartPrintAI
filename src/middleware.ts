@@ -11,11 +11,29 @@ import {
 } from '@/lib/homepage-experiment'
 
 export function middleware(req: NextRequest) {
+    // /en is a redirect alias of / — collapse before any other handling so
+    // /en, /en/products, /en/products/<id> etc 308 to their apex equivalents.
+    // Avoids duplicate canonicals being indexed (Search Console flagged the
+    // /en family as canonical-tag-redundant).
+    //
+    // Build the redirect target from the public Host header (forwarded by
+    // nginx). `req.nextUrl` and `req.url` both reflect the upstream host
+    // (e.g. localhost:3100) when behind a reverse proxy and would leak
+    // that into the Location response header.
+    const { pathname, search } = req.nextUrl
+    if (pathname === '/en' || pathname.startsWith('/en/')) {
+        const newPathname = pathname === '/en' ? '/' : pathname.slice(3)
+        const host = req.headers.get('host') || 'smartprintai.com'
+        const proto = req.headers.get('x-forwarded-proto') || 'https'
+        const target = new URL(newPathname + search, `${proto}://${host}`)
+        return NextResponse.redirect(target, 308)
+    }
+
     const requestHeaders = new Headers(req.headers)
 
     // Forward the URL path so the root layout can derive the locale and
     // set <html lang="..."> correctly per locale.
-    requestHeaders.set('x-pathname', req.nextUrl.pathname)
+    requestHeaders.set('x-pathname', pathname)
 
     const incomingVisitorId = sanitizeVisitorId(req.cookies.get(HOMEPAGE_VISITOR_ID_COOKIE)?.value)
     const visitorId = incomingVisitorId || crypto.randomUUID()

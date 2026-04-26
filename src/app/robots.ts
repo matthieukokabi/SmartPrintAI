@@ -9,7 +9,22 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/api/', '/signin', '/account', '/orders', '/cart', '/success', '/admin'],
+                disallow: [
+                    '/api/',
+                    '/signin',
+                    '/account',
+                    '/orders',
+                    '/cart',
+                    '/success',
+                    '/admin',
+                    // Don't index parametric variants of /create — every
+                    // ?productId=/?color=/?size= combination is a duplicate
+                    // of the canonical /create page.
+                    '/create?',
+                    '/*?productId=',
+                    '/*?color=',
+                    '/*?size=',
+                ],
             },
         ],
         sitemap: `${siteUrl}/sitemap.xml`,
