@@ -55,3 +55,4 @@ TODO.md.bak.*
 ops/n8n_local/*.env*
 prisma/*.db
 *.bak.*
+ops/n8n_local/docker-compose*.y*ml
