@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
     const detailCopy = getLocaleCopy(locale).productDetail
     const product = await getProduct(params.id)
 
-    if (!product || isBlockedGootenReadyToBuyProduct(product)) {
+    if (!product) {
         return {
             title: detailCopy.notFoundSeoTitle,
             description: detailCopy.notFoundDescription,
@@ -78,6 +78,10 @@ export async function generateMetadata({ params }: LocaleProductPageProps): Prom
                 follow: false,
             },
         }
+    }
+
+    if (isBlockedGootenReadyToBuyProduct(product)) {
+        permanentRedirect(`/${locale}/products`)
     }
 
     const localizedName = localized(product, locale, 'name')
@@ -114,8 +118,11 @@ export default async function LocalizedProductPage({ params }: LocaleProductPage
     const detailCopy = getLocaleCopy(locale).productDetail
 
     const product = await getProduct(params.id)
-    if (!product || isBlockedGootenReadyToBuyProduct(product)) {
+    if (!product) {
         notFound()
+    }
+    if (isBlockedGootenReadyToBuyProduct(product)) {
+        permanentRedirect(`/${locale}/products`)
     }
 
     const localizedName = localized(product, locale, 'name')
