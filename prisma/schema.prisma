@@ -103,6 +103,7 @@ model OrderItem {
   color     String
   quantity  Int     @default(1)
   price     Float
+  mockupUrl String?
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
   design    Design  @relation(fields: [designId], references: [id])
