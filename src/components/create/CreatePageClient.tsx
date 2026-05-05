@@ -242,6 +242,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     const [added, setAdded] = useState(false)
 
     const addItem = useCart((s) => s.addItem)
+    const updateMockupForDesign = useCart((s) => s.updateMockupForDesign)
     const entryContextRef = useRef<{
         entrypoint: CreateEntrypoint
         referrerPath: string
@@ -444,6 +445,9 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
 
                 if (!cancelled) {
                     setMockupUrl(data.mockupUrl)
+                    if (designId && selectedProduct) {
+                        updateMockupForDesign(designId, selectedProduct, data.mockupUrl)
+                    }
                 }
             } catch (err) {
                 if (!cancelled) {
