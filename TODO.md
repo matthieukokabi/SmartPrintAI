@@ -301,3 +301,12 @@ map. Not P0; track only.
 Marked active=false on 2026-05-05 because Printful returns zero
 printfiles for product 921. File a support ticket with Printful
 asking why; reactivate when resolved.
+
+### 5. Order.internalNotes audit-trail column
+The Order table has no notes/internalNotes column today, so the
+recovery script for incident cmoe4tawg0000rvl2o02v9twv on 2026-05-05
+could only update status="REPRINT_REQUESTED" without leaving an
+in-row paper trail of WHY. Add Order.internalNotes TEXT NULL in a
+non-destructive migration; have the recovery script + webhook
+REQUIRES_REVIEW path append timestamped notes to it. Small
+migration, big ops win.
