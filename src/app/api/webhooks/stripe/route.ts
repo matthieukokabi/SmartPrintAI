@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
+import { buildPrintFile, type PrintFileResult } from '@/lib/print-file'
 import { getGootenClient } from '@/lib/gooten'
 import { detectProductProvider } from '@/lib/product-provider'
 import { sendOrderConfirmation } from '@/lib/resend'
@@ -100,25 +101,60 @@ async function processCheckoutSession(
     const productById = new Map(products.map((p) => [p.id, p]))
     const designById = new Map(designs.map((d) => [d.id, d]))
 
-    const printfulItems: CheckoutItem[] = []
-    const gootenItems: CheckoutItem[] = []
+    const printfulItems: Array<{ item: CheckoutItem; index: number }> = []
+    const gootenItems: Array<{ item: CheckoutItem; index: number }> = []
 
-    for (const item of items) {
+    items.forEach((item, index) => {
         const product = productById.get(item.productId)
-        if (!product) continue
+        if (!product) return
         const provider = detectProductProvider(product.printfulId)
         if (provider === 'gooten') {
-            gootenItems.push(item)
+            gootenItems.push({ item, index })
         } else {
-            printfulItems.push(item)
+            printfulItems.push({ item, index })
         }
-    }
+    })
 
     let printfulOrderId: string | null = null
     let gootenOrderId: string | null = null
+    let requiresReview = false
+
+    // Build a print file per Printful item upfront. If any build fails, abort
+    // the Printful order creation entirely and mark the order REQUIRES_REVIEW
+    // so a human reprocesses it instead of silently shipping wrong art.
+    const printFileByIndex = new Map<number, PrintFileResult>()
+    if (printfulItems.length > 0) {
+        try {
+            await Promise.all(
+                printfulItems.map(async ({ item, index }) => {
+                    const product = productById.get(item.productId)!
+                    const design = designById.get(item.designId)!
+                    const printfulProductId = Number(product.printfulId)
+                    if (!Number.isFinite(printfulProductId) || printfulProductId <= 0) {
+                        throw new Error(
+                            `Invalid Printful product id for "${product.name}": ${product.printfulId}`,
+                        )
+                    }
+                    const printFile = await buildPrintFile({
+                        sourceUrl: design.imageUrl,
+                        printfulProductId,
+                    })
+                    if (!printFile.url || printFile.widthPx <= 0 || printFile.heightPx <= 0) {
+                        throw new Error(
+                            `Bad printFile for session ${session.id} item ${index}`,
+                        )
+                    }
+                    printFileByIndex.set(index, printFile)
+                }),
+            )
+        } catch (err) {
+            requiresReview = true
+            console.error('[webhook] mockup/print-file failed:', err)
+        }
+    }
 
     // ── Printful fulfillment ───────────────────────────────
-    if (printfulItems.length > 0) {
+    if (printfulItems.length > 0 && !requiresReview) {
         try {
             printfulCalledAt = new Date()
             const printfulOrder = await printful.createOrder({
@@ -131,9 +167,8 @@ async function processCheckoutSession(
                     country_code: shippingDetails.address.country!,
                     zip: shippingDetails.address.postal_code!,
                 },
-                items: printfulItems.map((item) => {
+                items: printfulItems.map(({ item, index }) => {
                     const product = productById.get(item.productId)!
-                    const design = designById.get(item.designId)!
                     const colors = product.colors as unknown as ProductColor[]
                     const colorData = colors.find(
                         (c) => c.name.toLowerCase() === item.color.toLowerCase()
@@ -143,10 +178,25 @@ async function processCheckoutSession(
                             `No Printful variant found for product "${product.name}" in color "${item.color}"`
                         )
                     }
+                    const printFile = printFileByIndex.get(index)!
                     return {
                         variantId: colorData.printfulVariantId,
                         quantity: item.quantity,
-                        imageUrl: design.imageUrl,
+                        imageUrl: printFile.url,
+                        files: [
+                            {
+                                type: 'default',
+                                url: printFile.url,
+                                position: {
+                                    area_width: printFile.widthPx,
+                                    area_height: printFile.heightPx,
+                                    width: printFile.widthPx,
+                                    height: printFile.heightPx,
+                                    top: 0,
+                                    left: 0,
+                                },
+                            },
+                        ],
                     }
                 }),
             })
@@ -154,6 +204,7 @@ async function processCheckoutSession(
             console.log(`Printful order created: ${printfulOrderId}`)
         } catch (err) {
             console.error('Printful order creation failed:', err)
+            requiresReview = true
         }
     }
 
@@ -161,7 +212,7 @@ async function processCheckoutSession(
     if (gootenItems.length > 0) {
         try {
             const gooten = getGootenClient()
-            const gootenOrderItems = gootenItems.map((item) => {
+            const gootenOrderItems = gootenItems.map(({ item }) => {
                 const product = productById.get(item.productId)!
                 const design = designById.get(item.designId)!
                 const sku = resolveGootenSku(product, item.color)
@@ -209,13 +260,40 @@ async function processCheckoutSession(
         .filter(Boolean)
         .join(',') || null
 
+    // Resolve the mockup URL we'll persist on each OrderItem. Prefer a real
+    // Printful/Gelato/Gooten mockup from the cache; otherwise fall back to
+    // the print-file URL (the actual artwork that shipped) or the raw design
+    // image. The customer should see something representative on /success.
+    const mockupCacheKey = (it: CheckoutItem) =>
+        `${it.designId}|${it.productId}|${it.color.toLowerCase()}`
+    const cachedMockups = await prisma.mockup.findMany({
+        where: {
+            OR: items.map((it) => ({
+                designId: it.designId,
+                productId: it.productId,
+                color: it.color.toLowerCase(),
+            })),
+        },
+    })
+    const mockupByKey = new Map(
+        cachedMockups.map((m) => [`${m.designId}|${m.productId}|${m.color.toLowerCase()}`, m.mockupUrl]),
+    )
+    const resolveMockupUrl = (item: CheckoutItem, index: number): string | null => {
+        const cached = mockupByKey.get(mockupCacheKey(item))
+        if (cached) return cached
+        const printFile = printFileByIndex.get(index)
+        if (printFile?.url) return printFile.url
+        const design = designById.get(item.designId)
+        return design?.imageUrl ?? null
+    }
+
     try {
         const order = await prisma.order.create({
             data: {
                 email: customerEmail,
                 stripeSessionId: session.id,
                 printfulOrderId: externalOrderId,
-                status: 'processing',
+                status: requiresReview ? 'REQUIRES_REVIEW' : 'processing',
                 subtotal: session.amount_subtotal! / 100,
                 shippingCost: session.shipping_cost?.amount_total
                     ? session.shipping_cost.amount_total / 100
@@ -225,13 +303,14 @@ async function processCheckoutSession(
                 printfulCalledAt,
                 paymentProvider,
                 items: {
-                    create: items.map((item) => ({
+                    create: items.map((item, index) => ({
                         productId: item.productId,
                         designId: item.designId,
                         size: item.size,
                         color: item.color,
                         quantity: item.quantity,
                         price: productById.get(item.productId)!.sellPrice,
+                        mockupUrl: resolveMockupUrl(item, index),
                     })),
                 },
             },
