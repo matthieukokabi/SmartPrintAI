@@ -472,7 +472,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                 clearTimeout(retryTimer)
             }
         }
-    }, [designId, selectedProduct, selectedColor])
+    }, [designId, selectedProduct, selectedColor, updateMockupForDesign])
 
     const handleGenerate = async (prompt: string) => {
         const promptLengthBucket = toPromptLengthBucket(prompt.trim().length)

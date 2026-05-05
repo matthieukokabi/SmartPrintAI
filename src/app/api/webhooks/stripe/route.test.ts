@@ -21,6 +21,10 @@ const mocks = vi.hoisted(() => ({
     order: {
       create: vi.fn(),
       update: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    mockup: {
+      findMany: vi.fn(),
     },
   },
   printful: {
@@ -32,6 +36,7 @@ const mocks = vi.hoisted(() => ({
   gooten: {
     createOrder: vi.fn(),
   },
+  buildPrintFile: vi.fn(),
   sendOrderConfirmation: vi.fn(),
   sendMakeOrderAlert: vi.fn(),
 }))
@@ -46,6 +51,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/printful', () => ({
   printful: mocks.printful,
+}))
+
+vi.mock('@/lib/print-file', () => ({
+  buildPrintFile: mocks.buildPrintFile,
 }))
 
 vi.mock('@/lib/gelato', () => ({
@@ -79,6 +88,15 @@ describe('/api/webhooks/stripe POST', () => {
     vi.clearAllMocks()
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
     process.env.GOOTEN_PARTNER_BILLING_KEY = 'gpk_test'
+    mocks.prisma.order.findUnique.mockResolvedValue(null)
+    mocks.prisma.mockup.findMany.mockResolvedValue([])
+    mocks.buildPrintFile.mockResolvedValue({
+      url: 'https://storage.example.com/printfiles/mock.png',
+      widthPx: 720,
+      heightPx: 1200,
+      dpi: 300,
+      placement: 'default',
+    })
   })
 
   it('returns 400 when stripe-signature header is missing', async () => {
