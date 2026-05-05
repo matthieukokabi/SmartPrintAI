@@ -19,6 +19,8 @@ interface CartStore {
     addItem: (item: CartItem) => void
     removeItem: (id: string) => void
     updateQuantity: (id: string, quantity: number) => void
+    updateMockupUrl: (id: string, mockupUrl: string) => void
+    updateMockupForDesign: (designId: string, productId: string, mockupUrl: string) => void
     clearCart: () => void
     total: () => number
     itemCount: () => number
@@ -60,6 +62,22 @@ export const useCart = create<CartStore>()(
                         quantity <= 0
                             ? state.items.filter((i) => i.id !== id)
                             : state.items.map((i) => (i.id === id ? { ...i, quantity } : i)),
+                })),
+
+            updateMockupUrl: (id, mockupUrl) =>
+                set((state) => ({
+                    items: state.items.map((i) =>
+                        i.id === id ? { ...i, mockupUrl } : i,
+                    ),
+                })),
+
+            updateMockupForDesign: (designId, productId, mockupUrl) =>
+                set((state) => ({
+                    items: state.items.map((i) =>
+                        i.designId === designId && i.productId === productId
+                            ? { ...i, mockupUrl }
+                            : i,
+                    ),
                 })),
 
             clearCart: () => set({ items: [] }),
