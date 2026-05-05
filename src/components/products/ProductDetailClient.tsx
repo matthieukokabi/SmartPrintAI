@@ -1,11 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Shirt } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { Shirt, Loader2 } from 'lucide-react'
 import { resolveColorHexFromName } from '@/lib/product-colors'
 import { useCart } from '@/store/cart'
+
+const PDP_MOCKUP_DEFAULT_RETRY_SEC = 8
+const PDP_MOCKUP_RETRY_BUFFER_SEC = 1
+const PDP_MOCKUP_MAX_RETRY_SEC = 30
+const PDP_MOCKUP_MAX_RETRY_ATTEMPTS = 4
 
 type ProductColor = {
     name: string
@@ -74,6 +80,76 @@ export default function ProductDetailClient({
     const [added, setAdded] = useState(false)
     const addItem = useCart((s) => s.addItem)
 
+    const searchParams = useSearchParams()
+    const designId = searchParams.get('designId')
+
+    const [pdpMockupUrl, setPdpMockupUrl] = useState<string | null>(null)
+    const [pdpMockupLoading, setPdpMockupLoading] = useState(false)
+
+    useEffect(() => {
+        if (!designId || !selectedColor) {
+            setPdpMockupUrl(null)
+            setPdpMockupLoading(false)
+            return
+        }
+
+        const controller = new AbortController()
+        let cancelled = false
+        let retryTimer: ReturnType<typeof setTimeout> | null = null
+
+        async function generate(attempt = 0) {
+            let keepLoading = false
+            setPdpMockupLoading(true)
+            if (attempt === 0) setPdpMockupUrl(null)
+            try {
+                const res = await fetch('/api/mockup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ designId, productId: product.id, color: selectedColor }),
+                    signal: controller.signal,
+                })
+                const ct = res.headers.get('content-type') || ''
+                const data = ct.includes('application/json')
+                    ? ((await res.json()) as { mockupUrl?: string; error?: string; retryAfterSec?: number })
+                    : null
+
+                if (res.status === 429) {
+                    const headerSec = Number(res.headers.get('retry-after') || '')
+                    const bodySec = typeof data?.retryAfterSec === 'number' ? data.retryAfterSec : NaN
+                    const baseSec = Number.isFinite(headerSec) && headerSec > 0
+                        ? headerSec
+                        : Number.isFinite(bodySec) && bodySec > 0
+                            ? bodySec
+                            : PDP_MOCKUP_DEFAULT_RETRY_SEC
+                    const sec = Math.min(
+                        Math.max(Math.ceil(baseSec) + PDP_MOCKUP_RETRY_BUFFER_SEC, 1),
+                        PDP_MOCKUP_MAX_RETRY_SEC,
+                    )
+                    if (attempt < PDP_MOCKUP_MAX_RETRY_ATTEMPTS && !cancelled) {
+                        keepLoading = true
+                        retryTimer = setTimeout(() => void generate(attempt + 1), sec * 1000)
+                        return
+                    }
+                    return
+                }
+
+                if (!res.ok || !data?.mockupUrl) return
+                if (!cancelled) setPdpMockupUrl(data.mockupUrl)
+            } catch (err) {
+                if (err instanceof Error && err.name === 'AbortError') return
+            } finally {
+                if (!cancelled && !keepLoading) setPdpMockupLoading(false)
+            }
+        }
+
+        void generate()
+        return () => {
+            cancelled = true
+            controller.abort()
+            if (retryTimer) clearTimeout(retryTimer)
+        }
+    }, [designId, product.id, selectedColor])
+
     const imageUrl = product.imageUrl || '/images/placeholder-product.png'
 
     const createHref =
@@ -105,7 +181,17 @@ export default function ProductDetailClient({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             <div className="relative aspect-square rounded-2xl glass flex items-center justify-center overflow-hidden">
-                {imageUrl ? (
+                {pdpMockupUrl ? (
+                    <Image
+                        src={pdpMockupUrl}
+                        alt={`${product.name} mockup`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-contain p-2"
+                        unoptimized
+                        priority
+                    />
+                ) : imageUrl ? (
                     <>
                         <Image
                             src={imageUrl}
@@ -115,7 +201,14 @@ export default function ProductDetailClient({
                             className="object-cover"
                             priority
                         />
-
+                        {pdpMockupLoading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                <div className="flex items-center gap-2 rounded-full bg-black/60 px-4 py-2 text-sm text-white">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Generating preview…
+                                </div>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <Shirt className="w-32 h-32 text-muted-foreground/30" />
