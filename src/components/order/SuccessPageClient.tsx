@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle, Package, ArrowRight } from 'lucide-react'
@@ -133,6 +134,34 @@ export default function SuccessPageClient({ locale, copy, createPath }: SuccessP
                             </div>
 
                             <OrderStatusTimeline status={order.status} copy={copy.timeline} />
+
+                            {Array.isArray(order.items) && order.items.length > 0 && (
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                    {order.items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="rounded-xl border border-white/10 bg-white/[0.04] p-2"
+                                        >
+                                            <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-black/20">
+                                                <Image
+                                                    src={item.mockupUrl || '/images/placeholder-product.png'}
+                                                    alt={`Order item ${item.id}`}
+                                                    fill
+                                                    sizes="(max-width: 640px) 45vw, 200px"
+                                                    className="object-contain p-1"
+                                                    unoptimized
+                                                />
+                                            </div>
+                                            <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                                {item.size} · {item.color}
+                                            </p>
+                                            <p className="text-xs text-foreground">
+                                                ${item.price.toFixed(2)} × {item.quantity}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <Link
                                 href={`/orders/${order.id}`}

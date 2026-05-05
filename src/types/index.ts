@@ -58,6 +58,7 @@ export interface OrderItem {
     color: string
     quantity: number
     price: number
+    mockupUrl?: string | null
 }
 
 export type DesignStyle = 'artistic' | 'watercolor' | 'cartoon' | 'minimalist' | 'pop-art' | 'photorealistic'
