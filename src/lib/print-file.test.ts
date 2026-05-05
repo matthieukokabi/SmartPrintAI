@@ -60,7 +60,7 @@ describe('buildPrintFile', () => {
         })
 
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-            new Response(sourcePng, {
+            new Response(new Uint8Array(sourcePng), {
                 status: 200,
                 headers: { 'content-type': 'image/png' },
             }),

@@ -118,6 +118,7 @@ async function processCheckoutSession(
     let printfulOrderId: string | null = null
     let gootenOrderId: string | null = null
     let requiresReview = false
+    let requiresReviewNote: string | null = null
 
     // Build a print file per Printful item upfront. If any build fails, abort
     // the Printful order creation entirely and mark the order REQUIRES_REVIEW
@@ -148,7 +149,13 @@ async function processCheckoutSession(
                 }),
             )
         } catch (err) {
+            const reviewNote = (
+                `[${new Date().toISOString()}] REQUIRES_REVIEW: ` +
+                `print-file build failed for Stripe session ${session.id}. ` +
+                `Error: ${err instanceof Error ? err.message : String(err)}`
+            )
             requiresReview = true
+            requiresReviewNote = reviewNote
             console.error('[webhook] mockup/print-file failed:', err)
         }
     }
@@ -203,8 +210,14 @@ async function processCheckoutSession(
             printfulOrderId = String((printfulOrder as Record<string, unknown>).id)
             console.log(`Printful order created: ${printfulOrderId}`)
         } catch (err) {
+            const reviewNote = (
+                `[${new Date().toISOString()}] REQUIRES_REVIEW: ` +
+                `Printful order creation failed for Stripe session ${session.id}. ` +
+                `Error: ${err instanceof Error ? err.message : String(err)}`
+            )
             console.error('Printful order creation failed:', err)
             requiresReview = true
+            requiresReviewNote = reviewNote
         }
     }
 
@@ -294,6 +307,7 @@ async function processCheckoutSession(
                 stripeSessionId: session.id,
                 printfulOrderId: externalOrderId,
                 status: requiresReview ? 'REQUIRES_REVIEW' : 'processing',
+                internalNotes: requiresReview ? requiresReviewNote : null,
                 subtotal: session.amount_subtotal! / 100,
                 shippingCost: session.shipping_cost?.amount_total
                     ? session.shipping_cost.amount_total / 100
