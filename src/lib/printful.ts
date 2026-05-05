@@ -184,6 +184,47 @@ class PrintfulClient {
         return [...normalized, { id: 'stitch_color', value: 'white' }]
     }
 
+    async getPrintfileDimensions(
+        printfulProductId: number,
+        preferredPlacement?: string,
+    ): Promise<{
+        productId: number
+        placement: string
+        width: number
+        height: number
+        dpi: number
+    }> {
+        const r = await this.get<{
+            printfiles?: Array<{
+                placement?: string
+                width?: number
+                height?: number
+                dpi?: number
+            }>
+        }>(`/mockup-generator/printfiles/${printfulProductId}`)
+
+        const list = Array.isArray(r?.printfiles) ? r.printfiles : []
+        if (list.length === 0) {
+            throw new Error(`[printful] no printfiles for product ${printfulProductId}`)
+        }
+        const pick =
+            (preferredPlacement && list.find((p) => p.placement === preferredPlacement)) ||
+            list.find((p) => ['default', 'front', 'imprint_area'].includes(p.placement || '')) ||
+            list[0]
+        const width = Number(pick.width)
+        const height = Number(pick.height)
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+            throw new Error(`[printful] invalid printfile dims for product ${printfulProductId}: ${width}x${height}`)
+        }
+        return {
+            productId: printfulProductId,
+            placement: pick.placement || 'default',
+            width,
+            height,
+            dpi: Number(pick.dpi ?? 300),
+        }
+    }
+
     async createOrder(params: {
         email: string
         externalId?: string
@@ -200,21 +241,24 @@ class PrintfulClient {
             variantId: number
             quantity: number
             imageUrl: string
+            files?: Array<{
+                type: string
+                url: string
+                position?: {
+                    area_width: number
+                    area_height: number
+                    width: number
+                    height: number
+                    top: number
+                    left: number
+                }
+            }>
             options?: PrintfulOrderItemOption[]
         }>
     }) {
+        type RawItem = (typeof params)['items'][number]
         const buildPayload = (
-            itemTransformer?: (item: {
-                variantId: number
-                quantity: number
-                imageUrl: string
-                options?: PrintfulOrderItemOption[]
-            }) => {
-                variantId: number
-                quantity: number
-                imageUrl: string
-                options?: PrintfulOrderItemOption[]
-            }
+            itemTransformer?: (item: RawItem) => RawItem
         ) => ({
             recipient: {
                 name: params.shippingAddress.name,
@@ -229,10 +273,11 @@ class PrintfulClient {
             ...(params.externalId ? { external_id: params.externalId } : {}),
             items: params.items.map((rawItem) => {
                 const item = itemTransformer ? itemTransformer(rawItem) : rawItem
+                const fallback = [{ type: 'default', url: item.imageUrl }]
                 return {
                     variant_id: item.variantId,
                     quantity: item.quantity,
-                    files: [{ type: 'default', url: item.imageUrl }],
+                    files: item.files && item.files.length > 0 ? item.files : fallback,
                     ...(item.options && item.options.length > 0 ? { options: item.options } : {}),
                 }
             }),
