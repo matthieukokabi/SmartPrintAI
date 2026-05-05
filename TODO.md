@@ -279,7 +279,7 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ### 1. Aspirational tests in the test suite
 Fifteen pre-existing tests fail on main referencing handlers that
-do not exist (Missing signature, manual_review, sendMakeOrderAlert,
+don't exist (Missing signature, manual_review, sendMakeOrderAlert,
 Gelato order create, ready-to-buy fallback design,
 home-brand-v2-regression, money-pages-schema-trust-regression,
 schema.test.ts, merchant-feed.xml, webhooks/printful/route.test.ts).
