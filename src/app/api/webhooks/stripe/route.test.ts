@@ -704,4 +704,80 @@ describe('/api/webhooks/stripe POST', () => {
       })
     )
   })
+
+  it('persists internalNotes with failure reason on REQUIRES_REVIEW orders when buildPrintFile throws', async () => {
+    const metadataItems = [
+      {
+        productId: 'prod-1',
+        designId: 'design-1',
+        size: '2.4″×4″',
+        color: 'Default',
+        quantity: 1,
+      },
+    ]
+
+    mocks.stripe.webhooks.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_requires_review',
+          metadata: { items: JSON.stringify(metadataItems) },
+          amount_total: 2909,
+          amount_subtotal: 2310,
+          shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
+          customer_email: 'buyer@example.com',
+          customer_details: { email: 'buyer@example.com' },
+          shipping_details: {
+            name: 'Buyer',
+            address: {
+              line1: 'Main St 1',
+              city: 'Zurich',
+              country: 'CH',
+              postal_code: '8000',
+              state: null,
+              line2: null,
+            },
+          },
+        },
+      },
+    })
+
+    mocks.prisma.product.findMany.mockResolvedValue([
+      {
+        id: 'prod-1',
+        printfulId: '938',
+        name: 'Luggage Tag',
+        sellPrice: 23.1,
+        colors: [{ name: 'Default', printfulVariantId: 23889 }],
+      },
+    ])
+    mocks.prisma.design.findMany.mockResolvedValue([
+      {
+        id: 'design-1',
+        imageUrl: 'https://example.com/design.png',
+      },
+    ])
+    mocks.prisma.order.create.mockResolvedValue({
+      id: 'order_review_1',
+      total: 29.09,
+    })
+
+    // Simulate the print-file build throwing — this is the path the
+    // P0 mockup-fix added to route the order to REQUIRES_REVIEW.
+    mocks.buildPrintFile.mockRejectedValue(new Error('boom dimension mismatch'))
+
+    const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value' }))
+
+    expect(res.status).toBe(200)
+    expect(mocks.printful.createOrder).not.toHaveBeenCalled()
+    expect(mocks.prisma.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: 'REQUIRES_REVIEW',
+          internalNotes: expect.stringContaining('boom dimension mismatch'),
+        }),
+      })
+    )
+  })
 })

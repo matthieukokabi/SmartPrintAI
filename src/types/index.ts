@@ -43,6 +43,7 @@ export interface Order {
     id: string
     email: string
     status: string
+    internalNotes?: string | null
     subtotal: number
     shippingCost: number
     total: number
