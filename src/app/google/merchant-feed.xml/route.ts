@@ -98,7 +98,7 @@ function productToItemXml(product: FeedProduct): string {
         `<title>${escapeXml(product.name)}</title>`,
         `<description>${escapeXml(description)}</description>`,
         `<link>${escapeXml(productUrl)}</link>`,
-        `<g:image_link>${escapeXml(imageUrl)}</g:image_link>`,
+        `<g:image_link>${escapeXml(toAbsoluteUrl(imageUrl))}</g:image_link>`,
         '<g:availability>in stock</g:availability>',
         `<g:price>${product.sellPrice.toFixed(2)} USD</g:price>`,
         '<g:condition>new</g:condition>',
