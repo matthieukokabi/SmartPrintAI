@@ -145,6 +145,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 3598,
           amount_subtotal: 2999,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           customer_email: null,
           customer_details: { email: null },
           shipping_details: null,
@@ -207,6 +208,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 3598,
           amount_subtotal: 2999,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           customer_email: null,
           customer_details: {
             email: 'buyer@example.com',
@@ -230,6 +232,8 @@ describe('/api/webhooks/stripe POST', () => {
     mocks.prisma.product.findMany.mockResolvedValue([
       {
         id: 'prod-1',
+        printfulId: '12',
+        name: 'Test',
         sellPrice: 29.99,
         colors: [{ name: 'Black', printfulVariantId: 1234 }],
       },
@@ -252,7 +256,7 @@ describe('/api/webhooks/stripe POST', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           stripeSessionId: 'cs_test_customer_details_fallback',
-          status: 'paid',
+          status: 'processing',
           shippingAddress: expect.objectContaining({
             line1: 'Main St 1',
             city: 'Zurich',
@@ -304,6 +308,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 3598,
           amount_subtotal: 2999,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           customer_email: 'buyer@example.com',
           customer_details: { email: 'buyer@example.com' },
           shipping_details: {
@@ -326,6 +331,8 @@ describe('/api/webhooks/stripe POST', () => {
     mocks.prisma.product.findMany.mockResolvedValue([
       {
         id: 'prod-1',
+        printfulId: '12',
+        name: 'Test',
         sellPrice: 29.99,
         colors: [{ name: 'Black', printfulVariantId: 1234 }],
       },
@@ -338,7 +345,7 @@ describe('/api/webhooks/stripe POST', () => {
       },
     ])
 
-    mocks.prisma.order.create.mockResolvedValue({ id: 'order_1', total: 35.98 })
+    mocks.prisma.order.create.mockResolvedValue({ id: 'order_1', total: 35.98, status: 'processing' })
     mocks.printful.createOrder.mockResolvedValue({ id: 'pf_12345' })
 
     const res = await POST(createRequest('{}', { 'stripe-signature': 'sig_value', 'x-request-id': 'req-stripe-ok' }))
@@ -450,6 +457,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 4210,
           amount_subtotal: 3611,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           currency: 'chf',
           customer_email: 'gelato@example.com',
           customer_details: { email: 'gelato@example.com' },
@@ -621,6 +629,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 6798,
           amount_subtotal: 6199,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           currency: 'usd',
           customer_email: 'gooten@example.com',
           customer_details: { email: 'gooten@example.com', phone: '+15125550123' },

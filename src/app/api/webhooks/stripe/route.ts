@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
@@ -6,6 +7,7 @@ import { buildPrintFile, type PrintFileResult } from '@/lib/print-file'
 import { getGootenClient } from '@/lib/gooten'
 import { detectProductProvider } from '@/lib/product-provider'
 import { sendOrderConfirmation } from '@/lib/resend'
+import { sendMakeOrderAlert } from '@/lib/make'
 import Stripe from 'stripe'
 
 interface CheckoutItem {
@@ -39,12 +41,39 @@ function resolveGootenSku(product: { printArea: unknown; colors: unknown }, colo
     return defaultSku || null
 }
 
-function getShippingDetails(session: Stripe.Checkout.Session): Stripe.Checkout.Session.ShippingDetails | null {
-    if (session.shipping_details) return session.shipping_details
+type ShippingDetailsWithPhone = Stripe.Checkout.Session.ShippingDetails & {
+    phone?: string | null
+}
+
+function getShippingDetails(session: Stripe.Checkout.Session): ShippingDetailsWithPhone | null {
+    if (session.shipping_details) {
+        return {
+            ...session.shipping_details,
+            phone: session.customer_details?.phone ?? null,
+        } as ShippingDetailsWithPhone
+    }
     const collected = (session as unknown as {
         collected_information?: { shipping_details?: Stripe.Checkout.Session.ShippingDetails }
     }).collected_information
-    return collected?.shipping_details ?? null
+    if (collected?.shipping_details) {
+        return {
+            ...collected.shipping_details,
+            phone: session.customer_details?.phone ?? null,
+        } as ShippingDetailsWithPhone
+    }
+
+    // Third fallback: synthesize from customer_details (older Stripe Link /
+    // wallet flows sometimes only populate this branch). Map name from
+    // customer_details.name; address + phone from customer_details.
+    const cd = session.customer_details
+    if (cd?.address) {
+        return {
+            name: cd.name ?? 'Customer',
+            address: cd.address,
+            phone: cd.phone ?? null,
+        } as ShippingDetailsWithPhone
+    }
+    return null
 }
 
 function derivePaymentProvider(
@@ -67,7 +96,8 @@ function derivePaymentProvider(
 
 async function processCheckoutSession(
     session: Stripe.Checkout.Session,
-    eventType: string
+    eventType: string,
+    requestId: string,
 ): Promise<void> {
     const existing = await prisma.order.findUnique({ where: { stripeSessionId: session.id } })
     if (existing) {
@@ -117,6 +147,7 @@ async function processCheckoutSession(
 
     let printfulOrderId: string | null = null
     let gootenOrderId: string | null = null
+    let gelatoOrderId: string | null = null
     let requiresReview = false
     let requiresReviewNote: string | null = null
 
@@ -173,6 +204,7 @@ async function processCheckoutSession(
                     state_code: shippingDetails.address.state || '',
                     country_code: shippingDetails.address.country!,
                     zip: shippingDetails.address.postal_code!,
+                    ...(shippingDetails.phone ? { phone: shippingDetails.phone } : {}),
                 },
                 items: printfulItems.map(({ item, index }) => {
                     const product = productById.get(item.productId)!
@@ -345,27 +377,58 @@ async function processCheckoutSession(
         } catch (e) {
             console.error('Failed to record emailSentAt:', e)
         }
+
+        // Fire ops alert (make.com webhook) — best-effort, never blocks
+        // the response. printfulOrderId here is the cross-provider field
+        // (printful id, gooten id, or gelato id depending on which
+        // provider fulfilled the order).
+        const externalIdForAlert =
+            printfulOrderId || gootenOrderId || gelatoOrderId || ''
+        try {
+            await sendMakeOrderAlert({
+                requestId,
+                orderId: order.id,
+                stripeSessionId: session.id,
+                email: customerEmail,
+                total: order.total,
+                itemsCount: items.length,
+                status: order.status,
+                printfulOrderId: externalIdForAlert,
+            })
+        } catch (err) {
+            console.error('[webhook] sendMakeOrderAlert failed:', err)
+        }
     } catch (err) {
         console.error('Order DB/email error:', err)
     }
 }
 
 export async function POST(req: NextRequest) {
+    const requestId = req.headers.get('x-request-id') ?? crypto.randomUUID()
     const body = await req.text()
     const sig = req.headers.get('stripe-signature')!
+
+    const respond = (
+        payload: Record<string, unknown>,
+        init?: ResponseInit,
+    ): NextResponse => {
+        const res = NextResponse.json(payload, init)
+        res.headers.set('x-request-id', requestId)
+        return res
+    }
 
     let event: Stripe.Event
     try {
         event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
     } catch (err) {
         console.error('Webhook signature verification failed:', err)
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+        return respond({ error: 'Invalid signature' }, { status: 400 })
     }
 
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.payment_status === 'paid') {
-            await processCheckoutSession(session, event.type)
+            await processCheckoutSession(session, event.type, requestId)
         } else if (session.payment_status === 'unpaid') {
             console.log(`async_payment_pending: ${session.id}`)
         } else {
@@ -376,11 +439,11 @@ export async function POST(req: NextRequest) {
         const fullSession = await stripe.checkout.sessions.retrieve(stub.id, {
             expand: ['line_items', 'line_items.data.price.product', 'customer_details'],
         })
-        await processCheckoutSession(fullSession, event.type)
+        await processCheckoutSession(fullSession, event.type, requestId)
     } else if (event.type === 'checkout.session.async_payment_failed') {
         const session = event.data.object as Stripe.Checkout.Session
         console.warn(`async_payment_failed: ${session.id} payment_status=${session.payment_status}`)
     }
 
-    return NextResponse.json({ ok: true })
+    return respond({ ok: true })
 }
