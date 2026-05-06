@@ -225,6 +225,25 @@ class PrintfulClient {
         }
     }
 
+    async getOrder(printfulOrderId: string | number): Promise<{
+        id: number
+        external_id: string | null
+        status: string
+        shipping: string
+        shipments?: Array<{
+            id: number
+            carrier?: string
+            service?: string
+            tracking_number?: string | null
+            tracking_url?: string | null
+            shipped_at?: number | null
+        }>
+        created?: number
+        updated?: number
+    }> {
+        return await this.get(`/orders/${printfulOrderId}`)
+    }
+
     async createOrder(params: {
         email: string
         externalId?: string
