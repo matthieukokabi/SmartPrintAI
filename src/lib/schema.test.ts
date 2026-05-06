@@ -54,7 +54,7 @@ describe('schema helpers', () => {
             },
             hasMerchantReturnPolicy: {
                 '@type': 'MerchantReturnPolicy',
-                url: 'https://smartprintai.com/terms',
+                url: 'https://smartprintai.com/returns',
             },
         })
     })
