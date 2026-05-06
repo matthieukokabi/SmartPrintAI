@@ -277,14 +277,37 @@ Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ## P0 mockup-fix follow-ups (2026-05-05)
 
-### 1. Aspirational tests in the test suite
-Fifteen pre-existing tests fail on main referencing handlers that
-don't exist (Missing signature, manual_review, sendMakeOrderAlert,
-Gelato order create, ready-to-buy fallback design,
-home-brand-v2-regression, money-pages-schema-trust-regression,
-schema.test.ts, merchant-feed.xml, webhooks/printful/route.test.ts).
-Decide per-test: build the feature, or delete the test. Mixing
-aspirational and real tests makes regressions invisible.
+### 1. Stripe-webhook test backlog (mostly closed)
+The tests in src/app/api/webhooks/stripe/route.test.ts and
+peers were originally labeled "aspirational dead weight." That
+framing was wrong — every test defended a real bug or a real
+ops gap. Phase A (2026-05-05) closed 4 of 11 via test fixes
+and 2 real-bug fixes (merchant-feed absolute URLs +
+/create JSON-LD breadcrumb). Phase B (2026-05-05) closed
+5 more via webhook builds (customer_details.address fallback,
+sendMakeOrderAlert wiring, Gooten SourceId + expanded payload,
+manual_review persistence, Gelato fulfillment branch). Two
+tests remain failing, both blocked on decisions, not
+engineering:
+
+1. Test 5.6: 'creates fallback design for ready-to-buy items
+   when design record is missing'. Architectural call —
+   should the synthetic Design row be created at checkout time
+   (when add-to-cart runs for a catalog product) or at
+   webhook time (after payment confirms)? Once decided, the
+   fix is a few lines.
+
+2. Test 'keeps shared BrandMark usage in nav and footer' in
+   home-brand-v2-regression.test.ts. Product call — Brand v2
+   spec said BrandMark + primary CTA in both nav and footer;
+   Navbar shipped, Footer never did. Either complete the
+   Footer rollout or loosen the test to nav-only.
+
+The merchant-feed magnitude probe (2026-05-05) showed 0/123
+active products had relative URLs, so the merchant-feed fix
+was purely defensive (no live customer impact). Keep an eye
+on future seed/import flows; if any introduce relative paths,
+the fix already in place catches them.
 
 ### 2. Printful inbound webhook signature rejection
 Printful order_updated webhooks are still 400ing with "invalid
