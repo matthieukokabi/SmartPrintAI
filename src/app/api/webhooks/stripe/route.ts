@@ -112,12 +112,59 @@ async function processCheckoutSession(
     const shippingDetails = getShippingDetails(session)
     const customerEmail = session.customer_details?.email || session.customer_email
 
-    if (!shippingDetails?.address) {
-        console.error(`No shipping address in session: ${session.id}`)
-        return
-    }
-    if (!customerEmail) {
-        console.error(`No customer email in session: ${session.id}`)
+    // Missing shipping/email: persist the paid Order with status='manual_review'
+    // and a note describing what's missing, so a human can recover the
+    // customer contact info from Stripe's billing portal. Do NOT call
+    // any fulfillment provider — we don't have a shipping address to
+    // send. Do NOT fire the make alert here either; manual_review is
+    // a different operator workflow than ordinary fulfilled orders.
+    if (!shippingDetails?.address || !customerEmail) {
+        const ts = new Date().toISOString()
+        const reasons: string[] = []
+        if (!shippingDetails?.address) reasons.push('shipping_details_missing')
+        if (!customerEmail) reasons.push('customer_email_missing')
+        const manualReviewNote =
+            `[${ts}] manual_review: ${reasons.join(',')} ` +
+            `for Stripe session ${session.id}`
+
+        try {
+            const products = await prisma.product.findMany({
+                where: { id: { in: items.map((i) => i.productId) } },
+            })
+            const productById = new Map(products.map((p) => [p.id, p]))
+
+            await prisma.order.create({
+                data: {
+                    email: customerEmail ?? 'unknown@manual-review.local',
+                    stripeSessionId: session.id,
+                    printfulOrderId: null,
+                    status: 'manual_review',
+                    internalNotes: manualReviewNote,
+                    subtotal: session.amount_subtotal! / 100,
+                    shippingCost: session.shipping_cost?.amount_total
+                        ? session.shipping_cost.amount_total / 100
+                        : 0,
+                    total: session.amount_total! / 100,
+                    shippingAddress: shippingDetails?.address
+                        ? { ...shippingDetails.address }
+                        : {},
+                    paymentProvider: derivePaymentProvider(session, eventType),
+                    items: {
+                        create: items.map((item) => ({
+                            productId: item.productId,
+                            designId: item.designId,
+                            size: item.size,
+                            color: item.color,
+                            quantity: item.quantity,
+                            price: productById.get(item.productId)?.sellPrice ?? 0,
+                        })),
+                    },
+                },
+            })
+            console.warn(`[webhook] manual_review order created for ${session.id}: ${reasons.join(',')}`)
+        } catch (err) {
+            console.error('[webhook] manual_review create failed:', err)
+        }
         return
     }
 
