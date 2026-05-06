@@ -191,12 +191,79 @@ async function processCheckoutSession(
         }
     }
 
+    // Resolve the mockup URL we'll persist on each OrderItem. Prefer a real
+    // Printful/Gelato/Gooten mockup from the cache; otherwise fall back to
+    // the print-file URL (the actual artwork that shipped) or the raw design
+    // image. The customer should see something representative on /success.
+    const mockupCacheKey = (it: CheckoutItem) =>
+        `${it.designId}|${it.productId}|${it.color.toLowerCase()}`
+    const cachedMockups = await prisma.mockup.findMany({
+        where: {
+            OR: items.map((it) => ({
+                designId: it.designId,
+                productId: it.productId,
+                color: it.color.toLowerCase(),
+            })),
+        },
+    })
+    const mockupByKey = new Map(
+        cachedMockups.map((m) => [`${m.designId}|${m.productId}|${m.color.toLowerCase()}`, m.mockupUrl]),
+    )
+    const resolveMockupUrl = (item: CheckoutItem, index: number): string | null => {
+        const cached = mockupByKey.get(mockupCacheKey(item))
+        if (cached) return cached
+        const printFile = printFileByIndex.get(index)
+        if (printFile?.url) return printFile.url
+        const design = designById.get(item.designId)
+        return design?.imageUrl ?? null
+    }
+
+    // ── Save Order to DB FIRST ─────────────────────────────
+    // Provider calls (Gooten SourceId/ExternalId, Gelato orderReferenceId)
+    // need the local Order.id as their correlation key, so we persist the
+    // local row before calling out to providers. Provider order ids land
+    // in a follow-up update at the end.
+    let order: Awaited<ReturnType<typeof prisma.order.create>>
+    try {
+        order = await prisma.order.create({
+            data: {
+                email: customerEmail,
+                stripeSessionId: session.id,
+                printfulOrderId: null,
+                status: requiresReview ? 'REQUIRES_REVIEW' : 'processing',
+                internalNotes: requiresReview ? requiresReviewNote : null,
+                subtotal: session.amount_subtotal! / 100,
+                shippingCost: session.shipping_cost?.amount_total
+                    ? session.shipping_cost.amount_total / 100
+                    : 5.99,
+                total: session.amount_total! / 100,
+                shippingAddress: { ...shippingDetails.address },
+                paymentProvider,
+                items: {
+                    create: items.map((item, index) => ({
+                        productId: item.productId,
+                        designId: item.designId,
+                        size: item.size,
+                        color: item.color,
+                        quantity: item.quantity,
+                        price: productById.get(item.productId)!.sellPrice,
+                        mockupUrl: resolveMockupUrl(item, index),
+                    })),
+                },
+            },
+        })
+    } catch (err) {
+        console.error('Order create failed:', err)
+        return
+    }
+
     // ── Printful fulfillment ───────────────────────────────
     if (printfulItems.length > 0 && !requiresReview) {
         try {
             printfulCalledAt = new Date()
             const printfulOrder = await printful.createOrder({
                 email: customerEmail,
+                externalId: order.id,
                 shippingAddress: {
                     name: shippingDetails.name!,
                     address1: shippingDetails.address.line1!,
@@ -242,14 +309,8 @@ async function processCheckoutSession(
             printfulOrderId = String((printfulOrder as Record<string, unknown>).id)
             console.log(`Printful order created: ${printfulOrderId}`)
         } catch (err) {
-            const reviewNote = (
-                `[${new Date().toISOString()}] REQUIRES_REVIEW: ` +
-                `Printful order creation failed for Stripe session ${session.id}. ` +
-                `Error: ${err instanceof Error ? err.message : String(err)}`
-            )
             console.error('Printful order creation failed:', err)
             requiresReview = true
-            requiresReviewNote = reviewNote
         }
     }
 
@@ -257,6 +318,10 @@ async function processCheckoutSession(
     if (gootenItems.length > 0) {
         try {
             const gooten = getGootenClient()
+            const partnerBillingKey = (process.env.GOOTEN_PARTNER_BILLING_KEY || '').trim()
+            const phone = shippingDetails.phone || session.customer_details?.phone || ''
+            const firstName = (shippingDetails.name || '').split(' ')[0] || 'Customer'
+            const lastName = (shippingDetails.name || '').split(' ').slice(1).join(' ') || ''
             const gootenOrderItems = gootenItems.map(({ item }) => {
                 const product = productById.get(item.productId)!
                 const design = designById.get(item.designId)!
@@ -266,27 +331,42 @@ async function processCheckoutSession(
                         `No Gooten SKU found for product "${product.name}" in color "${item.color}"`
                     )
                 }
+                const printArea = (typeof product.printArea === 'object' && product.printArea !== null)
+                    ? product.printArea as Record<string, unknown>
+                    : {}
+                const providerProductId = typeof printArea.providerProductId === 'string'
+                    ? printArea.providerProductId
+                    : ''
                 return {
                     SKU: sku,
+                    ProductId: providerProductId,
                     Quantity: item.quantity,
                     Images: [{ Url: design.imageUrl }],
                 }
             })
 
+            const gootenAddress = {
+                FirstName: firstName,
+                LastName: lastName,
+                Line1: shippingDetails.address.line1 || '',
+                Line2: shippingDetails.address.line2 || '',
+                City: shippingDetails.address.city || '',
+                State: shippingDetails.address.state || '',
+                PostalCode: shippingDetails.address.postal_code || '',
+                CountryCode: shippingDetails.address.country || 'US',
+                Email: customerEmail,
+                Phone: phone,
+            }
+
             const gootenOrder = await gooten.createOrder({
-                ShipToAddress: {
-                    FirstName: (shippingDetails.name || '').split(' ')[0] || 'Customer',
-                    LastName: (shippingDetails.name || '').split(' ').slice(1).join(' ') || '',
-                    Address1: shippingDetails.address.line1 || '',
-                    City: shippingDetails.address.city || '',
-                    State: shippingDetails.address.state || '',
-                    PostalCode: shippingDetails.address.postal_code || '',
-                    CountryCode: shippingDetails.address.country || 'US',
-                    Email: customerEmail,
-                },
+                SourceId: order.id,
+                ExternalId: order.id,
+                BillingAddress: { ...gootenAddress },
+                ShipToAddress: { ...gootenAddress },
                 Items: gootenOrderItems,
                 Payment: {
-                    CurrencyCode: 'USD',
+                    CurrencyCode: (session.currency || 'USD').toUpperCase(),
+                    PartnerBillingKey: partnerBillingKey,
                 },
             })
 
@@ -300,68 +380,26 @@ async function processCheckoutSession(
         }
     }
 
-    // ── Save order to DB ───────────────────────────────────
-    const externalOrderId = [printfulOrderId, gootenOrderId ? `gooten:${gootenOrderId}` : null]
-        .filter(Boolean)
-        .join(',') || null
+    // ── Update Order with provider ids ─────────────────────
+    const externalOrderId = [
+        printfulOrderId,
+        gootenOrderId ? `gooten:${gootenOrderId}` : null,
+        gelatoOrderId ? `gelato:${gelatoOrderId}` : null,
+    ].filter(Boolean).join(',') || null
 
-    // Resolve the mockup URL we'll persist on each OrderItem. Prefer a real
-    // Printful/Gelato/Gooten mockup from the cache; otherwise fall back to
-    // the print-file URL (the actual artwork that shipped) or the raw design
-    // image. The customer should see something representative on /success.
-    const mockupCacheKey = (it: CheckoutItem) =>
-        `${it.designId}|${it.productId}|${it.color.toLowerCase()}`
-    const cachedMockups = await prisma.mockup.findMany({
-        where: {
-            OR: items.map((it) => ({
-                designId: it.designId,
-                productId: it.productId,
-                color: it.color.toLowerCase(),
-            })),
-        },
-    })
-    const mockupByKey = new Map(
-        cachedMockups.map((m) => [`${m.designId}|${m.productId}|${m.color.toLowerCase()}`, m.mockupUrl]),
-    )
-    const resolveMockupUrl = (item: CheckoutItem, index: number): string | null => {
-        const cached = mockupByKey.get(mockupCacheKey(item))
-        if (cached) return cached
-        const printFile = printFileByIndex.get(index)
-        if (printFile?.url) return printFile.url
-        const design = designById.get(item.designId)
-        return design?.imageUrl ?? null
+    try {
+        await prisma.order.update({
+            where: { id: order.id },
+            data: {
+                printfulOrderId: externalOrderId,
+                printfulCalledAt,
+            },
+        })
+    } catch (err) {
+        console.error('Failed to update Order with provider ids:', err)
     }
 
     try {
-        const order = await prisma.order.create({
-            data: {
-                email: customerEmail,
-                stripeSessionId: session.id,
-                printfulOrderId: externalOrderId,
-                status: requiresReview ? 'REQUIRES_REVIEW' : 'processing',
-                internalNotes: requiresReview ? requiresReviewNote : null,
-                subtotal: session.amount_subtotal! / 100,
-                shippingCost: session.shipping_cost?.amount_total
-                    ? session.shipping_cost.amount_total / 100
-                    : 5.99,
-                total: session.amount_total! / 100,
-                shippingAddress: { ...shippingDetails.address },
-                printfulCalledAt,
-                paymentProvider,
-                items: {
-                    create: items.map((item, index) => ({
-                        productId: item.productId,
-                        designId: item.designId,
-                        size: item.size,
-                        color: item.color,
-                        quantity: item.quantity,
-                        price: productById.get(item.productId)!.sellPrice,
-                        mockupUrl: resolveMockupUrl(item, index),
-                    })),
-                },
-            },
-        })
-
         await sendOrderConfirmation({
             email: customerEmail,
             orderId: order.id,
