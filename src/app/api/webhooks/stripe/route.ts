@@ -179,6 +179,34 @@ async function processCheckoutSession(
     const productById = new Map(products.map((p) => [p.id, p]))
     const designById = new Map(designs.map((d) => [d.id, d]))
 
+    // Ready-to-buy items (catalog products bought as-is, no AI design) won't
+    // have a Design row — Add to Cart on the PDP synthesizes a deterministic
+    // designId of the form "ready_<productId>" and never persists. Upsert a
+    // synthetic Design row here so downstream provider calls have an
+    // imageUrl to send and OrderItem.designId can satisfy its FK.
+    for (const item of items) {
+        if (designById.has(item.designId)) continue
+        const product = productById.get(item.productId)
+        if (!product) continue
+        try {
+            const synthetic = await prisma.design.upsert({
+                where: { id: item.designId },
+                update: {},
+                create: {
+                    id: item.designId,
+                    sessionId: session.id,
+                    prompt: `[ready-to-buy] ${product.name}`,
+                    style: 'ready_to_buy',
+                    imageUrl: product.imageUrl,
+                    status: 'ready',
+                },
+            })
+            designById.set(synthetic.id, synthetic)
+        } catch (err) {
+            console.error(`[webhook] failed to upsert ready-to-buy design ${item.designId}:`, err)
+        }
+    }
+
     const printfulItems: Array<{ item: CheckoutItem; index: number }> = []
     const gootenItems: Array<{ item: CheckoutItem; index: number }> = []
     const gelatoItems: Array<{ item: CheckoutItem; index: number }> = []
@@ -205,11 +233,15 @@ async function processCheckoutSession(
     // Build a print file per Printful item upfront. If any build fails, abort
     // the Printful order creation entirely and mark the order REQUIRES_REVIEW
     // so a human reprocesses it instead of silently shipping wrong art.
+    // Ready-to-buy items skip the print-file build — their design IS the
+    // catalog image, no normalization needed.
     const printFileByIndex = new Map<number, PrintFileResult>()
-    if (printfulItems.length > 0) {
+    const isReadyToBuy = (item: CheckoutItem) => item.designId.startsWith('ready_')
+    const customPrintfulItems = printfulItems.filter(({ item }) => !isReadyToBuy(item))
+    if (customPrintfulItems.length > 0) {
         try {
             await Promise.all(
-                printfulItems.map(async ({ item, index }) => {
+                customPrintfulItems.map(async ({ item, index }) => {
                     const product = productById.get(item.productId)!
                     const design = designById.get(item.designId)!
                     const printfulProductId = Number(product.printfulId)
@@ -326,6 +358,7 @@ async function processCheckoutSession(
                 },
                 items: printfulItems.map(({ item, index }) => {
                     const product = productById.get(item.productId)!
+                    const design = designById.get(item.designId)!
                     const colors = product.colors as unknown as ProductColor[]
                     const colorData = colors.find(
                         (c) => c.name.toLowerCase() === item.color.toLowerCase()
@@ -334,6 +367,15 @@ async function processCheckoutSession(
                         throw new Error(
                             `No Printful variant found for product "${product.name}" in color "${item.color}"`
                         )
+                    }
+                    // Ready-to-buy items: send the catalog image directly,
+                    // no normalized print file (the design IS the catalog).
+                    if (isReadyToBuy(item)) {
+                        return {
+                            variantId: colorData.printfulVariantId,
+                            quantity: item.quantity,
+                            imageUrl: design.imageUrl,
+                        }
                     }
                     const printFile = printFileByIndex.get(index)!
                     return {

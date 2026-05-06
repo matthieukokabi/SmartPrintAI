@@ -543,6 +543,7 @@ describe('/api/webhooks/stripe POST', () => {
           amount_total: 7799,
           amount_subtotal: 7200,
           shipping_cost: { amount_total: 599 },
+          payment_status: 'paid',
           customer_email: 'ready@example.com',
           customer_details: { email: 'ready@example.com' },
           shipping_details: {
