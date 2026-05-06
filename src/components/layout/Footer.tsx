@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import BrandMark from '@/components/brand/BrandMark'
 
 export default function Footer() {
     return (
@@ -21,12 +22,22 @@ export default function Footer() {
                 >
                     <div>
                         <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <BrandMark size={18} />
                             <Image src="/images/logo.svg" alt="SmartPrintAI" width={24} height={24} />
                             <span className="gradient-text">SmartPrintAI</span>
                         </h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6 }}>
+                        <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
                             Describe it. AI creates it. We print and ship it.
                         </p>
+                        <Link
+                            href="/create"
+                            data-home-cta="footer_primary_create"
+                            data-home-cta-label="Create My Product"
+                            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-4 py-2 text-sm font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105"
+                            aria-label="Create my product"
+                        >
+                            Create My Product
+                        </Link>
                     </div>
                     <div>
                         <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Products</h4>
