@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
 import { buildPrintFile, type PrintFileResult } from '@/lib/print-file'
 import { getGootenClient } from '@/lib/gooten'
+import { gelato } from '@/lib/gelato'
 import { detectProductProvider } from '@/lib/product-provider'
 import { sendOrderConfirmation } from '@/lib/resend'
 import { sendMakeOrderAlert } from '@/lib/make'
@@ -180,6 +181,7 @@ async function processCheckoutSession(
 
     const printfulItems: Array<{ item: CheckoutItem; index: number }> = []
     const gootenItems: Array<{ item: CheckoutItem; index: number }> = []
+    const gelatoItems: Array<{ item: CheckoutItem; index: number }> = []
 
     items.forEach((item, index) => {
         const product = productById.get(item.productId)
@@ -187,6 +189,8 @@ async function processCheckoutSession(
         const provider = detectProductProvider(product.printfulId)
         if (provider === 'gooten') {
             gootenItems.push({ item, index })
+        } else if (provider === 'gelato') {
+            gelatoItems.push({ item, index })
         } else {
             printfulItems.push({ item, index })
         }
@@ -424,6 +428,69 @@ async function processCheckoutSession(
             }
         } catch (err) {
             console.error('Gooten order creation failed:', err)
+        }
+    }
+
+    // ── Gelato fulfillment ─────────────────────────────────
+    if (gelatoItems.length > 0) {
+        try {
+            const phone = shippingDetails.phone || session.customer_details?.phone || ''
+            const firstName = (shippingDetails.name || '').split(' ')[0] || 'Customer'
+            const lastName = (shippingDetails.name || '').split(' ').slice(1).join(' ') || ''
+
+            const gelatoOrderItems = gelatoItems.map(({ item }) => {
+                const product = productById.get(item.productId)!
+                const design = designById.get(item.designId)!
+                const printArea = (typeof product.printArea === 'object' && product.printArea !== null)
+                    ? product.printArea as Record<string, unknown>
+                    : {}
+                const variantMapping = (typeof printArea.variantMapping === 'object' && printArea.variantMapping !== null)
+                    ? printArea.variantMapping as Record<string, string>
+                    : {}
+                const sizeColorKey = `${item.size}:${item.color}`.toLowerCase()
+                const productUid = variantMapping[sizeColorKey]
+                    || variantMapping[item.color.toLowerCase()]
+                    || variantMapping['default']
+                    || ''
+                if (!productUid) {
+                    throw new Error(
+                        `No Gelato variant uid found for product "${product.name}" size="${item.size}" color="${item.color}"`,
+                    )
+                }
+                return {
+                    itemReferenceId: item.designId,
+                    productUid,
+                    quantity: item.quantity,
+                    fileUrl: design.imageUrl,
+                }
+            })
+
+            const gelatoOrder = await gelato.createOrder({
+                orderReferenceId: order.id,
+                currency: (session.currency || 'USD').toUpperCase(),
+                customerEmail,
+                shippingAddress: {
+                    firstName,
+                    lastName,
+                    addressLine1: shippingDetails.address.line1 || '',
+                    ...(shippingDetails.address.line2 ? { addressLine2: shippingDetails.address.line2 } : {}),
+                    city: shippingDetails.address.city || '',
+                    postcode: shippingDetails.address.postal_code || '',
+                    ...(shippingDetails.address.state ? { stateCode: shippingDetails.address.state } : {}),
+                    countryCode: shippingDetails.address.country || 'US',
+                    email: customerEmail,
+                    ...(phone ? { phone } : {}),
+                },
+                items: gelatoOrderItems,
+            })
+
+            const gelatoResult = gelatoOrder as Record<string, unknown>
+            gelatoOrderId = String(gelatoResult.id || gelatoResult.Id || '')
+            if (gelatoOrderId) {
+                console.log(`Gelato order created: ${gelatoOrderId}`)
+            }
+        } catch (err) {
+            console.error('Gelato order creation failed:', err)
         }
     }
 
