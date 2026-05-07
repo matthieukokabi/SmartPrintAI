@@ -309,10 +309,18 @@ was purely defensive (no live customer impact). Keep an eye
 on future seed/import flows; if any introduce relative paths,
 the fix already in place catches them.
 
-### 2. Printful inbound webhook signature rejection
+### 2. [DONE 2026-05-05] Printful inbound webhook signature rejection
 Printful order_updated webhooks are still 400ing with "invalid
 signature". See claude_code_diagnose_printful_webhook_signature.md
 in 00_admin/handoffs (asset folder, off-host).
+
+Resolved 2026-05-05 by replacing HMAC verification with
+verify-by-refetch (commit 706be87). V1 webhooks are unsigned by
+Printful's design — diagnostic confirmed three independent lines
+of evidence. Now the route ignores body claims and re-fetches
+authoritative order state from /orders/{id} on every event.
+Validated in production 2026-05-06 by 3 real order_updated events
+landing as expected.
 
 ### 3. Per-variant (not per-product) print areas
 Product.printArea today stores one blob per product. When we ship
@@ -320,12 +328,18 @@ multi-variant products with different print areas per placement
 (hoodie front+back, all-over apparel), expand to a placement-keyed
 map. Not P0; track only.
 
-### 4. Pet Hoodie (Printful product 921)
-Marked active=false on 2026-05-05 because Printful returns zero
-printfiles for product 921. File a support ticket with Printful
-asking why; reactivate when resolved.
+### 4. [DONE 2026-05-07] Pet Hoodie (Printful product 921)
+Resolved 2026-05-07 by Printful dev-rel: product 921 is being
+discontinued. V1 already treats it as discontinued (returns empty
+stub from /mockup-generator/printfiles/921); V2 hasn't caught up
+yet. The empty V1 response was the intended signal, not a bug.
+We're leaving the product permanently inactive in our catalog
+(active=false was set on 2026-05-05). No code patch needed. As a
+learning, if any future product ever returns the same V1
+empty-stub shape, treat it as "this product is discontinued" and
+deactivate locally.
 
-### 5. Order.internalNotes audit-trail column
+### 5. [DONE 2026-05-05] Order.internalNotes audit-trail column
 The Order table has no notes/internalNotes column today, so the
 recovery script for incident cmoe4tawg0000rvl2o02v9twv on 2026-05-05
 could only update status='REPRINT_REQUESTED' without leaving an
@@ -333,3 +347,9 @@ in-row paper trail of WHY. Add Order.internalNotes TEXT NULL in a
 non-destructive migration; have the recovery script + webhook
 REQUIRES_REVIEW path append timestamped notes to it. Small
 migration, big ops win.
+
+Resolved 2026-05-05 with the migration in commit 1771939 plus
+webhook population in commit 73a2dbb. Anthony's incident
+(cmoe4tawg0000rvl2o02v9twv) was the first consumer; its Order row
+now carries a 5-line timestamped audit trail covering filed → 3
+webhook nudges → approved.
