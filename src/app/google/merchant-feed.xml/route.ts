@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
 import { toAbsoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
@@ -8,6 +9,7 @@ export const revalidate = 3600
 type FeedProduct = {
     id: string
     name: string
+    printfulId: string
     description: string
     category: string
     sellPrice: number
@@ -138,6 +140,8 @@ export async function GET() {
             select: {
                 id: true,
                 name: true,
+                printfulId: true,
+                printArea: true,
                 description: true,
                 category: true,
                 sellPrice: true,
@@ -148,7 +152,12 @@ export async function GET() {
             orderBy: { name: 'asc' },
         })
 
-        const feedProducts = products.filter((p) => p.imageUrl && p.imageUrl.trim().length > 0)
+        // Apply the same Gooten ready-to-buy safety filter that /products
+        // uses, so MC's view of the catalog matches what customers see on
+        // the storefront. Otherwise blocked Gooten products land in the
+        // feed but 404 in the customer flow, which MC treats as an error.
+        const { sellable } = splitBlockedGootenReadyToBuyProducts(products)
+        const feedProducts = sellable.filter((p) => p.imageUrl && p.imageUrl.trim().length > 0)
         const xml = buildFeedXml(feedProducts)
         return new NextResponse(xml, {
             status: 200,
