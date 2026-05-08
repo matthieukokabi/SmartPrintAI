@@ -353,3 +353,17 @@ webhook population in commit 73a2dbb. Anthony's incident
 (cmoe4tawg0000rvl2o02v9twv) was the first consumer; its Order row
 now carries a 5-line timestamped audit trail covering filed → 3
 webhook nudges → approved.
+
+### 6. Translate Returns & Refund Policy (fr/de/es)
+Resolved P0-1 Merchant Center suspension on 2026-05-08 by adding
+/[locale]/returns routes that render the English policy content
+as fallback (commit 62ed101). The English /returns was already
+correct; the bug was that /de/returns, /fr/returns, /es/returns
+all 404'd, which Merchant Center's locale-aware scanner read as
+"missing return policy." Merchant Center accepts English fallback
+in EU markets, but the proper fix is to translate the policy and
+have /[locale]/returns render localized copy via
+getLocaleCopy(locale).returns. Until then, German/French/Spanish-
+speaking customers see English. Effort: M (mostly copy + a
+structured key in i18n.ts). No deadline; do after Anthony's
+reprint closes.
