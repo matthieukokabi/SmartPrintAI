@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-    title: 'Shipping & Delivery | SmartPrintAI',
+    title: 'Shipping & Delivery',
     description: 'Production and delivery times, tracking, shipping costs, and customs information for SmartPrintAI orders.',
     alternates: {
         canonical: '/shipping',

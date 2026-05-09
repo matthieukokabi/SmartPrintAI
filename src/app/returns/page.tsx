@@ -3,7 +3,7 @@ import ReturnsPolicyContent from '@/components/legal/ReturnsPolicyContent'
 import { buildLocaleAlternates } from '@/lib/i18n'
 
 export const metadata: Metadata = {
-    title: 'Returns & Refund Policy | SmartPrintAI',
+    title: 'Returns & Refund Policy',
     description: 'How to return or refund a custom AI-designed product from SmartPrintAI, including eligibility, timelines, and contact details.',
     alternates: {
         canonical: '/returns',

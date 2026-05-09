@@ -32,7 +32,7 @@ export function generateMetadata({ params }: LocaleReturnsPageProps): Metadata {
     const canonicalPath = buildLocaleCanonical(locale, '/returns')
 
     return {
-        title: 'Returns & Refund Policy | SmartPrintAI',
+        title: 'Returns & Refund Policy',
         description: 'How to return or refund a custom AI-designed product from SmartPrintAI, including eligibility, timelines, and contact details.',
         alternates: {
             canonical: canonicalPath,

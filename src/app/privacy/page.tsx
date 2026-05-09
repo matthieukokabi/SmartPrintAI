@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-    title: 'Privacy Policy | SmartPrintAI',
+    title: 'Privacy Policy',
     description: 'Read how SmartPrintAI handles account, order, and support data.',
     alternates: {
         canonical: '/privacy',
