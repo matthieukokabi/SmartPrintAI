@@ -10,6 +10,11 @@ import {
     findUnsupportedProductsForDestination,
     getAllowedCountriesForCart,
 } from '@/lib/product-destination-safety'
+import {
+    FREE_SHIPPING_THRESHOLD_USD,
+    getExpressRateUsd,
+    getStandardRateUsd,
+} from '@/lib/shipping-rates'
 
 type CheckoutItem = {
     productId: string
@@ -268,12 +273,14 @@ export async function POST(req: NextRequest) {
             },
             shipping_options: (() => {
                 const subtotalCents = lineItems.reduce((sum, li) => sum + (li.price_data.unit_amount * li.quantity), 0)
-                const freeShipping = subtotalCents >= 10000
+                const freeShipping = subtotalCents >= FREE_SHIPPING_THRESHOLD_USD * 100
+                const standardCents = Math.round(getStandardRateUsd() * 100)
+                const expressCents = Math.round(getExpressRateUsd() * 100)
                 const opts: Stripe.Checkout.SessionCreateParams.ShippingOption[] = [
                     {
                         shipping_rate_data: {
                             type: 'fixed_amount',
-                            fixed_amount: { amount: freeShipping ? 0 : 599, currency: 'usd' },
+                            fixed_amount: { amount: freeShipping ? 0 : standardCents, currency: 'usd' },
                             display_name: freeShipping ? 'Free Standard Shipping' : 'Standard Shipping',
                             delivery_estimate: {
                                 minimum: { unit: 'business_day', value: 5 },
@@ -284,7 +291,7 @@ export async function POST(req: NextRequest) {
                     {
                         shipping_rate_data: {
                             type: 'fixed_amount',
-                            fixed_amount: { amount: freeShipping ? 599 : 1299, currency: 'usd' },
+                            fixed_amount: { amount: freeShipping ? standardCents : expressCents, currency: 'usd' },
                             display_name: 'Express Shipping',
                             delivery_estimate: {
                                 minimum: { unit: 'business_day', value: 2 },
