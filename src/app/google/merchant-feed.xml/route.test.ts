@@ -100,6 +100,16 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(genderTags).toHaveLength(3)
     expect(ageGroupTags).toHaveLength(3)
     expect(colorTags).toHaveLength(3)
+
+    // <g:shipping> blocks: one per item per published rate
+    // (Standard $5.99 + Express $12.99 = 2 per item; 3 items → 6).
+    const shippingTags = xml.match(/<g:shipping>/g) ?? []
+    expect(shippingTags).toHaveLength(6)
+    expect(xml).toContain('<g:country>US</g:country>')
+    expect(xml).toContain('<g:service>Standard Shipping</g:service>')
+    expect(xml).toContain('<g:service>Express Shipping</g:service>')
+    expect(xml).toContain('<g:price>5.99 USD</g:price>')
+    expect(xml).toContain('<g:price>12.99 USD</g:price>')
   })
 
   it('returns an empty valid feed when no products exist', async () => {
