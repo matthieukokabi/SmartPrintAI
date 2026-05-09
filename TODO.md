@@ -367,3 +367,85 @@ getLocaleCopy(locale).returns. Until then, German/French/Spanish-
 speaking customers see English. Effort: M (mostly copy + a
 structured key in i18n.ts). No deadline; do after Anthony's
 reprint closes.
+
+## SEO + Merchant Center cleanup (2026-05-08)
+
+### 1. [DONE 2026-05-08] GSC robots.txt block on parametric /create
+Google Search Console flagged 5 parametric /create?productId=…
+URLs as "Bloquée par le fichier robots.txt." Resolved by
+removing the 4 parametric Disallow rules from src/app/robots.ts
+(commit 2e4b7a9). Canonical infrastructure was already in place
+via src/app/create/layout.tsx (default locale) and
+src/app/[locale]/create/page.tsx (locale variants), so all
+parametric URLs already declare /create as their canonical.
+Validation requested in GSC same day; should clear within
+1–7 days.
+
+### 2. [DONE 2026-05-08] Merchant Center return-policy suspension
+/de/returns, /fr/returns, /es/returns all 404'd, which MC's
+locale-aware scanner read as "missing return policy" even
+though /returns (English) was correctly implemented. Resolved
+by extracting policy content into
+src/components/legal/ReturnsPolicyContent.tsx and adding
+src/app/[locale]/returns/page.tsx that renders it for fr/de/es
+with locale-aware metadata + hreflang alternates (commit
+e07b5d5). Google auto-cleared the suspension before a manual
+review request was even possible.
+
+### 3. [DONE 2026-05-08] Catalog hygiene: image dims + Gooten descriptions
+Fixed 5 Printful 300×300 catalog-thumbnail imageUrls (swapped to
+first-variant URLs at 700–1000 px on the same Printful CDN —
+commit bb8861c). Fixed 2 Gooten /temp/ image gaps (swapped to
+612×612 catalog-feed preview URLs — commit e8a50a8). Backfilled
+26 Gooten product descriptions: 25 use Gooten's meta_description
+from the public catalog feed + a 30-day return note, 1 (Dad
+Caps) uses a HEADWEAR template fallback (commit d35d233). Plus
+a feed bug: merchant-feed XML didn't apply the
+splitBlockedGootenReadyToBuyProducts filter, so 12 hidden
+products were visible to MC; fixed (commit f51776f).
+
+### 4. [DONE 2026-05-08] Merchant feed <g:shipping> blocks + shared rate table
+Centralized shipping rates into src/lib/shipping-rates.ts
+(commit 74dceea), now the single source of truth for
+src/app/api/checkout/route.ts AND
+src/app/google/merchant-feed.xml/route.ts. Per-item
+<g:shipping> blocks now emitted (commit 64a0dca): US Standard
+$5.99 + US Express $12.99. Test coverage updated (commit
+8e37ba7). Live feed: 222 shipping blocks across 111 items
+(matches expected 2 × 111).
+
+### 5. [DONE 2026-05-08] Merchant Center US shipping policies configured
+Two flat-rate shipping policies saved in MC dashboard:
+"SmartPrintAI US Standard" ($5.99 flat, free over $100) and
+"SmartPrintAI US Express" (flat $12.99, no free-over toggle).
+The "no free-over toggle on Express" is intentional: checkout
+currently drops Express from $12.99 → $5.99 at $100+ as a
+customer-favorable surprise; this is policy-compliant under
+Google's "feed price >= checkout price" rule, but enabling
+the free-over toggle in MC would invert that and trigger a
+violation. Document this invariant in
+src/lib/shipping-rates.ts as a TODO (item 8 below).
+
+### 6. [OPEN] eWallet payment method (Apple Pay + Google Pay)
+MC dashboard flags "eWallet: Incomplete" — Google wants at
+least one of Apple Pay / Google Pay / PayPal / Amazon Pay
+enabled at checkout. Cheapest path is Apple Pay + Google Pay
+via Stripe's payment_method_types config (free, no separate
+processor account). Apple Pay needs a one-time domain
+verification step. Effort: 30–45 min. Does not block any
+current customer flow; flag stays "Incomplete" until shipped.
+
+### 7. [OPEN] Per-product hand-written descriptions
+Today's templated/Gooten-meta blend (Section 3 above) clears
+MC's >=150 char threshold and is policy-compliant, but is
+generic catalog copy rather than bespoke storytelling.
+Eventually replace with hand-written descriptions per product
+(or AI-drafted copy reviewed by Matt). Effort: ~5–15 min per
+product; 26 products. P3 content backlog.
+
+### 8. [OPEN] Document the Express-shipping invariant
+Add a comment in src/lib/shipping-rates.ts explaining why
+FREE_SHIPPING_THRESHOLD_USD only applies to Standard and not
+Express, with reference to Google's policy ("feed price must
+be accurate or LOWER than checkout price") and a forbid-note
+on enabling a free-over-X tier on Express in MC. ~5 min.
