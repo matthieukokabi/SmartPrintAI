@@ -426,14 +426,24 @@ the free-over toggle in MC would invert that and trigger a
 violation. Document this invariant in
 src/lib/shipping-rates.ts as a TODO (item 8 below).
 
-### 6. [OPEN] eWallet payment method (Apple Pay + Google Pay)
-MC dashboard flags "eWallet: Incomplete" — Google wants at
-least one of Apple Pay / Google Pay / PayPal / Amazon Pay
-enabled at checkout. Cheapest path is Apple Pay + Google Pay
-via Stripe's payment_method_types config (free, no separate
-processor account). Apple Pay needs a one-time domain
-verification step. Effort: 30–45 min. Does not block any
-current customer flow; flag stays "Incomplete" until shipped.
+### 6. [DONE 2026-05-09] eWallet payment method
+Apple Pay, Google Pay, PayPal, and Amazon Pay are all
+enabled at the Stripe account level (verified in dashboard
+on 2026-05-09). Plus Link and Klarna as bonus wallets.
+Four of the four wallets MC asks for are live; the
+"eWallet: Incomplete" flag should clear on MC's next
+re-scan (24–48h from save).
+
+One residual verification check is parked in Item 9 below
+— Apple Pay + Google Pay per-domain registration on
+smartprintai.com — because Stripe Dashboard had a
+platform-wide outage on 2026-05-09 17:48 UTC ("We're
+currently investigating an issue") that prevented
+inspecting the Configure Domains screen at the time.
+Per Matt's recall, Apple Pay's smartprintai.com domain
+registration was set previously; Google Pay's was not
+yet done. Item 9 captures the verify-once-Stripe-is-back
+step.
 
 ### 7. [OPEN] Per-product hand-written descriptions
 Today's templated/Gooten-meta blend (Section 3 above) clears
@@ -443,9 +453,36 @@ Eventually replace with hand-written descriptions per product
 (or AI-drafted copy reviewed by Matt). Effort: ~5–15 min per
 product; 26 products. P3 content backlog.
 
-### 8. [OPEN] Document the Express-shipping invariant
+### 8. [DONE 2026-05-09] Document the Express-shipping invariant
 Add a comment in src/lib/shipping-rates.ts explaining why
 FREE_SHIPPING_THRESHOLD_USD only applies to Standard and not
 Express, with reference to Google's policy ("feed price must
 be accurate or LOWER than checkout price") and a forbid-note
 on enabling a free-over-X tier on Express in MC. ~5 min.
+
+Resolved 2026-05-09 by commit e8147c2 — comment block above
+SHIPPING_RATES_USD in src/lib/shipping-rates.ts explains why
+the threshold applies only to Standard, cross-references
+Google's "feed price >= checkout price" policy, and explicitly
+forbids the free-over toggle on Express in MC.
+
+### 9. [OPEN] Verify Apple Pay + Google Pay domain registration
+Stripe Dashboard outage on 2026-05-09 17:48 UTC blocked
+inspection of the Apple Pay → Configure Domains screen
+and Google Pay's domain config. Per Matt's recall,
+smartprintai.com is registered as a verified Apple Pay
+domain but Google Pay was never given the domain. Once
+Stripe is back online:
+  - Open https://dashboard.stripe.com/settings/payment_methods
+  - Click into Apple Pay → Configure domains
+  - Confirm smartprintai.com is listed and Verified
+  - Click into Google Pay → Configure domains
+  - Add smartprintai.com if missing; if a domain-
+    association file is required, host at /public/
+    .well-known/ via Next.js (same path Apple Pay uses)
+  - Verify both wallets render at the live Stripe-hosted
+    checkout (test in Safari for Apple Pay, Chrome for
+    Google Pay)
+Effort: 5–15 min once Stripe is reachable. Does not
+block any current customer flow — checkout already
+works for cards.
