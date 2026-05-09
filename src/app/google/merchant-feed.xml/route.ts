@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
+import { SHIPPING_RATES_USD } from '@/lib/shipping-rates'
 import { toAbsoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
@@ -112,6 +113,16 @@ function productToItemXml(product: FeedProduct): string {
         '<g:age_group>adult</g:age_group>',
         ...(size ? [`<g:size>${escapeXml(size)}</g:size>`] : []),
         '<g:identifier_exists>false</g:identifier_exists>',
+        // Per-item shipping blocks — one per published flat rate. Free-
+        // over-$100 is configured separately in MC's shipping services
+        // UI, not in the feed (Google's spec doesn't express tier rules).
+        ...SHIPPING_RATES_USD.map((rate) => (
+            '<g:shipping>' +
+            `<g:country>${escapeXml(rate.country)}</g:country>` +
+            `<g:service>${escapeXml(rate.service)}</g:service>` +
+            `<g:price>${rate.priceUsd.toFixed(2)} USD</g:price>` +
+            '</g:shipping>'
+        )),
         '</item>',
     ].join('')
 }
