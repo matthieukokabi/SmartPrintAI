@@ -11,6 +11,24 @@ export type ShippingRate = {
     priceUsd: number      // Decimal USD
 }
 
+// FREE-OVER-THRESHOLD INVARIANT (do not change without re-reading
+// Google's shipping-cost policy):
+//
+// FREE_SHIPPING_THRESHOLD_USD applies ONLY to Standard shipping.
+// Express stays at its full $12.99 price in the merchant-feed XML
+// and in MC's shipping-services UI.
+//
+// The checkout in src/app/api/checkout/route.ts intentionally drops
+// Express from $12.99 → $5.99 at $100+ subtotal as a customer-
+// favorable surprise. This is policy-compliant under Google's
+// "feed price >= checkout price" rule (charging less than advertised
+// is fine; charging more is a violation).
+//
+// DO NOT enable a "Free shipping over $X" toggle on the SmartPrintAI
+// US Express service in Merchant Center's UI. That would advertise
+// free express at $X+, but checkout would still charge $5.99 —
+// feed > checkout = violation. Standard's free-over-$100 toggle is
+// correct because checkout matches it exactly (free = free).
 export const SHIPPING_RATES_USD: ShippingRate[] = [
     { country: 'US', service: 'Standard Shipping', priceUsd: 5.99 },
     { country: 'US', service: 'Express Shipping', priceUsd: 12.99 },
