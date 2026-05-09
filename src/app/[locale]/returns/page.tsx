@@ -6,6 +6,7 @@ import {
     SUPPORTED_LOCALES,
     buildLocaleAlternates,
     buildLocaleCanonical,
+    getLocaleCopy,
     isSupportedLocale,
     type SupportedLocale,
 } from '@/lib/i18n'
@@ -29,11 +30,12 @@ export function generateMetadata({ params }: LocaleReturnsPageProps): Metadata {
     }
 
     const locale = params.locale as SupportedLocale
+    const copy = getLocaleCopy(locale).returns
     const canonicalPath = buildLocaleCanonical(locale, '/returns')
 
     return {
-        title: 'Returns & Refund Policy',
-        description: 'How to return or refund a custom AI-designed product from SmartPrintAI, including eligibility, timelines, and contact details.',
+        title: copy.metaTitle,
+        description: copy.metaDescription,
         alternates: {
             canonical: canonicalPath,
             languages: buildLocaleAlternates('/returns'),
@@ -53,9 +55,9 @@ export default function LocalizedReturnsPage({ params }: LocaleReturnsPageProps)
         notFound()
     }
 
-    // INTERIM: English fallback. The policy content is hard-coded
-    // English in ReturnsPolicyContent.tsx. Tracked as a P2 follow-up
-    // in TODO.md — when fr/de/es translations land, replace this
-    // with a locale-keyed render via getLocaleCopy(locale).returns.
-    return <ReturnsPolicyContent />
+    // Phase 1: fr/de/es bundles literally reference enReturnsCopy in
+    // src/lib/i18n.ts, so this still renders English content for non-en
+    // locales. Phase 2 swaps those references for localized constants.
+    const copy = getLocaleCopy(locale).returns
+    return <ReturnsPolicyContent copy={copy} />
 }

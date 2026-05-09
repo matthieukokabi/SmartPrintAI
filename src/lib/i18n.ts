@@ -222,6 +222,164 @@ type SupportPageCopy = {
     shippingTwo: string
 }
 
+export type ReturnsBodyBlock =
+    | { type: 'paragraph'; text: string }
+    | { type: 'list'; items: string[] }
+
+export type ReturnsSection = {
+    id: string
+    heading: string
+    body: ReturnsBodyBlock[]
+}
+
+export type ReturnsPageCopy = {
+    metaTitle: string
+    metaDescription: string
+    title: string
+    effectiveDate: string
+    sections: ReturnsSection[]
+    supportLinkLabel: string
+}
+
+// English returns/refund policy copy. Sections render in array order.
+// Strings may contain the literal token "{email}" — the renderer
+// substitutes a mailto: link at render time. Paragraph text may
+// contain "\n" for line breaks (rendered as <br />).
+//
+// Phase 1 (this commit): English-only. fr/de/es bundles literally
+// reference this same object so /[locale]/returns continues to
+// render English content while translation effort is tracked
+// separately. Phase 2 will replace those references with localized
+// constants.
+const enReturnsCopy: ReturnsPageCopy = {
+    metaTitle: 'Returns & Refund Policy',
+    metaDescription: 'How to return or refund a custom AI-designed product from SmartPrintAI, including eligibility, timelines, and contact details.',
+    title: 'Returns & Refund Policy',
+    effectiveDate: 'Effective date: April 24, 2026',
+    sections: [
+        {
+            id: 'summary',
+            heading: 'Summary',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Custom AI-designed products are made to order specifically for you. We accept returns and issue refunds when an item arrives damaged, defective, or materially different from what was ordered. We cannot accept returns for buyer’s-remorse, design dissatisfaction, or wrong size when the size matches the option you selected at checkout, because each item is custom-printed and cannot be resold.',
+                },
+            ],
+        },
+        {
+            id: 'eligibility',
+            heading: 'Eligibility window',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'You have 30 days from the delivery date shown by the carrier to request a return for a damaged, defective, or incorrect item.',
+                },
+            ],
+        },
+        {
+            id: 'how-to-request',
+            heading: 'How to request a return or refund',
+            body: [
+                { type: 'paragraph', text: 'Email {email} within the 30-day window with:' },
+                {
+                    type: 'list',
+                    items: [
+                        'your order number,',
+                        'the affected item(s),',
+                        'clear photos showing the issue (front, back, and a close-up of the defect),',
+                        'whether you would prefer a free replacement or a refund to your original payment method.',
+                    ],
+                },
+                { type: 'paragraph', text: 'We respond to all return requests within 1 business day.' },
+            ],
+        },
+        {
+            id: 'what-we-replace',
+            heading: 'What we replace or refund for free',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Items that arrive damaged or defective.',
+                        'Items printed with the wrong design, wrong product, wrong size, or wrong color compared to your confirmed order.',
+                        'Items that never arrive (lost in transit) once the carrier has confirmed the parcel as lost.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'In these cases we cover all return shipping costs and ship a replacement at no charge, or refund the full amount paid (item + original shipping) to your original payment method. Refunds are processed within 5 business days of approval; depending on your card issuer or bank, they typically post within 5–10 business days after that.',
+                },
+            ],
+        },
+        {
+            id: 'final-sale',
+            heading: 'What is final sale (no refund)',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Buyer’s-remorse on a correctly produced custom item.',
+                        'Wrong size when the size you received matches the size selected at checkout.',
+                        'Designs that look different from your expectation when the printed result matches the AI-generated preview you approved before payment.',
+                    ],
+                },
+            ],
+        },
+        {
+            id: 'cancellations',
+            heading: 'Order cancellations',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'You can cancel an order at no charge within 1 hour of placing it, before production begins. Email {email} with your order number. After production has started we cannot cancel, but the return policy above still applies if anything is wrong on arrival.',
+                },
+            ],
+        },
+        {
+            id: 'damaged-on-arrival',
+            heading: 'Damaged on arrival',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Photograph the parcel and product within 7 days of delivery and email {email}. We will arrange a free replacement or full refund.',
+                },
+            ],
+        },
+        {
+            id: 'lost-in-transit',
+            heading: 'Lost in transit',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'If tracking has not updated for 10 consecutive business days for a US shipment (or 21 for international), email {email}. We will open a carrier claim and ship a replacement or issue a full refund.',
+                },
+            ],
+        },
+        {
+            id: 'return-shipping',
+            heading: 'Return shipping',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'For free returns (damaged, defective, incorrect), we email you a prepaid return label. Do not ship items back without contacting us first — unsolicited returns cannot be processed.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contact',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'SmartPrintAI Support\nEmail: {email}\nResponse time: within 1 business day, Monday–Friday.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Go to support',
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -232,11 +390,13 @@ export type LocaleCopy = {
     cart: CartPageCopy
     success: SuccessPageCopy
     support: SupportPageCopy
+    returns: ReturnsPageCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     en: {
         localeLabel: 'English',
+        returns: enReturnsCopy,
         home: {
             metadataTitle: 'Create Custom AI Print-on-Demand Products',
             metadataDescription:
@@ -485,6 +645,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     fr: {
         localeLabel: 'Francais',
+        returns: enReturnsCopy,
         home: {
             metadataTitle: 'Creez des produits personnalises avec IA',
             metadataDescription:
@@ -730,6 +891,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     de: {
         localeLabel: 'Deutsch',
+        returns: enReturnsCopy,
         home: {
             metadataTitle: 'Erstelle personalisierte Produkte mit KI',
             metadataDescription:
@@ -975,6 +1137,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     es: {
         localeLabel: 'Espanol',
+        returns: enReturnsCopy,
         home: {
             metadataTitle: 'Crea productos personalizados con IA',
             metadataDescription:

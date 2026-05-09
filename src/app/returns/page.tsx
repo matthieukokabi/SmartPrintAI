@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import ReturnsPolicyContent from '@/components/legal/ReturnsPolicyContent'
-import { buildLocaleAlternates } from '@/lib/i18n'
+import { DEFAULT_LOCALE, buildLocaleAlternates, getLocaleCopy } from '@/lib/i18n'
+
+const copy = getLocaleCopy(DEFAULT_LOCALE).returns
 
 export const metadata: Metadata = {
-    title: 'Returns & Refund Policy',
-    description: 'How to return or refund a custom AI-designed product from SmartPrintAI, including eligibility, timelines, and contact details.',
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     alternates: {
         canonical: '/returns',
         languages: buildLocaleAlternates('/returns'),
@@ -12,5 +14,5 @@ export const metadata: Metadata = {
 }
 
 export default function ReturnsPage() {
-    return <ReturnsPolicyContent />
+    return <ReturnsPolicyContent copy={copy} />
 }
