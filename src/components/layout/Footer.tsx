@@ -21,11 +21,11 @@ export default function Footer() {
                     }}
                 >
                     <div>
-                        <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                             <BrandMark size={18} />
                             <Image src="/images/logo.svg" alt="SmartPrintAI" width={24} height={24} />
                             <span className="gradient-text">SmartPrintAI</span>
-                        </h3>
+                        </h2>
                         <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
                             Describe it. AI creates it. We print and ship it.
                         </p>
@@ -40,7 +40,7 @@ export default function Footer() {
                         </Link>
                     </div>
                     <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Products</h4>
+                        <h3 style={{ fontWeight: 600, marginBottom: 12 }}>Products</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <Link href="/create" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: 14 }}>
                                 T-Shirts
@@ -57,7 +57,7 @@ export default function Footer() {
                         </div>
                     </div>
                     <div>
-                        <h4 style={{ fontWeight: 600, marginBottom: 12 }}>Support</h4>
+                        <h3 style={{ fontWeight: 600, marginBottom: 12 }}>Support</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <a
                                 href="mailto:help@smartprintai.com"

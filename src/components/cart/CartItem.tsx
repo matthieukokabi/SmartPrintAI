@@ -26,7 +26,7 @@ export default function CartItem({ item, sizeLabel, colorLabel }: CartItemProps)
             </div>
 
             <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate">{item.productName}</h3>
+                <h2 className="font-medium truncate">{item.productName}</h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                     {sizeLabel}: {item.size} · {colorLabel}: {item.color}
                 </p>

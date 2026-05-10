@@ -87,7 +87,11 @@ export default function Navbar() {
                             </Link>
                         )}
 
-                        <Link href="/cart" className="site-nav-cart relative rounded-full border border-border/70 bg-background/55 p-2.5 text-foreground transition-colors hover:bg-secondary/75">
+                        <Link
+                            href="/cart"
+                            aria-label="Cart"
+                            className="site-nav-cart relative rounded-full border border-border/70 bg-background/55 p-2.5 text-foreground transition-colors hover:bg-secondary/75"
+                        >
                             <ShoppingCart className="w-5 h-5" />
                             {itemCount > 0 && (
                                 <span className="site-nav-cartBadge absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold">

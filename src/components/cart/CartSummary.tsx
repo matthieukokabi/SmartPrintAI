@@ -60,7 +60,7 @@ export default function CartSummary({ copy }: CartSummaryProps) {
 
     return (
         <div className="glass rounded-2xl p-6 sticky top-24">
-            <h3 className="text-lg font-bold mb-4">{copy.orderSummaryLabel}</h3>
+            <h2 className="text-lg font-bold mb-4">{copy.orderSummaryLabel}</h2>
 
             <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-muted-foreground">

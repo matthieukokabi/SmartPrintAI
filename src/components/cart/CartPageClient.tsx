@@ -42,7 +42,11 @@ export default function CartPageClient({ locale, createPath, copy }: CartPageCli
                 <LanguageSwitcher currentLocale={locale} pagePath="/cart" />
             </div>
             <div className="flex items-center gap-4 mb-8">
-                <Link href={createPath} className="p-2 rounded-lg glass hover:bg-white/10 transition-colors">
+                <Link
+                    href={createPath}
+                    aria-label="Back to product picker"
+                    className="p-2 rounded-lg glass hover:bg-white/10 transition-colors"
+                >
                     <ArrowLeft className="w-4 h-4" />
                 </Link>
                 <h1 className="text-2xl font-bold">{copy.headingLabel} ({items.length})</h1>
