@@ -354,7 +354,7 @@ webhook population in commit 73a2dbb. Anthony's incident
 now carries a 5-line timestamped audit trail covering filed → 3
 webhook nudges → approved.
 
-### 6. Translate Returns & Refund Policy (fr/de/es)
+### 6. [DONE 2026-05-09] Translate Returns & Refund Policy (fr/de/es)
 Resolved P0-1 Merchant Center suspension on 2026-05-08 by adding
 /[locale]/returns routes that render the English policy content
 as fallback (commit 62ed101). The English /returns was already
@@ -367,6 +367,22 @@ getLocaleCopy(locale).returns. Until then, German/French/Spanish-
 speaking customers see English. Effort: M (mostly copy + a
 structured key in i18n.ts). No deadline; do after Anthony's
 reprint closes.
+
+Resolved 2026-05-09 in two commits:
+  - f901de3: Phase 1 architecture refactor — added
+    ReturnsPageCopy type to LocaleCopy, populated
+    enReturnsCopy with all 10 sections, refactored
+    ReturnsPolicyContent.tsx to consume the localized
+    copy via props.
+  - d8ac00e: Phase 2 content — added frReturnsCopy /
+    deReturnsCopy / esReturnsCopy constants and wired
+    the locale bundles in src/lib/i18n.ts.
+
+Live verification: /returns, /de/returns, /fr/returns,
+/es/returns each render fully localized H1, page title,
+meta description, and 10 sections in the target
+language. {email} token correctly substitutes a mailto:
+link in all 4 locales (zero literal-token leaks).
 
 ## SEO + Merchant Center cleanup (2026-05-08)
 
