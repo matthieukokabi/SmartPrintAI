@@ -380,6 +380,399 @@ const enReturnsCopy: ReturnsPageCopy = {
     supportLinkLabel: 'Go to support',
 }
 
+// ─── French ─────────────────────────────────────────────────────────
+
+const frReturnsCopy: ReturnsPageCopy = {
+    metaTitle: 'Politique de retour et de remboursement',
+    metaDescription: 'Comment retourner ou obtenir un remboursement pour un produit personnalisé conçu par IA chez SmartPrintAI, y compris les conditions, les délais et les coordonnées de contact.',
+    title: 'Politique de retour et de remboursement',
+    effectiveDate: "Date d'effet : 24 avril 2026",
+    sections: [
+        {
+            id: 'summary',
+            heading: 'Résumé',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: "Les produits personnalisés conçus par IA sont fabriqués sur commande spécialement pour vous. Nous acceptons les retours et émettons des remboursements lorsqu'un article arrive endommagé, défectueux ou matériellement différent de celui commandé. Nous ne pouvons pas accepter les retours pour remords de l'acheteur, insatisfaction du design, ou taille incorrecte lorsque celle-ci correspond à l'option sélectionnée au moment du paiement, car chaque article est imprimé sur mesure et ne peut pas être revendu.",
+                },
+            ],
+        },
+        {
+            id: 'eligibility',
+            heading: "Délai d'éligibilité",
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Vous disposez de 30 jours à compter de la date de livraison indiquée par le transporteur pour demander un retour pour un article endommagé, défectueux ou incorrect.',
+                },
+            ],
+        },
+        {
+            id: 'how-to-request',
+            heading: 'Comment demander un retour ou un remboursement',
+            body: [
+                { type: 'paragraph', text: 'Envoyez un e-mail à {email} dans le délai de 30 jours en indiquant :' },
+                {
+                    type: 'list',
+                    items: [
+                        'votre numéro de commande,',
+                        'le ou les articles concernés,',
+                        'des photos claires montrant le problème (face, dos et gros plan du défaut),',
+                        'si vous préférez un remplacement gratuit ou un remboursement sur votre moyen de paiement initial.',
+                    ],
+                },
+                { type: 'paragraph', text: 'Nous répondons à toutes les demandes de retour sous 1 jour ouvré.' },
+            ],
+        },
+        {
+            id: 'what-we-replace',
+            heading: 'Ce que nous remplaçons ou remboursons gratuitement',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Les articles qui arrivent endommagés ou défectueux.',
+                        'Les articles imprimés avec le mauvais design, le mauvais produit, la mauvaise taille ou la mauvaise couleur par rapport à votre commande confirmée.',
+                        "Les articles qui n'arrivent jamais (perdus en transit) une fois que le transporteur a confirmé que le colis est perdu.",
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'Dans ces cas, nous prenons en charge tous les frais de retour et expédions un remplacement sans frais, ou remboursons le montant total payé (article + frais de port initiaux) sur votre moyen de paiement initial. Les remboursements sont traités sous 5 jours ouvrés après approbation ; selon votre émetteur de carte ou votre banque, ils sont généralement crédités sous 5 à 10 jours ouvrés supplémentaires.',
+                },
+            ],
+        },
+        {
+            id: 'final-sale',
+            heading: 'Ce qui est en vente finale (sans remboursement)',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        "Le remords de l'acheteur sur un article personnalisé correctement produit.",
+                        'Une mauvaise taille lorsque la taille reçue correspond à celle sélectionnée au moment du paiement.',
+                        "Des designs qui semblent différents de vos attentes lorsque le résultat imprimé correspond à l'aperçu généré par IA que vous avez approuvé avant le paiement.",
+                    ],
+                },
+            ],
+        },
+        {
+            id: 'cancellations',
+            heading: 'Annulations de commande',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: "Vous pouvez annuler une commande sans frais dans l'heure suivant sa passation, avant le début de la production. Envoyez un e-mail à {email} avec votre numéro de commande. Une fois la production commencée, nous ne pouvons pas annuler, mais la politique de retour ci-dessus reste applicable si quelque chose ne va pas à l'arrivée.",
+                },
+            ],
+        },
+        {
+            id: 'damaged-on-arrival',
+            heading: "Endommagé à l'arrivée",
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Photographiez le colis et le produit dans les 7 jours suivant la livraison et envoyez un e-mail à {email}. Nous organiserons un remplacement gratuit ou un remboursement intégral.',
+                },
+            ],
+        },
+        {
+            id: 'lost-in-transit',
+            heading: 'Perdu en transit',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: "Si le suivi n'a pas été mis à jour pendant 10 jours ouvrés consécutifs pour un envoi aux États-Unis (ou 21 pour un envoi international), envoyez un e-mail à {email}. Nous ouvrirons une réclamation auprès du transporteur et expédierons un remplacement ou émettrons un remboursement intégral.",
+                },
+            ],
+        },
+        {
+            id: 'return-shipping',
+            heading: 'Frais de retour',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: "Pour les retours gratuits (endommagés, défectueux, incorrects), nous vous envoyons une étiquette de retour prépayée par e-mail. Ne renvoyez pas d'articles sans nous contacter au préalable — les retours non sollicités ne peuvent pas être traités.",
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contact',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Support SmartPrintAI\nE-mail : {email}\nDélai de réponse : sous 1 jour ouvré, du lundi au vendredi.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Aller au support',
+}
+
+// ─── German ─────────────────────────────────────────────────────────
+
+const deReturnsCopy: ReturnsPageCopy = {
+    metaTitle: 'Rückgabe- und Erstattungsrichtlinie',
+    metaDescription: 'Wie Sie ein KI-gestaltetes individuelles Produkt von SmartPrintAI zurückgeben oder erstatten lassen, einschließlich Voraussetzungen, Fristen und Kontaktdaten.',
+    title: 'Rückgabe- und Erstattungsrichtlinie',
+    effectiveDate: 'Stand: 24. April 2026',
+    sections: [
+        {
+            id: 'summary',
+            heading: 'Zusammenfassung',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'KI-gestaltete individuelle Produkte werden speziell für Sie auf Bestellung gefertigt. Wir akzeptieren Rückgaben und erstatten den Kaufpreis, wenn ein Artikel beschädigt, mangelhaft oder wesentlich anders als bestellt eintrifft. Wir können keine Rückgaben aufgrund von Reue des Käufers, Unzufriedenheit mit dem Design oder falscher Größe akzeptieren, wenn die erhaltene Größe der beim Kauf gewählten Option entspricht, da jeder Artikel individuell bedruckt und nicht weiterverkauft werden kann.',
+                },
+            ],
+        },
+        {
+            id: 'eligibility',
+            heading: 'Rückgabefrist',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Sie haben 30 Tage ab dem vom Versanddienstleister angezeigten Lieferdatum Zeit, eine Rückgabe für einen beschädigten, mangelhaften oder fehlerhaften Artikel zu beantragen.',
+                },
+            ],
+        },
+        {
+            id: 'how-to-request',
+            heading: 'So beantragen Sie eine Rückgabe oder Erstattung',
+            body: [
+                { type: 'paragraph', text: 'Senden Sie innerhalb des 30-Tage-Zeitraums eine E-Mail an {email} mit folgenden Angaben:' },
+                {
+                    type: 'list',
+                    items: [
+                        'Ihre Bestellnummer,',
+                        'die betroffenen Artikel,',
+                        'klare Fotos des Problems (Vorderseite, Rückseite und Nahaufnahme des Defekts),',
+                        'ob Sie einen kostenlosen Ersatz oder eine Erstattung auf Ihr ursprüngliches Zahlungsmittel bevorzugen.',
+                    ],
+                },
+                { type: 'paragraph', text: 'Wir beantworten alle Rückgabeanfragen innerhalb von 1 Werktag.' },
+            ],
+        },
+        {
+            id: 'what-we-replace',
+            heading: 'Was wir kostenlos ersetzen oder erstatten',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Artikel, die beschädigt oder mangelhaft eintreffen.',
+                        'Artikel, die mit dem falschen Design, falschen Produkt, falscher Größe oder falscher Farbe gegenüber Ihrer bestätigten Bestellung bedruckt wurden.',
+                        'Artikel, die nie ankommen (auf dem Versandweg verloren), sobald der Versanddienstleister das Paket als verloren bestätigt hat.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'In diesen Fällen übernehmen wir alle Rücksendekosten und versenden einen Ersatz kostenlos, oder erstatten den vollen gezahlten Betrag (Artikel + ursprüngliche Versandkosten) auf Ihr ursprüngliches Zahlungsmittel. Erstattungen werden innerhalb von 5 Werktagen nach Genehmigung bearbeitet; je nach Kartenherausgeber oder Bank werden sie typischerweise innerhalb von 5–10 Werktagen danach gutgeschrieben.',
+                },
+            ],
+        },
+        {
+            id: 'final-sale',
+            heading: 'Was vom Umtausch ausgeschlossen ist (keine Erstattung)',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Reue des Käufers bei einem korrekt produzierten individuellen Artikel.',
+                        'Falsche Größe, wenn die erhaltene Größe der beim Kauf gewählten Größe entspricht.',
+                        'Designs, die anders aussehen als erwartet, wenn das gedruckte Ergebnis der KI-generierten Vorschau entspricht, die Sie vor der Zahlung bestätigt haben.',
+                    ],
+                },
+            ],
+        },
+        {
+            id: 'cancellations',
+            heading: 'Bestellstornierungen',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Sie können eine Bestellung innerhalb von 1 Stunde nach der Aufgabe und vor Produktionsbeginn kostenlos stornieren. Senden Sie eine E-Mail an {email} mit Ihrer Bestellnummer. Nach Produktionsbeginn ist eine Stornierung nicht mehr möglich, aber die obige Rückgaberichtlinie gilt weiterhin, falls bei der Ankunft etwas nicht in Ordnung ist.',
+                },
+            ],
+        },
+        {
+            id: 'damaged-on-arrival',
+            heading: 'Beschädigung bei Ankunft',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Fotografieren Sie das Paket und das Produkt innerhalb von 7 Tagen nach der Lieferung und senden Sie eine E-Mail an {email}. Wir veranlassen einen kostenlosen Ersatz oder eine vollständige Erstattung.',
+                },
+            ],
+        },
+        {
+            id: 'lost-in-transit',
+            heading: 'Auf dem Versandweg verloren',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Wenn die Sendungsverfolgung 10 aufeinanderfolgende Werktage lang nicht aktualisiert wurde (bei US-Sendungen) oder 21 Werktage (bei internationalen Sendungen), senden Sie eine E-Mail an {email}. Wir eröffnen eine Reklamation beim Versanddienstleister und versenden einen Ersatz oder veranlassen eine vollständige Erstattung.',
+                },
+            ],
+        },
+        {
+            id: 'return-shipping',
+            heading: 'Rücksendekosten',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Bei kostenlosen Rückgaben (Beschädigung, Mangel, Fehlbestellung) senden wir Ihnen ein vorfrankiertes Rücksendeetikett per E-Mail. Senden Sie keine Artikel zurück, ohne uns vorher zu kontaktieren — unaufgeforderte Rücksendungen können nicht bearbeitet werden.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Kontakt',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'SmartPrintAI Support\nE-Mail: {email}\nAntwortzeit: innerhalb von 1 Werktag, Montag–Freitag.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Zum Support',
+}
+
+// ─── Spanish ────────────────────────────────────────────────────────
+
+const esReturnsCopy: ReturnsPageCopy = {
+    metaTitle: 'Política de devoluciones y reembolsos',
+    metaDescription: 'Cómo devolver o reembolsar un producto personalizado diseñado por IA de SmartPrintAI, incluidos los requisitos, plazos y datos de contacto.',
+    title: 'Política de devoluciones y reembolsos',
+    effectiveDate: 'Fecha de entrada en vigor: 24 de abril de 2026',
+    sections: [
+        {
+            id: 'summary',
+            heading: 'Resumen',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Los productos personalizados diseñados por IA se fabrican bajo pedido específicamente para usted. Aceptamos devoluciones y emitimos reembolsos cuando un artículo llega dañado, defectuoso o materialmente diferente al que pidió. No podemos aceptar devoluciones por arrepentimiento del comprador, insatisfacción con el diseño o talla incorrecta cuando la talla coincide con la opción que seleccionó al pagar, ya que cada artículo se imprime a medida y no puede revenderse.',
+                },
+            ],
+        },
+        {
+            id: 'eligibility',
+            heading: 'Plazo de elegibilidad',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Dispone de 30 días a partir de la fecha de entrega indicada por el transportista para solicitar la devolución de un artículo dañado, defectuoso o incorrecto.',
+                },
+            ],
+        },
+        {
+            id: 'how-to-request',
+            heading: 'Cómo solicitar una devolución o reembolso',
+            body: [
+                { type: 'paragraph', text: 'Envíe un correo electrónico a {email} dentro del plazo de 30 días con:' },
+                {
+                    type: 'list',
+                    items: [
+                        'su número de pedido,',
+                        'los artículos afectados,',
+                        'fotos claras que muestren el problema (frente, dorso y primer plano del defecto),',
+                        'si prefiere un reemplazo gratuito o un reembolso a su método de pago original.',
+                    ],
+                },
+                { type: 'paragraph', text: 'Respondemos a todas las solicitudes de devolución en 1 día hábil.' },
+            ],
+        },
+        {
+            id: 'what-we-replace',
+            heading: 'Qué reemplazamos o reembolsamos gratuitamente',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Artículos que llegan dañados o defectuosos.',
+                        'Artículos impresos con el diseño, producto, talla o color incorrectos respecto a su pedido confirmado.',
+                        'Artículos que nunca llegan (perdidos en tránsito) una vez que el transportista haya confirmado que el paquete está perdido.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'En estos casos cubrimos todos los gastos de envío de devolución y enviamos un reemplazo sin coste, o reembolsamos el importe total pagado (artículo + envío original) a su método de pago original. Los reembolsos se procesan en 5 días hábiles tras la aprobación; según su entidad bancaria, suelen reflejarse en 5 a 10 días hábiles adicionales.',
+                },
+            ],
+        },
+        {
+            id: 'final-sale',
+            heading: 'Qué es venta final (sin reembolso)',
+            body: [
+                {
+                    type: 'list',
+                    items: [
+                        'Arrepentimiento del comprador sobre un artículo personalizado correctamente producido.',
+                        'Talla incorrecta cuando la talla recibida coincide con la talla seleccionada al pagar.',
+                        'Diseños que se ven diferentes a sus expectativas cuando el resultado impreso coincide con la vista previa generada por IA que aprobó antes de pagar.',
+                    ],
+                },
+            ],
+        },
+        {
+            id: 'cancellations',
+            heading: 'Cancelaciones de pedido',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Puede cancelar un pedido sin coste dentro de 1 hora tras realizarlo, antes de que comience la producción. Envíe un correo electrónico a {email} con su número de pedido. Una vez iniciada la producción no podemos cancelar, pero la política de devolución anterior sigue aplicándose si algo no está bien al recibir el pedido.',
+                },
+            ],
+        },
+        {
+            id: 'damaged-on-arrival',
+            heading: 'Dañado a la llegada',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Fotografíe el paquete y el producto dentro de los 7 días posteriores a la entrega y envíe un correo electrónico a {email}. Organizaremos un reemplazo gratuito o un reembolso completo.',
+                },
+            ],
+        },
+        {
+            id: 'lost-in-transit',
+            heading: 'Perdido en tránsito',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Si el seguimiento no se ha actualizado durante 10 días hábiles consecutivos para un envío a EE. UU. (o 21 para un envío internacional), envíe un correo electrónico a {email}. Abriremos una reclamación con el transportista y enviaremos un reemplazo o emitiremos un reembolso completo.',
+                },
+            ],
+        },
+        {
+            id: 'return-shipping',
+            heading: 'Gastos de envío de devolución',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Para devoluciones gratuitas (dañadas, defectuosas, incorrectas) le enviamos por correo electrónico una etiqueta de envío prepagada. No nos envíe artículos sin contactarnos primero — las devoluciones no solicitadas no se pueden procesar.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contacto',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Soporte de SmartPrintAI\nCorreo electrónico: {email}\nTiempo de respuesta: en 1 día hábil, de lunes a viernes.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Ir al soporte',
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -645,7 +1038,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     fr: {
         localeLabel: 'Francais',
-        returns: enReturnsCopy,
+        returns: frReturnsCopy,
         home: {
             metadataTitle: 'Creez des produits personnalises avec IA',
             metadataDescription:
@@ -891,7 +1284,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     de: {
         localeLabel: 'Deutsch',
-        returns: enReturnsCopy,
+        returns: deReturnsCopy,
         home: {
             metadataTitle: 'Erstelle personalisierte Produkte mit KI',
             metadataDescription:
@@ -1137,7 +1530,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     },
     es: {
         localeLabel: 'Espanol',
-        returns: enReturnsCopy,
+        returns: esReturnsCopy,
         home: {
             metadataTitle: 'Crea productos personalizados con IA',
             metadataDescription:
