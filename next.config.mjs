@@ -25,6 +25,7 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   trailingSlash: false,
   images: {
     formats: ['image/avif', 'image/webp'],

@@ -1,0 +1,22 @@
+[Unit]
+Description=SmartPrintAI Next.js production server
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/smartprintai
+Environment=NODE_ENV=production
+Environment=PATH=/root/.nvm/versions/node/v22.22.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStartPre=/bin/test -f /root/smartprintai/.next/BUILD_ID
+ExecStartPre=/bin/test -f /root/smartprintai/.next/server/pages/_error.js
+ExecStart=/root/.nvm/versions/node/v22.22.0/bin/npm run start -- --hostname 127.0.0.1 --port 3100
+Restart=always
+RestartSec=5
+TimeoutStartSec=120
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
