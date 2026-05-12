@@ -502,3 +502,33 @@ Stripe is back online:
 Effort: 5–15 min once Stripe is reachable. Does not
 block any current customer flow — checkout already
 works for cards.
+
+## Ops hardening + dead-config sweep (2026-05-11)
+
+### 1. [DONE 2026-05-11] Atomic deploy script + systemd graceful shutdown hardening
+Root cause for the 2026-05-08 GSC 5xx alert (WNC-20237597) was a deploy race condition: the service was restarted while `.next` was still being written by `next build`, so `/es/products/cmnvmcgvf0028aml2ouchzykl` resolved to a missing `.next/server/app/[locale]/products/[id]/page.js` for 88 seconds. The fallback `.next/server/pages/_error.js` was also absent, so Next returned a bare 21-byte HTTP 500 instead of an error page. Googlebot hit the window once at 2026-05-08 20:50:38 UTC; GSC emailed 32h later.
+
+Shipped 2026-05-11 in commit cd8f95f:
+- `scripts/deploy.sh`: build to `.next.staging`, validate `BUILD_ID` + `_error.js` + `app/page.js`, atomic `mv` → restart → 5-attempt health-check → auto-rollback on failure. Keeps `.next.old` for emergency manual rollback. Logs to `/var/log/smartprintai-deploy.log`.
+- `next.config.mjs`: `distDir` reads `NEXT_DIST_DIR` env so the staging build doesn't touch the live directory (Next 14 has no native `--dist-dir` flag).
+- `/etc/systemd/system/smartprintai.service` (snapshot in `ops/systemd/`): `ExecStartPre` tests for `BUILD_ID` + `_error.js`, `TimeoutStopSec=30s`, `KillSignal=SIGTERM`, `KillMode=mixed`.
+- `.gitignore`: `/.next.old/`, `/.next.staging/`, `/.next.failed/`.
+
+Smoke-tested end-to-end (2-min deploy, all 6 steps passed) and independently verified 11/11 PASS. `/es/products/cmnvmcgvf0028aml2ouchzykl` now responds 200 in 82ms to Googlebot UA.
+
+### 2. [DONE 2026-05-11] Remove dead Printful HMAC config
+Three pre-d49429e `.bak` files in `src/app/api/webhooks/printful/` (`route.ts.bak.20260425_131642`, `route.ts.bak.20260506_053006`, `route.test.ts.bak.20260506_053006`) and the unused `PRINTFUL_WEBHOOK_SECRET` (128-hex) line in `.env.local` were leftovers from the old HMAC verifier replaced by commit d49429e on 2026-05-06. Removed; service restarted clean (HTTP 200 in 185ms). Zero live references in `src/` or `scripts/`.
+
+The verify-by-refetch shipment itself is recorded in section "P0 mockup-fix follow-ups (2026-05-05)" item 2.
+
+### 3. [OPEN] Update scripts/deploy_vps.sh to call scripts/deploy.sh
+The remote-driver `npm run deploy:vps` (laptop → SSH → VPS) still runs `npm run build` in place on the VPS — exactly the pattern that caused the May 8 5xx. Refactor to SSH-exec the new on-VPS `scripts/deploy.sh` so atomic semantics apply to laptop-triggered deploys too. ~10 lines. P1 — until this lands, the atomic-deploy hardening only protects on-VPS-initiated deploys.
+
+### 4. [OPEN] Set SENTRY_DSN to activate alerting
+`src/lib/sentry.ts` is wired (imports `@sentry/node`, `captureException` ready) but `SENTRY_DSN` is unset in `.env.local`, so no events ship. The May 8 5xx only surfaced because GSC emailed 32h later; nothing actively pages on a Next.js `MODULE_NOT_FOUND` or any unhandled exception. Decision needed: provision a Sentry org+project and add DSN, or accept silent-failure mode and rely on synthetic monitoring instead. P1.
+
+### 5. [OPEN] systemd "Failed to kill control group" warning on stop
+Reproducible on every `smartprintai.service` stop (seen 2026-05-08 20:49 UTC and 2026-05-11 13:40 UTC). Deactivation completes one line later, so cosmetic today, but a recurring warning erodes signal-to-noise in `journalctl`. Likely a cgroup-v2 + `KillMode=mixed` + missing `Delegate=` interaction. ~30 min to investigate. P3.
+
+### 6. [OPEN] Migrate Printful inbound webhooks to V2 (signed)
+V2 introduces signed inbounds (HTTPS-enforced, expiring keys, request signing). Current V2 subscription is empty (`GET /v2/webhooks → events:[]`); V1 unsigned + verify-by-refetch is the documented best practice for V1 stores and is working in production (May 6–7 logs confirm order 155944590 reconciled through to `fulfilled` + USPS tracking). Migrate when V2 stabilizes or if signed semantics become useful for an audit trail. P3.
