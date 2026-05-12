@@ -521,14 +521,24 @@ Three pre-d49429e `.bak` files in `src/app/api/webhooks/printful/` (`route.ts.ba
 
 The verify-by-refetch shipment itself is recorded in section "P0 mockup-fix follow-ups (2026-05-05)" item 2.
 
-### 3. [OPEN] Update scripts/deploy_vps.sh to call scripts/deploy.sh
+### 3. [DONE 2026-05-12] Update scripts/deploy_vps.sh to call scripts/deploy.sh
 The remote-driver `npm run deploy:vps` (laptop → SSH → VPS) still runs `npm run build` in place on the VPS — exactly the pattern that caused the May 8 5xx. Refactor to SSH-exec the new on-VPS `scripts/deploy.sh` so atomic semantics apply to laptop-triggered deploys too. ~10 lines. P1 — until this lands, the atomic-deploy hardening only protects on-VPS-initiated deploys.
 
-### 4. [OPEN] Set SENTRY_DSN to activate alerting
+Closed by commit a033fd0. Both deploy paths (laptop-driven and on-VPS-direct) now share atomic semantics. End-to-end validated by simulated deploy at 2026-05-12 11:03 UTC.
+
+### 4. [ACCEPTED-DEFERRED] Set SENTRY_DSN to activate alerting
 `src/lib/sentry.ts` is wired (imports `@sentry/node`, `captureException` ready) but `SENTRY_DSN` is unset in `.env.local`, so no events ship. The May 8 5xx only surfaced because GSC emailed 32h later; nothing actively pages on a Next.js `MODULE_NOT_FOUND` or any unhandled exception. Decision needed: provision a Sentry org+project and add DSN, or accept silent-failure mode and rely on synthetic monitoring instead. P1.
 
-### 5. [OPEN] systemd "Failed to kill control group" warning on stop
+Deferred 2026-05-12 — no DSN provided this session. Mitigation: atomic deploy + ExecStartPre artifact gates eliminate the failure mode that would have made silent alerting painful (May 8 build race). If a DSN is added later, the patch is single-line in .env.local plus a bash scripts/deploy.sh recovery. Synthetic monitoring remains the fallback signal path.
+
+### 5. [DONE-PARTIAL 2026-05-12] systemd stop semantics + residual cosmetic warning
 Reproducible on every `smartprintai.service` stop (seen 2026-05-08 20:49 UTC and 2026-05-11 13:40 UTC). Deactivation completes one line later, so cosmetic today, but a recurring warning erodes signal-to-noise in `journalctl`. Likely a cgroup-v2 + `KillMode=mixed` + missing `Delegate=` interaction. ~30 min to investigate. P3.
+
+Stop-semantics bug fixed in commit 6b08c44 (drop KillMode=mixed). Real failure mode (next-server kept running after 'Deactivated' on 7/10 stops, SIGKILL escalation, race for port 3100 reuse) is gone — verified by 3 restart cycles at realistic 90s deploy cadence with zero 'remains running' and zero SIGKILL. The cosmetic 'Failed to kill control group: Invalid argument' line still fires on every restart under KillMode=control-group + ExecStart=npm run start; systemd's belt-and-braces cgroup.kill hits an already-emptying cgroup. No functional impact. Future cleanup if desired: rework ExecStart to bypass the npm wrapper (Option C in the diagnostic) — parked, P3.
 
 ### 6. [OPEN] Migrate Printful inbound webhooks to V2 (signed)
 V2 introduces signed inbounds (HTTPS-enforced, expiring keys, request signing). Current V2 subscription is empty (`GET /v2/webhooks → events:[]`); V1 unsigned + verify-by-refetch is the documented best practice for V1 stores and is working in production (May 6–7 logs confirm order 155944590 reconciled through to `fulfilled` + USPS tracking). Migrate when V2 stabilizes or if signed semantics become useful for an audit trail. P3.
+
+### 7. [OPEN] (P3) deploy.sh staging build rewrites tsconfig.json
+
+Next.js's TS auto-config rewrites tsconfig.json during the staging-distDir build (NEXT_DIST_DIR=.next.staging) — appends ".next.staging/types/**/*.ts" to the include array, which is the wrong path for the swapped-in runtime location. Cosmetic (Next.js's own TS handling doesn't use tsconfig at runtime), but it leaves the working tree dirty on every deploy. Fix: add `git restore tsconfig.json` to scripts/deploy.sh after the staging build completes (between step 3/6 build and step 5/6 swap) — single line. P3, ~5 min.
