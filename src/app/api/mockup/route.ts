@@ -499,10 +499,37 @@ export async function POST(req: NextRequest) {
                 return respond({ error: 'Product mapping unavailable' }, { status: 400 })
             }
 
+            const printArea = (product.printArea || {}) as Record<string, unknown>
+            const printAreaWidth = Number(printArea.width)
+            const printAreaHeight = Number(printArea.height)
+            if (
+                !Number.isFinite(printAreaWidth) ||
+                !Number.isFinite(printAreaHeight) ||
+                printAreaWidth <= 0 ||
+                printAreaHeight <= 0
+            ) {
+                logApiError(route, requestId, 'printful_print_area_invalid', new Error(
+                    `Product ${productId} (printfulId=${product.printfulId}) has invalid printArea: ${JSON.stringify(product.printArea)}`,
+                ))
+                return respond(
+                    { error: 'Product print area is not configured. Please contact support.' },
+                    { status: 500 },
+                )
+            }
+            const printAreaPlacement =
+                typeof printArea.placement === 'string' && printArea.placement.trim().length > 0
+                    ? printArea.placement.trim()
+                    : undefined
+
             const result = await printful.generateMockup({
                 productId: printfulProductId,
                 productVariantId: colorData.printfulVariantId,
                 imageUrl: design.imageUrl,
+                printArea: {
+                    width: printAreaWidth,
+                    height: printAreaHeight,
+                    placement: printAreaPlacement,
+                },
             })
 
             mockupUrl = result.mockups[0]?.mockup_url || null

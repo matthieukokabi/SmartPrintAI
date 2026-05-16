@@ -662,7 +662,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
             productName: selectedProductData.name,
             designId,
             imageUrl: imageUrl || '',
-            mockupUrl: mockupUrl || imageUrl || '',
+            mockupUrl: mockupUrl ?? '',
             size: sizeForCart,
             color: colorForCart,
             quantity: 1,
@@ -670,6 +670,30 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
         })
         setAdded(true)
         setTimeout(() => setAdded(false), 2000)
+    }
+
+    const mockupReady =
+        Boolean(imageUrl) &&
+        Boolean(mockupUrl) &&
+        !isMockupLoading &&
+        !mockupError
+
+    let cartButtonLabel: string
+    let cartButtonDisabled: boolean
+    if (!imageUrl) {
+        cartButtonLabel = 'Generate a design first'
+        cartButtonDisabled = true
+    } else if (isMockupLoading) {
+        cartButtonLabel = 'Generating mockup…'
+        cartButtonDisabled = true
+    } else if (mockupError || !mockupUrl) {
+        cartButtonLabel = 'Mockup unavailable — try a different color or regenerate'
+        cartButtonDisabled = true
+    } else {
+        cartButtonLabel = product
+            ? `${copy.addToCartLabel} - $${product.sellPrice.toFixed(2)}`
+            : copy.addToCartLabel
+        cartButtonDisabled = added
     }
 
     return (
@@ -845,10 +869,15 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                         </div>
                                     )}
 
+                                    {mockupReady && (
+                                        <p className="text-xs text-muted-foreground text-center mb-2">
+                                            This is the preview you&apos;ll receive.
+                                        </p>
+                                    )}
                                     <button
                                         onClick={handleAddToCart}
-                                        disabled={added}
-                                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45"
+                                        disabled={cartButtonDisabled}
+                                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2f6cf3] to-[#26d4b8] px-6 py-3 font-medium text-white shadow-[0_20px_40px_-26px_rgba(38,212,184,0.58)] transition-all duration-300 hover:brightness-105 active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#26d4b8]/45 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
                                     >
                                         {added ? (
                                             <>
@@ -856,7 +885,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                                             </>
                                         ) : (
                                             <>
-                                                <ShoppingCart className="w-4 h-4" /> {copy.addToCartLabel} - ${product.sellPrice.toFixed(2)}
+                                                <ShoppingCart className="w-4 h-4" /> {cartButtonLabel}
                                             </>
                                         )}
                                     </button>

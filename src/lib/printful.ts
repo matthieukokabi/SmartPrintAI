@@ -61,11 +61,20 @@ class PrintfulClient {
         productId: number
         productVariantId: number
         imageUrl: string
+        printArea: { width: number; height: number; placement?: string }
         placement?: string
     }) {
+        const areaWidth = Number(params.printArea?.width)
+        const areaHeight = Number(params.printArea?.height)
+        if (!Number.isFinite(areaWidth) || !Number.isFinite(areaHeight) || areaWidth <= 0 || areaHeight <= 0) {
+            throw new Error(
+                `Printful generateMockup requires positive printArea dimensions; got ${areaWidth}x${areaHeight}`,
+            )
+        }
+
         const placementCandidates = await this.getPlacementCandidates(
             params.productId,
-            params.placement
+            params.placement ?? params.printArea.placement,
         )
         let lastError: unknown
 
@@ -81,11 +90,11 @@ class PrintfulClient {
                                 placement,
                                 image_url: params.imageUrl,
                                 position: {
-                                    area_width: 1800,
-                                    area_height: 2100,
-                                    width: 1800,
-                                    height: 1800,
-                                    top: 150,
+                                    area_width: areaWidth,
+                                    area_height: areaHeight,
+                                    width: areaWidth,
+                                    height: areaHeight,
+                                    top: 0,
                                     left: 0,
                                 },
                             },
