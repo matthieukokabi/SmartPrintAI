@@ -89,6 +89,7 @@ model Order {
   shippedAt       DateTime?
   trackingUrl     String?
   emailSentAt     DateTime?
+  shipmentEmailSentAt DateTime?
   printfulCalledAt DateTime?
   paymentProvider String?
   user            User?       @relation(fields: [userId], references: [id])

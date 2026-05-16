@@ -118,31 +118,34 @@ export async function sendShipmentNotification(params: {
     trackingNumber?: string | null
     carrier?: string | null
 }) {
-    try {
-        const shortId = params.orderId.slice(-8).toUpperCase()
-        const trackingLines = [
-            params.carrier ? `<p style="color:#a1a1aa;margin:0 0 6px;font-size:13px;">Carrier: <strong style="color:#f4f4f5;">${params.carrier}</strong></p>` : '',
-            params.trackingNumber ? `<p style="color:#a1a1aa;margin:0;font-size:13px;">Tracking: <strong style="color:#f4f4f5;">${params.trackingNumber}</strong></p>` : '',
-        ]
-            .filter(Boolean)
-            .join('')
+    const shortId = params.orderId.slice(-8).toUpperCase()
+    const trackingLines = [
+        params.carrier ? `<p style="color:#a1a1aa;margin:0 0 6px;font-size:13px;">Carrier: <strong style="color:#f4f4f5;">${params.carrier}</strong></p>` : '',
+        params.trackingNumber ? `<p style="color:#a1a1aa;margin:0;font-size:13px;">Tracking: <strong style="color:#f4f4f5;">${params.trackingNumber}</strong></p>` : '',
+    ]
+        .filter(Boolean)
+        .join('')
 
-        await resend.emails.send({
-            from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
-            to: params.email,
-            subject: `Your order is on its way! 🚀 #${shortId}`,
-            html: emailShell(`
+    const result = await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+        to: params.email,
+        subject: `Your order is on its way! 🚀 #${shortId}`,
+        html: emailShell(`
 ${sectionTitle('🚀 Your Order Has Shipped!')}
 ${mutedText(`Order <strong style="color:#f4f4f5;">#${shortId}</strong> is on its way to you.`)}
 ${trackingLines ? infoBox(trackingLines) : ''}
 ${params.trackingUrl ? `<div style="text-align:center;margin:24px 0;">${ctaButton('Track My Shipment', params.trackingUrl)}</div>` : ''}
 ${mutedText('Standard delivery: 5–10 business days. Express: 2–4 business days.')}
 ${mutedText('Questions? <a href="' + APP_URL() + '/support" style="color:#2f6cf3;text-decoration:underline;">Contact support</a> or reply to this email.')}
-            `),
-        })
-    } catch (error) {
-        console.error('Failed to send shipment notification email:', error)
+        `),
+    })
+    if (result.error) {
+        throw new Error(
+            `Resend API error sending shipment notification: ` +
+            (result.error.message ?? JSON.stringify(result.error)),
+        )
     }
+    return result.data
 }
 
 // ────────────────────────────────────────────────────────────────

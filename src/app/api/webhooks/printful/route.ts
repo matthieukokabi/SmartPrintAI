@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
+import { sendShipmentNotification } from '@/lib/resend'
 
 // V1 Printful webhooks are unsigned. We verify by re-fetching from
 // Printful's authenticated API; the webhook body is treated as an
@@ -138,6 +139,16 @@ export async function POST(req: NextRequest) {
             .filter(Boolean)
             .join(',') || null
 
+    // Structured tracking from the primary shipment for the
+    // Order row + shipping-confirmation email. Older order_updated
+    // events may arrive before any shipment exists; in that case
+    // all three are null and the tracking-column update is skipped.
+    const primaryShipment = (authoritative.shipments ?? [])[0] ?? null
+    const trackingNumber = primaryShipment?.tracking_number ?? null
+    const trackingUrl = primaryShipment?.tracking_url ?? null
+    const carrier = primaryShipment?.carrier ?? null
+    const hasShipmentInfo = Boolean(trackingNumber || trackingUrl || carrier)
+
     const ts = new Date().toISOString()
     const noteAddition =
         `[${ts}] webhook=${eventType} ` +
@@ -155,6 +166,14 @@ export async function POST(req: NextRequest) {
         data: {
             ...(newStatus ? { status: newStatus } : {}),
             internalNotes: updatedNotes,
+            ...(hasShipmentInfo
+                ? {
+                      trackingNumber: trackingNumber ?? localOrder.trackingNumber,
+                      trackingCarrier: carrier ?? localOrder.trackingCarrier,
+                      trackingUrl: trackingUrl ?? localOrder.trackingUrl,
+                      shippedAt: localOrder.shippedAt ?? new Date(),
+                  }
+                : {}),
         },
     })
 
@@ -170,6 +189,57 @@ export async function POST(req: NextRequest) {
                 trackingSummary,
             }),
     )
+
+    // Shipping-confirmation email — fires once per order on
+    // package_shipped events. Gated on shipmentEmailSentAt so
+    // Printful's webhook retries can't double-send. If Resend
+    // fails, we return 500 to let Printful retry; the dedupe
+    // column makes the happy retry path safe. (The Gooten webhook
+    // takes a different shape — catch+log+200 with no retry —
+    // because it has no equivalent dedupe column yet.)
+    if (
+        eventType === 'package_shipped' &&
+        localOrder.shipmentEmailSentAt === null
+    ) {
+        try {
+            await sendShipmentNotification({
+                email: localOrder.email,
+                orderId: localOrder.id,
+                trackingNumber,
+                trackingUrl,
+                carrier,
+            })
+            await prisma.order.update({
+                where: { id: localOrder.id },
+                data: { shipmentEmailSentAt: new Date() },
+            })
+            console.log(
+                '[printful-webhook] shipment email sent ' +
+                    JSON.stringify({
+                        requestId,
+                        localOrderId: localOrder.id,
+                        trackingNumber,
+                        carrier,
+                    }),
+            )
+        } catch (err) {
+            const errMsg = err instanceof Error ? err.message : String(err)
+            console.error(
+                '[printful-webhook] sendShipmentNotification failed ' +
+                    JSON.stringify({
+                        requestId,
+                        localOrderId: localOrder.id,
+                        error: errMsg,
+                    }),
+            )
+            // shipmentEmailSentAt stays null so the next Printful
+            // webhook retry can re-attempt the send.
+            return NextResponse.json(
+                { error: 'email_failed' },
+                { status: 500 },
+            )
+        }
+    }
 
     return NextResponse.json({ ok: true })
 }
