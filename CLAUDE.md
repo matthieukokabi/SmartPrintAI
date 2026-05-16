@@ -1,0 +1,71 @@
+# SmartPrintAI — Agent context
+
+Persistent memory for future agent sessions. NOT a session log. Keep
+entries high-signal; defer running task lists to TODO.md.
+
+## Stack + key paths
+
+- Next.js App Router (TypeScript) + Tailwind. Prisma → Postgres.
+- Fulfillment: Printful + Gooten. Payments: Stripe. Email: Resend.
+- Infra: Postgres + Redis + MinIO + Nginx + smartprintai.service (systemd).
+- Key directories:
+  - `src/app/api/*` — route handlers (Stripe webhook, generate, create)
+  - `prisma/schema.prisma` — single source of truth for data shape
+  - `scripts/deploy.sh` — atomic on-VPS deploy; called by `deploy_vps.sh`
+  - `docs/` — operational runbooks
+- Authoritative pointers:
+  - Roadmap + history → `TODO.md`
+  - Deploy procedure → `docs/DEPLOY_RUNBOOK.md`
+  - Schema migration notes → `docs/MIGRATIONS.md`
+
+## Data + service guardrails
+
+- ❌ NEVER delete: real users, orders, `env.local.bak.*` files, Stripe
+  customer records. If unsure, ask.
+- Stripe webhook idempotency is REQUIRED; `event.id` dedup is in place.
+- `REQUIRES_REVIEW` orders are operator-gated — never auto-fulfill.
+- The atomic deploy (`scripts/deploy.sh` + `prisma migrate deploy`)
+  ensures code + schema land together. Don't introduce out-of-band
+  migration steps.
+
+## Defense layers against AI-design / product-print-area mismatch (May 16 sprint)
+
+The Anthony Shivbaran luggage-tag incident (Apr 25 + May 7 reprint,
+both shipped with a horizontal wordmark squished onto a vertical tag)
+drove a 4-layer architectural fix shipped across six commits on May 16:
+
+| Layer | Commit | What |
+|---|---|---|
+| 1. AI generation | `45c7062` | `/api/generate` accepts `productId`, prepends orientation hint to Gemini prompt based on `Product.printArea` aspect ratio. Drops the hardcoded `Square format.` directive that was the upstream root cause. |
+| 2. Customer visual gate | `7338d65` | `/create` calls Printful mockup-generator API with per-product `printArea`, gates "Add to cart" on mockup readiness, removes silent imageUrl fallback. |
+| 3. Backend aspect guard | `9159e07` | Stripe webhook routes orders to `REQUIRES_REVIEW` when source aspect ratio diverges from print area by >2.0x. |
+| 4. Honest review email | `ce5e9e1` | REQUIRES_REVIEW orders get "we're reviewing your order" email instead of misleading "confirmed". Make.com alert carries `internalNotes` so operator sees the reason. |
+
+Supporting infrastructure shipped same session:
+- `c6bf30c` — shipping confirmation email on `package_shipped` (no
+  customer was receiving one before)
+- `9548a96` — wire `prisma migrate deploy` into `scripts/deploy.sh`
+  (schema migrations now apply atomically with code)
+
+## Pattern lesson — latent hardcoded directives upstream
+
+`gemini.ts` had `Square format.` appended unconditionally to every
+prompt for every product. This was the upstream root cause that
+defeated 5 tiers of downstream defenses. When debugging a class of
+failures across multiple layers, audit the upstream defaults — there
+may be a one-line hardcoded directive making all your downstream
+fixes uphill battles.
+
+## Open follow-ups (low priority, parked)
+
+- Tier 2.5 i18n: three disabled-state cart-button labels English-only;
+  need locale keys for FR/DE/ES bundles
+- Tier 2.5 webhook: `resolveMockupUrl` fallback to `design.imageUrl`
+  at `stripe/route.ts:351` covered by Tier 1 but worth tightening for
+  non-cart fulfillment paths
+- Tier 3.5 UX: disabled-button visibility on fast connections
+  (functional gate works, visual feedback brief)
+- Accept Next.js's auto-formatted tsconfig.json in one commit (recurring
+  noise in every deploy)
+- 5 pre-existing tsc errors in test files (merchant-feed × 3,
+  internal-links-regression × 2)
