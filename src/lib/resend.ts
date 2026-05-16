@@ -109,6 +109,39 @@ ${mutedText("We'll email you when your order ships with a tracking link. Standar
 }
 
 // ────────────────────────────────────────────────────────────────
+// 1b. ORDER IN REVIEW (REQUIRES_REVIEW path)
+// ────────────────────────────────────────────────────────────────
+export async function sendOrderInReview(params: {
+    email: string
+    orderId: string
+    itemSummary?: string
+}) {
+    const shortId = params.orderId.slice(-8).toUpperCase()
+    const result = await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+        to: params.email,
+        subject: `We're reviewing your order — SmartPrintAI #${shortId}`,
+        html: emailShell(`
+${sectionTitle('🔍 Your Order Is In Review')}
+${mutedText('Thanks for ordering. Our team is reviewing the design for quality before sending it to production.')}
+${infoBox(`
+<p style="color:#a1a1aa;margin:0 0 6px;font-size:13px;">Order ID: <strong style="color:#f4f4f5;">#${shortId}</strong></p>
+${params.itemSummary ? `<p style="color:#a1a1aa;margin:0;font-size:13px;">Item: <strong style="color:#f4f4f5;">${params.itemSummary}</strong></p>` : ''}
+`)}
+${mutedText("We'll email you again within 24 hours with status. No action needed from you right now.")}
+${mutedText('Questions? <a href="' + APP_URL() + '/support" style="color:#2f6cf3;text-decoration:underline;">Contact support</a> or reply to this email.')}
+        `),
+    })
+    if (result.error) {
+        throw new Error(
+            `Resend API error sending order in review: ` +
+            (result.error.message ?? JSON.stringify(result.error)),
+        )
+    }
+    return result.data
+}
+
+// ────────────────────────────────────────────────────────────────
 // 2. SHIPMENT NOTIFICATION
 // ────────────────────────────────────────────────────────────────
 export async function sendShipmentNotification(params: {

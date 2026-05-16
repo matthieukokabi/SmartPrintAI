@@ -8,7 +8,7 @@ import sharp from 'sharp'
 import { getGootenClient } from '@/lib/gooten'
 import { gelato } from '@/lib/gelato'
 import { detectProductProvider } from '@/lib/product-provider'
-import { sendOrderConfirmation } from '@/lib/resend'
+import { sendOrderConfirmation, sendOrderInReview } from '@/lib/resend'
 import { sendMakeOrderAlert } from '@/lib/make'
 import Stripe from 'stripe'
 
@@ -604,26 +604,53 @@ async function processCheckoutSession(
     }
 
     try {
-        await sendOrderConfirmation({
-            email: customerEmail,
-            orderId: order.id,
-            items,
-            total: order.total,
-        })
-
-        try {
-            await prisma.order.update({
-                where: { id: order.id },
-                data: { emailSentAt: new Date() },
+        if (requiresReview) {
+            // In-review email uses strict-throw pattern. Wrap in its
+            // own try/catch so a Resend failure cannot bubble up and
+            // skip the Make alert below — the operator's Telegram
+            // alert is the durable signal we must not lose.
+            try {
+                await sendOrderInReview({
+                    email: customerEmail,
+                    orderId: order.id,
+                    itemSummary: `${items.length} item(s)`,
+                })
+                try {
+                    await prisma.order.update({
+                        where: { id: order.id },
+                        data: { emailSentAt: new Date() },
+                    })
+                } catch (e) {
+                    console.error('Failed to record emailSentAt:', e)
+                }
+            } catch (err) {
+                console.error('[webhook] sendOrderInReview failed:', err)
+                // Do not rethrow — fall through to the Make alert.
+            }
+        } else {
+            await sendOrderConfirmation({
+                email: customerEmail,
+                orderId: order.id,
+                items,
+                total: order.total,
             })
-        } catch (e) {
-            console.error('Failed to record emailSentAt:', e)
+
+            try {
+                await prisma.order.update({
+                    where: { id: order.id },
+                    data: { emailSentAt: new Date() },
+                })
+            } catch (e) {
+                console.error('Failed to record emailSentAt:', e)
+            }
         }
 
         // Fire ops alert (make.com webhook) — best-effort, never blocks
         // the response. printfulOrderId here is the cross-provider field
         // (printful id, gooten id, or gelato id depending on which
-        // provider fulfilled the order).
+        // provider fulfilled the order). internalNotes carries the
+        // REQUIRES_REVIEW reason so the operator gets it in Telegram
+        // without a DB lookup.
         const externalIdForAlert =
             printfulOrderId || gootenOrderId || gelatoOrderId || ''
         try {
@@ -636,6 +663,7 @@ async function processCheckoutSession(
                 itemsCount: items.length,
                 status: order.status,
                 printfulOrderId: externalIdForAlert,
+                internalNotes: order.internalNotes ?? null,
             })
         } catch (err) {
             console.error('[webhook] sendMakeOrderAlert failed:', err)

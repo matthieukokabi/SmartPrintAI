@@ -658,6 +658,7 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
             itemsCount: order.items.length,
             status: 'processing',
             printfulOrderId: fulfillmentOrderId,
+            internalNotes: order.internalNotes ?? null,
         })
 
         return {

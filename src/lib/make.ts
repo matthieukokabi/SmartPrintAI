@@ -20,6 +20,7 @@ type OrderAlertPayload = {
     itemsCount: number
     status: string
     printfulOrderId: string
+    internalNotes: string | null
 }
 
 type ShippedReviewPayload = {
