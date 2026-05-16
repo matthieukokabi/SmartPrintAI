@@ -16,7 +16,7 @@ cd "$REPO"
 log "=== deploy starting ==="
 log "current HEAD: $(git rev-parse --short HEAD)"
 
-log "step 1/6: git fetch + ff-only pull"
+log "step 1/7: git fetch + ff-only pull"
 git fetch --quiet origin main
 git checkout main
 git pull --ff-only
@@ -24,14 +24,17 @@ git pull --ff-only
 NEW_HEAD=$(git rev-parse --short HEAD)
 log "target HEAD: $NEW_HEAD"
 
-log "step 2/6: npm ci"
+log "step 2/7: npm ci"
 npm ci --silent
 
-log "step 3/6: build to .next.staging"
+log "step 3/7: db migrations (prisma migrate deploy)"
+npm run db:migrate:deploy-safe
+
+log "step 4/7: build to .next.staging"
 rm -rf .next.staging
 NEXT_DIST_DIR=.next.staging npm run build
 
-log "step 4/6: validate build integrity"
+log "step 5/7: validate build integrity"
 # Required artifacts the May 8 deploy was missing. Add more
 # critical chunks here as we discover them.
 REQUIRED=(
@@ -54,7 +57,7 @@ if [ "$MISSING" -gt 0 ]; then
 fi
 log "  all required artifacts present"
 
-log "step 5/6: atomic swap"
+log "step 6/7: atomic swap"
 # Same-filesystem rename is atomic on Linux. The window
 # where .next does not exist is sub-millisecond.
 if [ -d .next.old ]; then
@@ -65,7 +68,7 @@ if [ -d .next ]; then
 fi
 mv .next.staging .next
 
-log "step 6/6: restart + health check"
+log "step 7/7: restart + health check"
 systemctl restart "$SERVICE"
 
 sleep 4
