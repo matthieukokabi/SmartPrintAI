@@ -542,3 +542,33 @@ V2 introduces signed inbounds (HTTPS-enforced, expiring keys, request signing). 
 ### 7. [OPEN] (P3) deploy.sh staging build rewrites tsconfig.json
 
 Next.js's TS auto-config rewrites tsconfig.json during the staging-distDir build (NEXT_DIST_DIR=.next.staging) — appends ".next.staging/types/**/*.ts" to the include array, which is the wrong path for the swapped-in runtime location. Cosmetic (Next.js's own TS handling doesn't use tsconfig at runtime), but it leaves the working tree dirty on every deploy. Fix: add `git restore tsconfig.json` to scripts/deploy.sh after the staging build completes (between step 3/6 build and step 5/6 swap) — single line. P3, ~5 min.
+
+## Reliability sprint: 4-layer defense for orientation/mockup integrity (2026-05-16)
+
+Shipped six commits closing Anthony Shivbaran's failure class (horizontal AI design rendered on vertical luggage tag) at every architectural layer.
+
+### Commits (in order)
+- [x] c6bf30c — feat(webhook): shipping confirmation email on package_shipped
+- [x] 9548a96 — fix(ops): wire prisma migrate deploy into atomic deploy script
+- [x] 9159e07 — feat(webhook): aspect-ratio guard before Printful submit
+- [x] ce5e9e1 — feat(notify): honest REQUIRES_REVIEW email + internalNotes
+- [x] 7338d65 — feat(create): live Printful mockup preview gates checkout
+- [x] 45c7062 — feat(generate): orientation-aware prompt augmentation
+
+### 4-layer defense (deepest to shallowest)
+1. **Upstream AI orientation (45c7062)** — `/api/generate` accepts `productId`, looks up `Product.printArea`, prepends an orientation hint to Gemini's prompt based on aspect-ratio bucket. AI generates orientation-correct designs from the start, on every regenerate after product pick or on `?productId=` deep-links.
+2. **Customer visual gate (7338d65)** — `/create` only enables Add-to-Cart after the actual Printful mockup renders successfully. Customer self-rejects bad mockups before paying. Same commit also fixes per-product printArea plumbing in `printful.generateMockup` (was hardcoded to 1800x2100 for every product; now reads `Product.printArea` from the DB — 62% of the catalog was getting wrong geometry before this).
+3. **Backend aspect-ratio guard (9159e07)** — Stripe webhook compares design AR vs print-area AR before submitting to Printful; flags grossly-mismatched orders for review.
+4. **Honest review email (ce5e9e1)** — When the aspect-ratio guard flags an order, customer receives an "in review" email (not a misleading order confirmation) and the operator gets the review reason via Make → Telegram.
+
+### Pattern lesson: hardcoded directives can defeat downstream fixes
+The upstream root cause of Anthony's failure was a *single line* in `src/lib/gemini.ts:55` — `buildPrintReadyPrompt()` was appending `Square format.` to every prompt sent to Gemini. We'd built layers 2, 3, and 4 (plus the per-product printArea fix in 7338d65) trying to catch downstream damage, but the AI was being explicitly *instructed* to produce square designs that then mis-composited on non-square products. 62% of the active catalog is non-square (57 horizontal + 19 vertical of 123 active products) — every one of them was getting wrong-orientation designs from upstream.
+
+**When investigating a recurring quality issue with output from any generative model, grep the codebase for hardcoded directive strings being appended to user prompts.** Patterns worth searching for:
+- Hardcoded format/aspect/orientation literals: `"Square format"`, `"16:9"`, `"portrait"`, `"landscape"` appended unconditionally
+- Style suffixes applied across all prompts regardless of product context
+- Template prompts that include literal dimension numbers — Gemini-2.5-flash-image renders these as drawn text *inside* the image (verified during Tier 3 A/B testing: a hint containing `750x1237` caused those numbers to appear as visible measurement labels in the generated design)
+
+### Open follow-ups (Tier 2.5, not yet shipped)
+- [ ] i18n keys for the three disabled-state cart-button labels in `src/components/create/CreatePageClient.tsx` (currently English only — needs `cartButton.{notReady, generating, unavailable}` entries in `lib/i18n` `LocaleCopy` type + the four locale bundles)
+- [ ] Tighten webhook `resolveMockupUrl` fallback to `design.imageUrl` at `src/app/api/webhooks/stripe/route.ts:351` — covered today by Tier 1's aspect-ratio guard, but worth a defense-in-depth pass for non-cart fulfillment paths (e.g., manual recovery script)
