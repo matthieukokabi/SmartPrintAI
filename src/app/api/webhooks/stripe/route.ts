@@ -4,6 +4,7 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import { printful } from '@/lib/printful'
 import { buildPrintFile, type PrintFileResult } from '@/lib/print-file'
+import sharp from 'sharp'
 import { getGootenClient } from '@/lib/gooten'
 import { gelato } from '@/lib/gelato'
 import { detectProductProvider } from '@/lib/product-provider'
@@ -250,6 +251,53 @@ async function processCheckoutSession(
                             `Invalid Printful product id for "${product.name}": ${product.printfulId}`,
                         )
                     }
+
+                    // Aspect-ratio guard: catch AI-generated designs grossly
+                    // mismatched to the variant's print area (e.g., a 925x336
+                    // horizontal wordmark sent to a 750x1237 vertical luggage
+                    // tag — Anthony's Apr 25 defect). Throw to route into the
+                    // existing REQUIRES_REVIEW catch below rather than ship a
+                    // doomed file to Printful. Skip if printArea is missing
+                    // so a freshly-onboarded product isn't blocked.
+                    const printArea = (typeof product.printArea === 'object' && product.printArea !== null)
+                        ? product.printArea as { width?: number; height?: number }
+                        : null
+                    const paW = printArea?.width
+                    const paH = printArea?.height
+                    if (typeof paW === 'number' && typeof paH === 'number' && paW > 0 && paH > 0) {
+                        const res = await fetch(design.imageUrl)
+                        if (!res.ok) {
+                            throw new Error(
+                                `[aspect-guard] fetch failed ${res.status} ${design.imageUrl}`,
+                            )
+                        }
+                        const srcBuf = Buffer.from(await res.arrayBuffer())
+                        const trimmed = await sharp(srcBuf)
+                            .trim({ background: { r: 255, g: 255, b: 255 }, threshold: 30 })
+                            .toBuffer({ resolveWithObject: true })
+                        const srcW = trimmed.info.width
+                        const srcH = trimmed.info.height
+                        const srcAR = srcW / srcH
+                        const printAR = paW / paH
+                        const divergence = Math.max(srcAR, printAR) / Math.min(srcAR, printAR)
+                        const THRESHOLD = 2.0
+                        console.log(
+                            `[webhook] aspect-guard product="${product.name}" ` +
+                            `src=${srcW}x${srcH}(${srcAR.toFixed(2)}) ` +
+                            `printArea=${paW}x${paH}(${printAR.toFixed(2)}) ` +
+                            `divergence=${divergence.toFixed(2)}x`,
+                        )
+                        if (divergence > THRESHOLD) {
+                            throw new Error(
+                                `Aspect-ratio mismatch: trimmed source ${srcW}x${srcH} ` +
+                                `(AR ${srcAR.toFixed(2)}) vs print area ${paW}x${paH} ` +
+                                `(AR ${printAR.toFixed(2)}). Divergence ${divergence.toFixed(2)}x ` +
+                                `exceeds ${THRESHOLD}x guard — would likely produce thin-strip ` +
+                                `or off-center artifact on the printed product.`,
+                            )
+                        }
+                    }
+
                     const printFile = await buildPrintFile({
                         sourceUrl: design.imageUrl,
                         printfulProductId,
