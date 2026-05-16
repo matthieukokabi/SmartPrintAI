@@ -14,6 +14,7 @@ type GeneratePayload = {
     style: DesignStyle
     sessionId?: string
     sourceImageDataUrl?: string
+    productId?: string
 }
 
 const ALLOWED_STYLES = new Set<DesignStyle>([
@@ -94,7 +95,81 @@ function validateGeneratePayload(input: unknown):
         sourceImageDataUrl = trimmed
     }
 
-    return { ok: true, data: { prompt, style, sessionId, sourceImageDataUrl } }
+    let productId: string | undefined
+    if (input.productId !== undefined && input.productId !== null) {
+        if (typeof input.productId !== 'string') {
+            return { ok: false, error: 'Invalid productId' }
+        }
+        const trimmed = input.productId.trim()
+        if (trimmed.length > 0 && trimmed.length <= 191) {
+            productId = trimmed
+        }
+    }
+
+    return { ok: true, data: { prompt, style, sessionId, sourceImageDataUrl, productId } }
+}
+
+async function buildOrientationHint(
+    productId: string | undefined,
+    route: string,
+    requestId: string,
+): Promise<string | undefined> {
+    if (!productId) return undefined
+
+    const product = await prisma.product.findUnique({
+        where: { id: productId },
+        select: { name: true, printArea: true },
+    })
+    if (!product) {
+        logApiWarn(route, requestId, 'orientation_augment_skipped_product_not_found', { productId })
+        return undefined
+    }
+
+    const area = (product.printArea ?? {}) as { width?: number; height?: number }
+    const w = Number(area.width)
+    const h = Number(area.height)
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+        logApiWarn(route, requestId, 'orientation_augment_skipped_bad_print_area', { productId })
+        return undefined
+    }
+
+    const aspectRatio = w / h
+    let hint: string
+    let bucket: 'vertical' | 'square' | 'horizontal'
+    const noDimensionGuard =
+        'Do NOT include any dimension numbers, measurement annotations, ' +
+        'rulers, or technical labels in the design itself.'
+    if (aspectRatio < 0.85) {
+        bucket = 'vertical'
+        hint =
+            `Design for a VERTICAL ${product.name} (a tall, portrait-oriented product). ` +
+            `The design MUST be vertically composed: tall and narrow, filling top-to-bottom. ` +
+            `Avoid horizontal layouts that would leave large empty space above and below. ` +
+            noDimensionGuard
+    } else if (aspectRatio > 1.18) {
+        bucket = 'horizontal'
+        hint =
+            `Design for a HORIZONTAL ${product.name} (a wide, landscape-oriented product). ` +
+            `The design MUST be horizontally composed: wide and short, filling left-to-right. ` +
+            `Avoid tall vertical compositions that would leave large empty space on the left and right. ` +
+            noDimensionGuard
+    } else {
+        bucket = 'square'
+        hint =
+            `Design for a roughly SQUARE ${product.name}. ` +
+            `A centered, balanced composition works well. ` +
+            noDimensionGuard
+    }
+
+    logApiInfo(route, requestId, 'orientation_augment_applied', {
+        productId,
+        productName: product.name,
+        printArea: { width: w, height: h },
+        aspectRatio: Number(aspectRatio.toFixed(2)),
+        bucket,
+    })
+
+    return hint
 }
 
 export async function POST(req: NextRequest) {
@@ -129,12 +204,15 @@ export async function POST(req: NextRequest) {
             return respond({ error: validation.error }, { status: 400 })
         }
 
-        const { prompt, style, sessionId, sourceImageDataUrl } = validation.data
+        const { prompt, style, sessionId, sourceImageDataUrl, productId } = validation.data
+
+        const orientationHint = await buildOrientationHint(productId, route, requestId)
 
         const base64Image = await generateImage({
             prompt,
             style,
             ...(sourceImageDataUrl ? { sourceImageDataUrl } : {}),
+            ...(orientationHint ? { orientationHint } : {}),
         })
         let processedImage = base64Image
         if (process.env.DESIGN_BACKGROUND_CLEANUP_DISABLED !== '1') {

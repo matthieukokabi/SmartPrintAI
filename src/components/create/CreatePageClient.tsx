@@ -508,6 +508,7 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
                 body: JSON.stringify({
                     prompt,
                     style,
+                    productId: selectedProduct ?? undefined,
                     sourceImageDataUrl: referenceImageDataUrl ?? undefined,
                 }),
             })

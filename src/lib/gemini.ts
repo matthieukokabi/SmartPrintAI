@@ -6,6 +6,7 @@ export interface GenerateImageOptions {
     prompt: string
     style?: 'artistic' | 'watercolor' | 'cartoon' | 'minimalist' | 'pop-art' | 'photorealistic'
     sourceImageDataUrl?: string
+    orientationHint?: string
 }
 
 type ImageInlineData = {
@@ -51,15 +52,18 @@ function parseSourceImageDataUrl(sourceImageDataUrl: string): ImageInlineData {
     return { mimeType, data }
 }
 
-export function buildPrintReadyPrompt(prompt: string, stylePrompt: string): string {
-    return `${prompt}. ${stylePrompt}. Transparent background only with alpha (no white or solid background). No white box, no frame, no poster backdrop. Keep the main subject large, centered, and tightly composed with clean cutout edges for product mockups. High quality print-ready design. No text unless specifically requested. Square format.`
+export function buildPrintReadyPrompt(prompt: string, stylePrompt: string, orientationHint?: string): string {
+    const orientationClause = orientationHint && orientationHint.trim().length > 0
+        ? `${orientationHint.trim()} `
+        : 'Square format. '
+    return `${orientationClause}${prompt}. ${stylePrompt}. Transparent background only with alpha (no white or solid background). No white box, no frame, no poster backdrop. Keep the main subject large, centered, and tightly composed with clean cutout edges for product mockups. High quality print-ready design. No text unless specifically requested.`
 }
 
 export async function generateImage(options: GenerateImageOptions): Promise<string> {
-    const { prompt, style = 'artistic', sourceImageDataUrl } = options
+    const { prompt, style = 'artistic', sourceImageDataUrl, orientationHint } = options
     const stylePrompt = STYLE_PROMPTS[style] || STYLE_PROMPTS.artistic
 
-    const fullPrompt = buildPrintReadyPrompt(prompt, stylePrompt)
+    const fullPrompt = buildPrintReadyPrompt(prompt, stylePrompt, orientationHint)
 
     const model = genAI.getGenerativeModel({
         model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-image',
