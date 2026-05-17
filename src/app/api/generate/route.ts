@@ -135,18 +135,31 @@ async function buildOrientationHint(
 
     const aspectRatio = w / h
     let hint: string
-    let bucket: 'vertical' | 'square' | 'horizontal'
+    let bucket: 'extremeVertical' | 'vertical' | 'square' | 'horizontal' | 'extremeHorizontal'
     const noDimensionGuard =
         'Do NOT include any dimension numbers, measurement annotations, ' +
         'rulers, or technical labels in the design itself.'
-    if (aspectRatio < 0.85) {
+    if (aspectRatio < 0.5) {
+        bucket = 'extremeVertical'
+        hint =
+            `Design for an EXTREMELY VERTICAL ${product.name} (a very tall, narrow product, like a long bookmark or a tall vertical banner). ` +
+            `The design MUST be very tall and very narrow, vertically composed, filling top-to-bottom with elongated proportions. ` +
+            `Avoid any horizontal layouts. The composition should look like a portrait banner — much taller than it is wide. ` +
+            noDimensionGuard
+    } else if (aspectRatio < 0.85) {
         bucket = 'vertical'
         hint =
             `Design for a VERTICAL ${product.name} (a tall, portrait-oriented product). ` +
             `The design MUST be vertically composed: tall and narrow, filling top-to-bottom. ` +
             `Avoid horizontal layouts that would leave large empty space above and below. ` +
             noDimensionGuard
-    } else if (aspectRatio > 1.18) {
+    } else if (aspectRatio < 1.18) {
+        bucket = 'square'
+        hint =
+            `Design for a roughly SQUARE ${product.name}. ` +
+            `A centered, balanced composition works well. ` +
+            noDimensionGuard
+    } else if (aspectRatio < 2.0) {
         bucket = 'horizontal'
         hint =
             `Design for a HORIZONTAL ${product.name} (a wide, landscape-oriented product). ` +
@@ -154,10 +167,11 @@ async function buildOrientationHint(
             `Avoid tall vertical compositions that would leave large empty space on the left and right. ` +
             noDimensionGuard
     } else {
-        bucket = 'square'
+        bucket = 'extremeHorizontal'
         hint =
-            `Design for a roughly SQUARE ${product.name}. ` +
-            `A centered, balanced composition works well. ` +
+            `Design for an EXTREMELY HORIZONTAL ${product.name} (a very wide, short product, like a horizontal banner or a long bumper sticker). ` +
+            `The design MUST be very wide and very short, horizontally composed, filling left-to-right with elongated proportions. ` +
+            `Avoid any vertical layouts. The composition should look like a landscape banner — much wider than it is tall. ` +
             noDimensionGuard
     }
 
