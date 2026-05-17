@@ -36,7 +36,7 @@ drove a 4-layer architectural fix shipped across six commits on May 16:
 
 | Layer | Commit | What |
 |---|---|---|
-| 1. AI generation | `45c7062` | `/api/generate` accepts `productId`, prepends orientation hint to Gemini prompt based on `Product.printArea` aspect ratio. Drops the hardcoded `Square format.` directive that was the upstream root cause. |
+| 1. AI generation | `45c7062` (+ `0c058ed` May 17) | `/api/generate` accepts `productId`, prepends orientation hint to Gemini prompt based on `Product.printArea` aspect ratio. Drops the hardcoded `Square format.` directive that was the upstream root cause. May 17 intensity-ladder refinement (Tier 3.5): 5 buckets instead of 3 — "EXTREMELY VERTICAL/HORIZONTAL" for AR < 0.5 or ≥ 2.0, with concrete metaphor references ("like a long bookmark", "like a long bumper sticker"). Flag image AR improved from 1.12 → 1.90 toward the 2.5 target. |
 | 2. Customer visual gate | `7338d65` | `/create` calls Printful mockup-generator API with per-product `printArea`, gates "Add to cart" on mockup readiness, removes silent imageUrl fallback. |
 | 3. Backend aspect guard | `9159e07` | Stripe webhook routes orders to `REQUIRES_REVIEW` when source aspect ratio diverges from print area by >2.0x. |
 | 4. Honest review email | `ce5e9e1` | REQUIRES_REVIEW orders get "we're reviewing your order" email instead of misleading "confirmed". Make.com alert carries `internalNotes` so operator sees the reason. |
