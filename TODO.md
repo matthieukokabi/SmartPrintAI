@@ -572,3 +572,41 @@ The upstream root cause of Anthony's failure was a *single line* in `src/lib/gem
 ### Open follow-ups (Tier 2.5, not yet shipped)
 - [ ] i18n keys for the three disabled-state cart-button labels in `src/components/create/CreatePageClient.tsx` (currently English only — needs `cartButton.{notReady, generating, unavailable}` entries in `lib/i18n` `LocaleCopy` type + the four locale bundles)
 - [ ] Tighten webhook `resolveMockupUrl` fallback to `design.imageUrl` at `src/app/api/webhooks/stripe/route.ts:351` — covered today by Tier 1's aspect-ratio guard, but worth a defense-in-depth pass for non-cart fulfillment paths (e.g., manual recovery script)
+
+## Tier 3.5: intensity ladder for extreme aspect ratios (2026-05-17)
+
+Follow-up to the May 16 sprint's Tier 3 (orientation hints). Cowork verification of Tier 3 showed the AI undershoots on extreme ratios — the Flag (2.5:1 print area) produced only a 1.12:1 image despite the HORIZONTAL hint. Single-tier language was too soft.
+
+### Commit
+- [x] `0c058ed` — feat(generate): intensity ladder for extreme aspect ratios
+
+### What changed
+`buildOrientationHint` in `src/app/api/generate/route.ts` split from 3 → 5 buckets, with stronger language + a concrete metaphor reference ("like a long bookmark" / "like a long bumper sticker") for the extremes:
+
+| Bucket | Threshold | Catalog count | Language |
+|---|---|---|---|
+| extremeVertical | AR < 0.5 | **0** (dormant, future-proof) | "EXTREMELY VERTICAL ... like a long bookmark" |
+| vertical | 0.5 ≤ AR < 0.85 | 19 | UNCHANGED from Tier 3 |
+| square | 0.85 ≤ AR < 1.18 | 47 | UNCHANGED from Tier 3 |
+| horizontal | 1.18 ≤ AR < 2.0 | 6 | UNCHANGED from Tier 3 |
+| extremeHorizontal | AR ≥ 2.0 | **51** (leggings/briefs/bikinis/joggers/Flag) | "EXTREMELY HORIZONTAL ... like a horizontal banner or a long bumper sticker" |
+
+66 of 123 products (54%) get byte-identical Tier 3 prompts. Only the 51 extremeHorizontal products see new language. extremeVertical is included for symmetry — if Printful adds a tall-narrow product (pole banner, scarf), it routes correctly without code changes.
+
+### Measured result
+| Version | Flag image AR | Notes |
+|---|---|---|
+| Tier 3 baseline | 1.12 | Per Cowork verification |
+| **Tier 3.5 production** | **1.90** | ~70% improvement toward the 2.5:1 target |
+
+Measured from the production-served URL post `normalizeGeneratedDesignDataUrl` (background-removal + crop pipeline). Not perfect (2.5 ideal) but a substantial step from the failure case.
+
+### Methodology lesson (worth recording for next A/B)
+`sharp.trim({ threshold: 10 })` on raw Gemini base64 output is **structurally incapable** of measuring composition orientation. Gemini fills the 1024×1024 canvas with sparse content reaching edges + faint transparency-checkerboard artifacts that exceed the threshold → trim returns full canvas (AR=1.00) for every variant regardless of actual subject shape. This hit Tier 3 Run 2 and re-bit Tier 3.5.
+
+**For future A/B testing, measure the post-pipeline served image URL**, not the raw Gemini base64. The existing `normalizeGeneratedDesignDataUrl` crop step is more aggressive than sharp.trim's default threshold — it actually crops the transparent margins out, exposing the true content AR (Flag dropped 1024×1024 raw → 1024×538 post-pipeline = 1.90 AR).
+
+`noDimensionGuard` suffix preserved verbatim across all 5 buckets — Tier 3's contamination finding still holds (numeric dimensions in hints get rendered as visible text inside the design).
+
+### Open follow-ups (none)
+Tier 3.5 produced the intended improvement on extremeHorizontal. extremeVertical language pattern validated on a synthetic 0.4 AR hint (no real product hits the bucket today). No new follow-ups filed.
