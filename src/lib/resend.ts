@@ -1,6 +1,21 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy-init: the Resend SDK throws "Missing API key" synchronously at
+// construction time, which used to crash the entire test suite at import
+// resolution whenever RESEND_API_KEY was unset (e.g. CI without secrets).
+// Deferring construction to first-use lets tests import this module + its
+// callers freely; the key check only fires when a send is actually
+// attempted, which is what we want in production anyway.
+let _resend: Resend | null = null
+export function getResend(): Resend {
+    if (_resend) return _resend
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+        throw new Error('RESEND_API_KEY is not set — cannot send transactional email')
+    }
+    _resend = new Resend(apiKey)
+    return _resend
+}
 
 function supportRecipients(): string[] {
     const primary = (process.env.SUPPORT_EMAIL || 'support@smartprintai.com').trim().toLowerCase()
@@ -83,7 +98,7 @@ export async function sendOrderConfirmation(params: {
             )
             .join('')
 
-        await resend.emails.send({
+        await getResend().emails.send({
             from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
             to: params.email,
             subject: `Your order is confirmed — SmartPrintAI #${shortId}`,
@@ -117,7 +132,7 @@ export async function sendOrderInReview(params: {
     itemSummary?: string
 }) {
     const shortId = params.orderId.slice(-8).toUpperCase()
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
         to: params.email,
         subject: `We're reviewing your order — SmartPrintAI #${shortId}`,
@@ -159,7 +174,7 @@ export async function sendShipmentNotification(params: {
         .filter(Boolean)
         .join('')
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
         to: params.email,
         subject: `Your order is on its way! 🚀 #${shortId}`,
@@ -188,7 +203,7 @@ export async function sendSignInLink(params: {
     email: string
     verifyUrl: string
 }) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
         to: params.email,
         subject: 'Your SmartPrintAI sign-in link',
@@ -214,7 +229,7 @@ export async function sendSupportRequest(params: {
     requestId: string
 }) {
     const recipients = supportRecipients()
-    await resend.emails.send({
+    await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
         to: recipients,
         subject: '[Support] ' + params.subject,
@@ -241,7 +256,7 @@ export async function sendSupportAutoReply(params: {
     email: string
     orderId?: string
 }) {
-    await resend.emails.send({
+    await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
         to: params.email,
         subject: 'We received your support request — SmartPrintAI',
@@ -269,7 +284,7 @@ export async function sendDiscountLeadNotification(params: {
     requestId: string
 }) {
     const recipients = marketingRecipients()
-    await resend.emails.send({
+    await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
         to: recipients,
         subject: '[Lead] First-order discount signup',
@@ -296,7 +311,7 @@ export async function sendFirstOrderCouponEmail(params: {
 }) {
     const createUrl = params.locale === 'en' ? `${APP_URL()}/create` : `${APP_URL()}/${params.locale}/create`
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
         to: params.email,
         subject: 'Your exclusive discount — SmartPrintAI',
@@ -321,7 +336,7 @@ export async function sendOrderInProduction(params: {
     try {
         const shortId = params.orderId.slice(-8).toUpperCase()
 
-        await resend.emails.send({
+        await getResend().emails.send({
             from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
             to: params.email,
             subject: `Your SmartPrintAI order is in production 🎨 #${shortId}`,

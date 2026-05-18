@@ -80,7 +80,7 @@ function collectInternalLiteralHrefs(filePath: string): string[] {
     const hrefPattern = /href\s*=\s*["']([^"'{}]+)["']/g
     const hrefs: string[] = []
 
-    for (const match of source.matchAll(hrefPattern)) {
+    for (const match of Array.from(source.matchAll(hrefPattern))) {
         const href = match[1]?.trim()
         if (!href) {
             continue
@@ -91,7 +91,7 @@ function collectInternalLiteralHrefs(filePath: string): string[] {
         hrefs.push(normalizePathname(href))
     }
 
-    return [...new Set(hrefs)]
+    return Array.from(new Set(hrefs))
 }
 
 describe('Wave 2 internal links regression', () => {

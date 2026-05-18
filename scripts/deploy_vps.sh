@@ -7,22 +7,22 @@
 #     and push to origin/main. This script refuses to drive a deploy if
 #     the working tree is dirty, so "what's deployed" always == origin/main.
 #   - VPS is the source of truth for what ACTUALLY runs. Once we SSH in,
-#     scripts/deploy.sh owns the dangerous parts: building to .next.staging,
-#     validating artifacts, atomically swapping .next, restarting the
-#     service, health-checking, and rolling back to .next.old on failure.
+#     scripts/deploy.sh owns everything: git pull, npm ci, db migrations,
+#     building to .next.staging, validating artifacts, atomically swapping
+#     .next, restarting the service, health-checking, and rolling back to
+#     .next.old on failure.
 #
 # This driver does the minimum:
 #   1. Pre-flight on the laptop (clean tree, tools present).
-#   2. SSH to VPS: pull origin/main, npm ci, run pending DB migrations,
-#      then hand off to scripts/deploy.sh.
+#   2. SSH to VPS and invoke scripts/deploy.sh.
 #   3. Stream remote output to this terminal; exit with the VPS exit code.
 #
-# Migrations run BEFORE scripts/deploy.sh because scripts/deploy.sh has no
-# migrate step and we want the DB schema updated before the new code is
-# swapped into .next. (npm ci is duplicated between this wrapper and
-# scripts/deploy.sh step 2/6; the second pass is idempotent, ~20-40s
-# wasted. Removing the duplication requires editing deploy.sh -- out of
-# scope here.)
+# Prior versions of this script duplicated `git fetch`/`git checkout main`/
+# `git pull --ff-only`/`npm ci`/`db:migrate:deploy-safe` before invoking
+# scripts/deploy.sh. All five are now owned by scripts/deploy.sh itself
+# (migrate landed via Tier 0.5, commit 9548a96; the rest were always there
+# in deploy.sh's steps 1-3). Running them twice was idempotent but wasted
+# ~30-60s per deploy. Single source of truth is in scripts/deploy.sh.
 #
 # If the VPS-side deploy fails health-check, deploy.sh auto-rolls back to
 # the previous .next and this script still exits non-zero -- the operator
@@ -33,9 +33,9 @@
 # over the live .next directory. That pattern caused the May 8 build-race
 # incident.
 #
-# NOTE: env var renamed from SMARTPRINTAI_REMOTE_APP_DIR (old) to
-# SMARTPRINTAI_VPS_REPO (new) as of this commit. Update your shell
-# rc files if you had the old name set.
+# NOTE: env var SMARTPRINTAI_VPS_REPO (renamed from the old
+# SMARTPRINTAI_REMOTE_APP_DIR). Update your shell rc files if you had the
+# old name set.
 #
 set -euo pipefail
 
@@ -77,10 +77,4 @@ echo ""
 echo "Handing off to ${REMOTE_HOST}:${REMOTE_REPO}/scripts/deploy.sh ..."
 echo ""
 
-ssh "$REMOTE_HOST" "cd '$REMOTE_REPO' && \
-  git fetch origin main && \
-  git checkout main && \
-  git pull --ff-only origin main && \
-  npm ci && \
-  npm run db:migrate:deploy-safe && \
-  bash scripts/deploy.sh"
+ssh "$REMOTE_HOST" "bash '$REMOTE_REPO/scripts/deploy.sh'"

@@ -60,15 +60,3 @@ fixes uphill battles.
 
 - Tier 3.5 UX: disabled-button visibility on fast connections
   (functional gate works, visual feedback brief)
-- Accept Next.js's auto-formatted tsconfig.json in one commit (recurring
-  noise in every deploy)
-- 5 pre-existing tsc errors in test files (merchant-feed × 3,
-  internal-links-regression × 2)
-- 2 pre-existing vitest failures surfaced 2026-05-18 during Tier 2.5
-  test run (both predate Tier 2.5, confirmed via baseline re-run):
-  - `src/app/api/webhooks/printful/route.test.ts` — entire suite
-    fails to load: `new Resend(process.env.RESEND_API_KEY)` blows up
-    at import time when key is unset in test env
-  - `src/app/api/webhooks/stripe/route.test.ts` — "sends make order
-    alert" case asserts a payload shape missing `internalNotes: null`;
-    production already emits it, test assertion is stale

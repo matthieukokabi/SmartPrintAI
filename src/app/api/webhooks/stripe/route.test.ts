@@ -370,6 +370,7 @@ describe('/api/webhooks/stripe POST', () => {
       itemsCount: 1,
       status: 'processing',
       printfulOrderId: 'pf_12345',
+      internalNotes: null,
     })
   })
 

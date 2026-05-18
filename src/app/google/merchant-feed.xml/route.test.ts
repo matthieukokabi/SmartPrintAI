@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
@@ -24,12 +23,6 @@ vi.mock('@/lib/site', () => ({
 }))
 
 import { GET } from './route'
-
-function createRequest() {
-  return new NextRequest('http://localhost:3100/google/merchant-feed.xml', {
-    method: 'GET',
-  })
-}
 
 describe('/google/merchant-feed.xml GET', () => {
   beforeEach(() => {
@@ -70,7 +63,7 @@ describe('/google/merchant-feed.xml GET', () => {
       },
     ])
 
-    const res = await GET(createRequest())
+    const res = await GET()
 
     expect(res.status).toBe(200)
     expect(res.headers.get('content-type')).toContain('application/xml')
@@ -115,7 +108,7 @@ describe('/google/merchant-feed.xml GET', () => {
   it('returns an empty valid feed when no products exist', async () => {
     mocks.findMany.mockResolvedValue([])
 
-    const res = await GET(createRequest())
+    const res = await GET()
     const xml = await res.text()
 
     expect(res.status).toBe(200)
@@ -126,7 +119,7 @@ describe('/google/merchant-feed.xml GET', () => {
   it('returns 500 json when product fetch fails', async () => {
     mocks.findMany.mockRejectedValue(new Error('db down'))
 
-    const res = await GET(createRequest())
+    const res = await GET()
 
     expect(res.status).toBe(500)
     await expect(res.json()).resolves.toEqual({ error: 'Failed to build merchant feed' })
