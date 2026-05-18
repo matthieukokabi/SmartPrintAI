@@ -569,9 +569,13 @@ The upstream root cause of Anthony's failure was a *single line* in `src/lib/gem
 - Style suffixes applied across all prompts regardless of product context
 - Template prompts that include literal dimension numbers — Gemini-2.5-flash-image renders these as drawn text *inside* the image (verified during Tier 3 A/B testing: a hint containing `750x1237` caused those numbers to appear as visible measurement labels in the generated design)
 
-### Open follow-ups (Tier 2.5, not yet shipped)
-- [ ] i18n keys for the three disabled-state cart-button labels in `src/components/create/CreatePageClient.tsx` (currently English only — needs `cartButton.{notReady, generating, unavailable}` entries in `lib/i18n` `LocaleCopy` type + the four locale bundles)
-- [ ] Tighten webhook `resolveMockupUrl` fallback to `design.imageUrl` at `src/app/api/webhooks/stripe/route.ts:351` — covered today by Tier 1's aspect-ratio guard, but worth a defense-in-depth pass for non-cart fulfillment paths (e.g., manual recovery script)
+### Open follow-ups (Tier 2.5, shipped 2026-05-18 in f89a328)
+- [x] i18n keys for the three disabled-state cart-button labels in `src/components/create/CreatePageClient.tsx` — shipped as `create.cartButton.{notReady, generating, unavailable}` across all 4 locale bundles (commit `f89a328`)
+- [x] Tighten webhook `resolveMockupUrl` fallback for non-cart fulfillment paths — shipped via Option B: extracted the inline aspect-ratio guard from `stripe/route.ts` into `src/lib/aspect-guard.ts`, wired both the webhook AND `scripts/recover_manual_review_orders.ts` through it. The recovery path now refuses (rather than silently bypasses) the >2.0× divergence guard and appends the divergence diagnostic to `Order.internalNotes`. New outcome `skipped_aspect_guard_blocked` returned for blocked recoveries. 6 vitest cases cover the helper (commit `f89a328`)
+
+### P3 — pre-existing test failures surfaced during Tier 2.5 (2026-05-18, baseline-confirmed)
+- [ ] `src/app/api/webhooks/printful/route.test.ts` — entire suite fails to load. `src/lib/resend.ts:3` does `new Resend(process.env.RESEND_API_KEY)` at module import; in the test env `RESEND_API_KEY` is unset and Resend throws "Missing API key". Fix: stub `RESEND_API_KEY` in the test setup, or lazy-init the Resend client inside `src/lib/resend.ts` so the SDK isn't constructed at import time.
+- [ ] `src/app/api/webhooks/stripe/route.test.ts` — "sends make order alert after successful order creation + fulfillment" case asserts a `sendMakeOrderAlert` payload that's missing `internalNotes: null`. Production already includes it; assertion is stale (predates a prior payload-shape change). Fix: add `internalNotes: null` to the expected payload at `route.test.ts:364`.
 
 ## Tier 3.5: intensity ladder for extreme aspect ratios (2026-05-17)
 
