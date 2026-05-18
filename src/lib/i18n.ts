@@ -139,6 +139,11 @@ type CreatePageCopy = {
     regenerateLabel: string
     generatingMockupLabel: string
     mockupPlaceholderLabel: string
+    cartButton: {
+        notReady: string
+        generating: string
+        unavailable: string
+    }
 }
 
 type CartPageCopy = {
@@ -958,6 +963,11 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'Not happy? Regenerate',
             generatingMockupLabel: 'Generating mockup...',
             mockupPlaceholderLabel: 'Select a product to see your design on it',
+            cartButton: {
+                notReady: 'Generate a design first',
+                generating: 'Generating mockup...',
+                unavailable: 'Mockup unavailable — try a different color or regenerate',
+            },
         },
         cart: {
             metadataTitle: 'Cart',
@@ -1204,6 +1214,11 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'Pas satisfait ? Regenerer',
             generatingMockupLabel: 'Generation du mockup...',
             mockupPlaceholderLabel: 'Selectionnez un produit pour voir votre design dessus',
+            cartButton: {
+                notReady: "Générez d'abord un design",
+                generating: 'Création du visuel...',
+                unavailable: 'Visuel indisponible — changez de couleur ou régénérez',
+            },
         },
         cart: {
             metadataTitle: 'Panier',
@@ -1450,6 +1465,11 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'Nicht zufrieden? Neu generieren',
             generatingMockupLabel: 'Mockup wird erstellt...',
             mockupPlaceholderLabel: 'Waehle ein Produkt, um dein Design darauf zu sehen',
+            cartButton: {
+                notReady: 'Erstelle zuerst ein Design',
+                generating: 'Mockup wird erstellt...',
+                unavailable: 'Mockup nicht verfuegbar — andere Farbe waehlen oder neu generieren',
+            },
         },
         cart: {
             metadataTitle: 'Warenkorb',
@@ -1696,6 +1716,11 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             regenerateLabel: 'No te convence? Regenerar',
             generatingMockupLabel: 'Generando mockup...',
             mockupPlaceholderLabel: 'Selecciona un producto para ver tu diseno en el',
+            cartButton: {
+                notReady: 'Genera primero un diseno',
+                generating: 'Generando mockup...',
+                unavailable: 'Mockup no disponible — prueba con otro color o regenera',
+            },
         },
         cart: {
             metadataTitle: 'Carrito',

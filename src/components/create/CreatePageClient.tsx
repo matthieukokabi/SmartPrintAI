@@ -682,13 +682,13 @@ export default function CreatePageClient({ locale, copy }: CreatePageClientProps
     let cartButtonLabel: string
     let cartButtonDisabled: boolean
     if (!imageUrl) {
-        cartButtonLabel = 'Generate a design first'
+        cartButtonLabel = copy.cartButton.notReady
         cartButtonDisabled = true
     } else if (isMockupLoading) {
-        cartButtonLabel = 'Generating mockup…'
+        cartButtonLabel = copy.cartButton.generating
         cartButtonDisabled = true
     } else if (mockupError || !mockupUrl) {
-        cartButtonLabel = 'Mockup unavailable — try a different color or regenerate'
+        cartButtonLabel = copy.cartButton.unavailable
         cartButtonDisabled = true
     } else {
         cartButtonLabel = product

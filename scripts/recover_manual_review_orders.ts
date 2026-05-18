@@ -5,6 +5,7 @@ dotenv.config({ path: '.env.local', override: true })
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Prisma, PrismaClient } from '@prisma/client'
 import Stripe from 'stripe'
+import { checkAspectRatio } from '../src/lib/aspect-guard'
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
@@ -429,6 +430,61 @@ async function recoverOrder(order: RecoverableOrder, execute: boolean) {
             stripeSessionId: order.stripeSessionId,
             outcome: 'skipped_missing_provider_config',
             detail: 'GOOTEN_PARTNER_BILLING_KEY is missing; cannot safely recover gooten-backed items.',
+        }
+    }
+
+    // Aspect-ratio guard pre-flight: every mappedItem must clear the same
+    // divergence check the Stripe webhook enforces (src/lib/aspect-guard.ts).
+    // If any item fails, refuse the recovery and append the divergence
+    // diagnostic to internalNotes — the order stays in manual_review so an
+    // operator can intervene rather than ship a doomed file via the recovery
+    // path that bypasses the webhook's inline guard.
+    const aspectGuardFailures: string[] = []
+    for (const m of mappedItems) {
+        try {
+            const printArea = (typeof m.product.printArea === 'object' && m.product.printArea !== null)
+                ? m.product.printArea as { width?: number; height?: number }
+                : null
+            const check = await checkAspectRatio({
+                designImageUrl: m.design.imageUrl,
+                printArea,
+                productName: m.product.name,
+            })
+            if (!check.ok) {
+                aspectGuardFailures.push(
+                    `[aspect-guard] product="${m.product.name}" item=${m.orderItem.id}: ${check.reason}`,
+                )
+            }
+        } catch (err) {
+            aspectGuardFailures.push(
+                `[aspect-guard] product="${m.product.name}" item=${m.orderItem.id}: ` +
+                `check threw — ${err instanceof Error ? err.message : String(err)}`,
+            )
+        }
+    }
+
+    if (aspectGuardFailures.length > 0) {
+        const note =
+            `[${new Date().toISOString()}] recovery_blocked_by_aspect_guard:\n` +
+            aspectGuardFailures.join('\n')
+        if (execute) {
+            await prisma.order.update({
+                where: { id: order.id },
+                data: {
+                    internalNotes: order.internalNotes
+                        ? `${order.internalNotes}\n\n${note}`
+                        : note,
+                },
+            })
+        }
+        return {
+            orderId: order.id,
+            stripeSessionId: order.stripeSessionId,
+            outcome: 'skipped_aspect_guard_blocked',
+            detail:
+                `Recovery refused: ${aspectGuardFailures.length} item(s) failed aspect-guard. ` +
+                `Order remains manual_review${execute ? ' (internalNotes updated)' : ' (dry-run, no DB write)'}. ` +
+                `First failure: ${aspectGuardFailures[0]}`,
         }
     }
 
