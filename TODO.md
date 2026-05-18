@@ -597,9 +597,10 @@ Follow-up to the May 16 sprint's Tier 3 (orientation hints). Cowork verification
 | Version | Flag image AR | Notes |
 |---|---|---|
 | Tier 3 baseline | 1.12 | Per Cowork verification |
-| **Tier 3.5 production** | **1.90** | ~70% improvement toward the 2.5:1 target |
+| Tier 3.5 server-side smoke | 1.90 | ~70% improvement toward the 2.5:1 target |
+| **Tier 3.5 production (Cowork browser, 2026-05-17)** | **2.66** | **Exceeds 2.5 target. Verdict: PASS.** Image `524db942-8de9-4c2b-a0d1-a4773004c56c.png` is 1024×385 served. Run via Brave + Claude in Chrome; full report at `00_admin/handoffs/tier3_5_flag_verification_2026-05-17.md` |
 
-Measured from the production-served URL post `normalizeGeneratedDesignDataUrl` (background-removal + crop pipeline). Not perfect (2.5 ideal) but a substantial step from the failure case.
+Measured from the production-served URL post `normalizeGeneratedDesignDataUrl` (background-removal + crop pipeline). The fresh production sample landed even higher than the smoke check — likely Gemini variance landing above the expected mean rather than a methodology drift. All four defense layers confirmed end-to-end (generation → Printful mockup gate → backend aspect guard → review email).
 
 ### Methodology lesson (worth recording for next A/B)
 `sharp.trim({ threshold: 10 })` on raw Gemini base64 output is **structurally incapable** of measuring composition orientation. Gemini fills the 1024×1024 canvas with sparse content reaching edges + faint transparency-checkerboard artifacts that exceed the threshold → trim returns full canvas (AR=1.00) for every variant regardless of actual subject shape. This hit Tier 3 Run 2 and re-bit Tier 3.5.
