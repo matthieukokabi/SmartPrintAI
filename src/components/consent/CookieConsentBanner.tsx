@@ -41,42 +41,53 @@ function writeConsentCookie(value: ConsentState): void {
         (secure ? '; secure' : '')
 }
 
-// Notifies the gtag pipeline that the user accepted analytics. We push
-// directly to window.dataLayer instead of calling window.gtag(...) for
-// timing reasons:
+// Notifies the gtag pipeline that the user accepted analytics. The call
+// path has TWO subtleties — both verified empirically against the live
+// production build — that future agents must respect:
 //
-//   At useEffect mount time on a RETURNING visit, the Next.js <Script
-//   strategy="afterInteractive"> tags for gtag.js + ga4-init.js have not
-//   yet injected/executed. window.gtag is undefined. The previous typeof-
-//   gtag guard silently dropped the consent update for the entire session.
-//   Verified Phase 6 smoke 2026-05-19 on commit e68c5a0: returning consenting
-//   visitor's dataLayer contained zero ['consent','update'] entries and
-//   window.google_tag_data.ics.entries.analytics_storage stayed
-//   { implicit: true, default: false, quiet: false } indefinitely.
+//   1. Timing race vs <Script strategy="afterInteractive">.
+//      React useEffect runs immediately after hydration; Next.js's
+//      afterInteractive Script tags inject AFTER that. At useEffect
+//      mount time on a returning visit, window.gtag is undefined. A
+//      `typeof window.gtag === 'function'` guard silently bails and
+//      drops the consent update for the entire session (verified Phase
+//      6 smoke 2026-05-19 on commit e68c5a0). So we go through the
+//      dataLayer queue instead, which the gtag library replays in
+//      order when it eventually attaches.
 //
-// The dataLayer queue is the Consent Mode v2 contract: any consumer that
-// later attaches (gtag library, GTM container) replays queued entries in
-// order. We initialize the array ourselves if it doesn't exist yet — the
-// later ga4-init.js does `window.dataLayer = window.dataLayer || []`,
-// which preserves our queued entry.
+//   2. Real-arrays vs arguments-objects in dataLayer.
+//      gtag.js distinguishes between dataLayer entries created via the
+//      standard `function gtag(){dataLayer.push(arguments)}` pattern
+//      (arguments-object) and entries created via a direct
+//      `dataLayer.push([...])` (real Array). Only the former is
+//      recognized as a gtag command at queue-replay time. The direct
+//      array push fires but is silently ignored (verified on commit
+//      efada8c: ICS entry shows no `update: true` flag and GA4 cookies
+//      are not refreshed). So we set up a local gtag-style shim that
+//      pushes `arguments`, exactly mirroring what ga4-init.js does.
 //
-// Ordering note: ga4-init.js's `['consent','default',{...denied...}]`
-// fires AFTER this `['consent','update',{granted}]` in the queue. Per
-// Consent Mode v2 spec, 'default' only initializes categories that have
-// no prior explicit value — so the 'update granted' wins for
-// analytics_storage, while 'default denied' still applies to ad_storage /
+// Ordering note: ga4-init.js's `gtag('consent','default',{...denied...})`
+// fires later in the queue than our `gtag('consent','update',{granted})`.
+// Per Consent Mode v2 spec, `default` only initializes categories that
+// have no prior explicit value — so the `update granted` wins for
+// analytics_storage, while `default denied` still applies to ad_storage /
 // ad_user_data / ad_personalization (which this update doesn't touch).
 //
-// Do not "simplify" this back to a window.gtag(...) call — the timing
-// race documented above will silently break returning-visitor analytics,
-// A/B experiment exposure, and Google Ads conversion tracking.
+// Do not "simplify" this back to a direct window.gtag(...) call or a
+// real-array dataLayer.push([...]) — both have been verified to silently
+// break returning-visitor analytics, A/B experiment exposure, and Google
+// Ads conversion tracking.
 function fireGtagConsentUpdate(state: ConsentState): void {
     if (typeof window === 'undefined') return
+    if (state !== 'accepted') return
     const w = window as unknown as { dataLayer?: unknown[] }
     w.dataLayer = w.dataLayer || []
-    if (state === 'accepted') {
-        w.dataLayer.push(['consent', 'update', { analytics_storage: 'granted' }])
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, prefer-rest-params
+    const gtagShim = function (this: unknown): void {
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer!.push(arguments)
+    } as unknown as (...args: unknown[]) => void
+    gtagShim('consent', 'update', { analytics_storage: 'granted' })
 }
 
 export default function CookieConsentBanner({ locale }: CookieConsentBannerProps) {
