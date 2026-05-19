@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ANALYTICS_ATTRIBUTION_COOKIE } from '@/lib/analytics-attribution'
+import { CONSENT_COOKIE_NAME } from '@/lib/consent'
 import { HOMEPAGE_VISITOR_ID_COOKIE } from '@/lib/homepage-experiment'
 
 const mocks = vi.hoisted(() => ({
@@ -22,11 +23,26 @@ vi.mock('@/lib/homepage-funnel-report', async () => {
 
 import { POST } from './route'
 
-function createRequest(body: string, headers: HeadersInit = {}, url = 'http://localhost:3100/api/analytics/events') {
+// Default to consent=accepted so the existing test suite exercises the
+// happy path. Tests that need to verify the consent-gate behavior pass
+// `withConsent: false` to omit the cookie.
+function createRequest(
+  body: string,
+  headers: HeadersInit = {},
+  url = 'http://localhost:3100/api/analytics/events',
+  options: { withConsent?: boolean } = {},
+) {
+  const { withConsent = true } = options
+  const merged = new Headers(headers)
+  if (withConsent) {
+    const existing = merged.get('cookie')
+    const consentPair = `${CONSENT_COOKIE_NAME}=accepted`
+    merged.set('cookie', existing ? `${existing}; ${consentPair}` : consentPair)
+  }
   return new NextRequest(url, {
     method: 'POST',
     body,
-    headers,
+    headers: merged,
   })
 }
 
@@ -373,5 +389,49 @@ describe('/api/analytics/events POST', () => {
     expect(setCookie).toBeTruthy()
     expect(setCookie).toContain(`${HOMEPAGE_VISITOR_ID_COOKIE}=`)
     expect(setCookie).toContain(`${ANALYTICS_ATTRIBUTION_COOKIE}=`)
+  })
+
+  it('consent gate: returns 202 + consentSkipped:true when consent cookie is absent (pre-consent traffic)', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/',
+      }),
+      {},
+      undefined,
+      { withConsent: false },
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true, consentSkipped: true })
+    expect(mocks.appendHomepageEventRecord).not.toHaveBeenCalled()
+    const setCookie = res.headers.get('set-cookie')
+    expect(setCookie ?? '').not.toContain(`${HOMEPAGE_VISITOR_ID_COOKIE}=`)
+    expect(setCookie ?? '').not.toContain(`${ANALYTICS_ATTRIBUTION_COOKIE}=`)
+  })
+
+  it('consent gate: returns 202 + consentSkipped:true when consent cookie is "rejected"', async () => {
+    const req = createRequest(
+      JSON.stringify({
+        eventName: 'homepage_viewed',
+        params: { page_variant: 'variant_a' },
+        path: '/',
+      }),
+      { cookie: `${CONSENT_COOKIE_NAME}=rejected` },
+      undefined,
+      { withConsent: false },
+    )
+
+    const res = await POST(req)
+
+    expect(res.status).toBe(202)
+    await expect(res.json()).resolves.toEqual({ ok: true, consentSkipped: true })
+    expect(mocks.appendHomepageEventRecord).not.toHaveBeenCalled()
+    const setCookie = res.headers.get('set-cookie')
+    expect(setCookie ?? '').not.toContain(`${HOMEPAGE_VISITOR_ID_COOKIE}=`)
+    expect(setCookie ?? '').not.toContain(`${ANALYTICS_ATTRIBUTION_COOKIE}=`)
   })
 })

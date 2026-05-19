@@ -778,6 +778,141 @@ const esReturnsCopy: ReturnsPageCopy = {
     supportLinkLabel: 'Ir al soporte',
 }
 
+type ProcessorEntry = {
+    name: string
+    role: string
+    region: string
+}
+
+type PrivacyPageCopy = {
+    metadata: { title: string; description: string }
+    headerTitle: string
+    effectiveDate: string
+    lastUpdated: string
+    nav: {
+        overview: string
+        processors: string
+        cookies: string
+        yourRights: string
+        retention: string
+        contact: string
+    }
+    intro: { title: string; body: string; controller: string }
+    processors: { title: string; intro: string; items: ProcessorEntry[] }
+    cookies: {
+        title: string
+        intro: string
+        essential: { title: string; body: string }
+        analytics: { title: string; body: string }
+        consentNote: string
+    }
+    yourRights: {
+        title: string
+        intro: string
+        items: string[]
+        howToExercise: string
+        supervisoryAuthority: string
+    }
+    retention: {
+        title: string
+        intro: string
+        items: Array<{ category: string; period: string }>
+    }
+    contact: {
+        title: string
+        body: string
+        email: string
+        supportLinkLabel: string
+        supportLinkText: string
+    }
+}
+
+type TermsPageCopy = {
+    metadata: { title: string; description: string }
+    headerTitle: string
+    effectiveDate: string
+    lastUpdated: string
+    nav: {
+        overview: string
+        orders: string
+        pricing: string
+        aiContent: string
+        intellectualProperty: string
+        returns: string
+        liability: string
+        governingLaw: string
+        changes: string
+        contact: string
+    }
+    intro: { title: string; body: string }
+    orders: { title: string; body: string }
+    pricing: { title: string; body: string }
+    aiContent: { title: string; body: string }
+    intellectualProperty: { title: string; body: string }
+    returns: {
+        title: string
+        body: string
+        returnsLinkLabel: string
+        shippingLinkLabel: string
+    }
+    liability: { title: string; body: string }
+    governingLaw: { title: string; body: string }
+    changes: { title: string; body: string }
+    contact: {
+        title: string
+        body: string
+        email: string
+        supportLinkLabel: string
+        supportLinkText: string
+    }
+}
+
+type ConsentBannerCopy = {
+    title: string
+    body: string
+    accept: string
+    reject: string
+    learnMore: string
+}
+
+type FooterCopy = {
+    tagline: string
+    cta: string
+    productsHeading: string
+    productsList: {
+        tshirts: string
+        hoodies: string
+        mugs: string
+        wallArt: string
+    }
+    supportHeading: string
+    supportLinks: {
+        shipping: string
+        returns: string
+        terms: string
+        privacy: string
+    }
+    copyright: string
+}
+
+type ErrorPagesCopy = {
+    generic: {
+        title: string
+        body: string
+        retry: string
+        goHome: string
+        contactSupport: string
+        referenceLabel: string
+    }
+    notFound: {
+        eyebrow: string
+        title: string
+        body: string
+        goHome: string
+        startCreating: string
+    }
+}
+
 export type LocaleCopy = {
     localeLabel: string
     home: HomePageCopy
@@ -789,12 +924,280 @@ export type LocaleCopy = {
     success: SuccessPageCopy
     support: SupportPageCopy
     returns: ReturnsPageCopy
+    privacy: PrivacyPageCopy
+    terms: TermsPageCopy
+    consent: ConsentBannerCopy
+    footer: FooterCopy
+    errors: ErrorPagesCopy
 }
 
 export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     en: {
         localeLabel: 'English',
         returns: enReturnsCopy,
+        privacy: {
+            metadata: {
+                title: 'Privacy Policy',
+                description:
+                    'How SmartPrintAI handles your data: lawful basis, processors, cookies, your GDPR rights, and how to contact us.',
+            },
+            headerTitle: 'Privacy Policy',
+            effectiveDate: 'Effective: May 18, 2026',
+            lastUpdated: 'Last updated: May 18, 2026',
+            nav: {
+                overview: 'Overview',
+                processors: 'Processors',
+                cookies: 'Cookies',
+                yourRights: 'Your rights',
+                retention: 'Retention',
+                contact: 'Contact',
+            },
+            intro: {
+                title: 'What this policy covers',
+                body:
+                    "SmartPrintAI (\"we\", \"us\") provides an AI-powered print-on-demand service at smartprintai.com. This policy explains the personal data we collect, why we process it, who we share it with, how long we keep it, and the rights you have under the EU General Data Protection Regulation (GDPR).",
+                controller:
+                    'Data controller: SmartPrintAI, operated by Matthieu Kokabi. For data-protection enquiries, contact privacy@smartprintai.com.',
+            },
+            processors: {
+                title: 'Service providers (processors)',
+                intro:
+                    'We use the following processors to operate the service. Each one only receives the data needed for its specific task, under a written processing agreement.',
+                items: [
+                    {
+                        name: 'Stripe Payments Europe Ltd (Ireland) — parent Stripe, Inc. (US)',
+                        role:
+                            'Payment processing. Receives card details, billing address, email, and order amount.',
+                        region: 'EU + US',
+                    },
+                    {
+                        name: 'Printful Latvia, SIA (Latvia) and Printful, Inc. (US)',
+                        role:
+                            'On-demand fulfillment for Printful-routed items. Receives shipping address, recipient name, email, product variant, and design file URL.',
+                        region: 'EU + US',
+                    },
+                    {
+                        name: 'Gelato AS (Norway)',
+                        role:
+                            'On-demand fulfillment for Gelato-routed items. Receives shipping address, recipient name, email, product variant, and design file URL.',
+                        region: 'Norway (EEA) + global production network',
+                    },
+                    {
+                        name: 'Gooten, Inc. (United States)',
+                        role:
+                            'On-demand fulfillment for Gooten-routed items. Receives shipping address, recipient name, email, product variant, and design file URL.',
+                        region: 'US',
+                    },
+                    {
+                        name: 'Resend.com Inc. (United States)',
+                        role:
+                            'Transactional and marketing email delivery (order confirmation, shipment notification, support replies, discount-lead emails). Receives your email address and order metadata.',
+                        region: 'US',
+                    },
+                    {
+                        name: 'Google LLC — Gemini API (US) and Google Ireland Ltd. (Ireland)',
+                        role:
+                            'AI image generation. Receives the design prompt you type. Does not receive your email or shipping address.',
+                        region: 'US + EU',
+                    },
+                    {
+                        name: 'Google LLC — Google Analytics 4 (US) and Google Ireland Ltd. (Ireland)',
+                        role:
+                            'Aggregate site analytics. Loads cookieless pings always (consent-mode v2) and only stores cookies after you click Accept on the cookie banner. Anonymized IP is used.',
+                        region: 'US + EU',
+                    },
+                    {
+                        name: 'Make.com (Celonis SE, Czech Republic)',
+                        role:
+                            'Internal automation: order-event alerts, abandoned-cart triggers, daily ops digest. Receives order metadata (order ID, total, customer email, status).',
+                        region: 'EU',
+                    },
+                    {
+                        name: 'Hostinger International Ltd. (Lithuania / Cyprus)',
+                        role:
+                            'VPS hosting provider. Stores the database, design files, server logs, and backups that run the service.',
+                        region: 'EU',
+                    },
+                ],
+            },
+            cookies: {
+                title: 'Cookies',
+                intro:
+                    'We use only the cookies we need to operate the site. Analytics cookies fire only after you click Accept on the banner.',
+                essential: {
+                    title: 'Essential cookies',
+                    body:
+                        'Cart contents, session, and your cookie-consent choice itself. These are always active because the site cannot function without them. No personal-data sharing with third parties.',
+                },
+                analytics: {
+                    title: 'Analytics cookies (consent required)',
+                    body:
+                        'Google Analytics 4 visitor identifier, attribution (UTM source/medium/campaign/referrer), and our visitor_id used for funnel measurement. None of these fire before you click Accept. If you click Reject, they never fire.',
+                },
+                consentNote:
+                    "You can change your choice anytime by clearing your browser's cookies for this site — the banner will re-appear on your next visit.",
+            },
+            yourRights: {
+                title: 'Your rights under the GDPR',
+                intro:
+                    'You have the following rights regarding the personal data we process about you:',
+                items: [
+                    'Right of access to your personal data (Article 15 GDPR)',
+                    'Right to rectification of inaccurate data (Article 16 GDPR)',
+                    "Right to erasure (\"right to be forgotten\") (Article 17 GDPR)",
+                    'Right to restriction of processing (Article 18 GDPR)',
+                    'Right to data portability (Article 20 GDPR)',
+                    'Right to object to processing (Article 21 GDPR)',
+                    'Right to withdraw consent at any time (Article 7(3) GDPR)',
+                    'Right to lodge a complaint with a supervisory authority (Article 77 GDPR)',
+                ],
+                howToExercise:
+                    'To exercise any of these rights, email privacy@smartprintai.com from the address associated with your account. We aim to respond within 30 days as required by the GDPR.',
+                supervisoryAuthority:
+                    'If you believe we are not handling your data correctly, you may complain to the data-protection authority in the EU member state where you live, work, or where the issue occurred — for example the CNIL in France, the BfDI in Germany, or the AEPD in Spain.',
+            },
+            retention: {
+                title: 'How long we keep data',
+                intro: 'We keep personal data only as long as we have a lawful reason to:',
+                items: [
+                    { category: 'Order records', period: '10 years (mandatory under most EU tax and accounting law)' },
+                    { category: 'Support requests', period: '2 years from last contact' },
+                    { category: 'Marketing-list email (discount sign-up)', period: 'Until you unsubscribe, then deleted within 30 days' },
+                    { category: 'Analytics data (when consented)', period: '14 months in Google Analytics 4, then automatically deleted by Google' },
+                    { category: 'Server logs', period: '30 days, then automatically rotated' },
+                    { category: 'Backups', period: '30 days rolling, then overwritten' },
+                ],
+            },
+            contact: {
+                title: 'Contact us',
+                body: 'For any question, concern, or request about your personal data:',
+                email: 'privacy@smartprintai.com',
+                supportLinkLabel: 'For order-related questions, use our',
+                supportLinkText: 'support center',
+            },
+        },
+        terms: {
+            metadata: {
+                title: 'Terms of Service',
+                description:
+                    'The agreement between you and SmartPrintAI when you use our AI-powered print-on-demand service.',
+            },
+            headerTitle: 'Terms of Service',
+            effectiveDate: 'Effective: May 18, 2026',
+            lastUpdated: 'Last updated: May 18, 2026',
+            nav: {
+                overview: 'Overview',
+                orders: 'Orders',
+                pricing: 'Pricing',
+                aiContent: 'AI content',
+                intellectualProperty: 'IP',
+                returns: 'Returns & shipping',
+                liability: 'Liability',
+                governingLaw: 'Governing law',
+                changes: 'Changes',
+                contact: 'Contact',
+            },
+            intro: {
+                title: 'Agreement',
+                body:
+                    "These Terms govern your use of the SmartPrintAI service at smartprintai.com (the \"Service\"). By placing an order or otherwise using the Service, you accept these Terms. SmartPrintAI is operated by Matthieu Kokabi.",
+            },
+            orders: {
+                title: 'Orders and fulfillment',
+                body:
+                    'Custom items are made to order — production begins only after you complete checkout. Typical production time is 2–5 business days; shipping then takes 3–10 business days depending on the destination country and the fulfillment partner routed for your product. Order confirmation, in-production, and shipped notifications are sent to the email you provide at checkout.',
+            },
+            pricing: {
+                title: 'Prices, taxes, and payment',
+                body:
+                    'Prices shown on product pages are in US dollars and include the design, production, and the Service margin. Shipping is calculated at checkout based on destination. For EU customers, VAT is calculated and shown at checkout in accordance with your country of delivery. Payment is processed by Stripe; we never store full card details.',
+            },
+            aiContent: {
+                title: 'AI-generated designs',
+                body:
+                    "You provide a text prompt and our system generates an image. You are responsible for the content of your prompt: it must not violate third-party rights, depict real identifiable people without their consent, or include content prohibited by Google Gemini's usage policies or by our own platform policies (including hate speech, sexual content involving minors, doxxing, or violent threats). Designs that violate these may be refused at fulfillment and we will refund the order in full.",
+            },
+            intellectualProperty: {
+                title: 'Intellectual property',
+                body:
+                    'You own the design generated from your prompt and the physical product printed from it. SmartPrintAI retains a non-exclusive license to use generated images and mockups for the limited purpose of fulfillment, customer support, and (where permitted) anonymized model improvement. The SmartPrintAI name, logo, and software are our property and may not be reused without permission.',
+            },
+            returns: {
+                title: 'Returns and shipping',
+                body:
+                    'Because each item is made to order, EU consumer-protection law (the 14-day cooling-off period) does not require a refund for custom-printed items unless the product is defective or damaged on arrival. We cover all defects and damage at our cost and will re-make or refund within a reasonable time of receiving photo evidence. Full details:',
+                returnsLinkLabel: 'Returns policy',
+                shippingLinkLabel: 'Shipping information',
+            },
+            liability: {
+                title: 'Limitation of liability',
+                body:
+                    "To the maximum extent permitted by EU consumer-protection law, SmartPrintAI's liability for any single order is limited to the amount you paid for that order, except in cases of death, personal injury, fraud, gross negligence, or where applicable law forbids such limitation. This clause does not affect any non-waivable consumer rights you may have.",
+            },
+            governingLaw: {
+                title: 'Governing law',
+                body:
+                    'These Terms are governed by the law of France, with the mandatory consumer-protection rules of your country of habitual residence expressly preserved. EU consumers may also bring disputes before the courts of their member state of residence. The European Commission provides an online dispute-resolution platform at https://ec.europa.eu/consumers/odr.',
+            },
+            changes: {
+                title: 'Changes to these Terms',
+                body:
+                    "We may update these Terms — for example to reflect a new processor, a regulatory requirement, or a product change. Material changes will be notified by email (if you have an account) and shown on this page with a new \"Last updated\" date. Continuing to use the Service after the new date means you accept the updated Terms.",
+            },
+            contact: {
+                title: 'Contact',
+                body: 'For order-related issues use our support center; for legal questions email us:',
+                email: 'legal@smartprintai.com',
+                supportLinkLabel: 'Order issues:',
+                supportLinkText: 'support center',
+            },
+        },
+        consent: {
+            title: 'We use cookies',
+            body:
+                "Essential cookies make this site work. With your consent we also use analytics cookies (Google Analytics 4) to understand how you use the site so we can improve it. You can change your mind anytime in our Privacy Policy.",
+            accept: 'Accept all',
+            reject: 'Reject non-essential',
+            learnMore: 'Read our Privacy Policy',
+        },
+        footer: {
+            tagline: 'Describe it. AI creates it. We print and ship it.',
+            cta: 'Create My Product',
+            productsHeading: 'Products',
+            productsList: {
+                tshirts: 'T-Shirts',
+                hoodies: 'Hoodies',
+                mugs: 'Mugs',
+                wallArt: 'Wall Art',
+            },
+            supportHeading: 'Support',
+            supportLinks: {
+                shipping: 'Shipping Info',
+                returns: 'Returns Policy',
+                terms: 'Terms',
+                privacy: 'Privacy',
+            },
+            copyright: '© 2026 SmartPrintAI. All rights reserved.',
+        },
+        errors: {
+            generic: {
+                title: 'Something went wrong',
+                body:
+                    'We hit an unexpected error. Please try again. If the problem keeps happening, contact our support.',
+                retry: 'Try again',
+                goHome: 'Go home',
+                contactSupport: 'Contact support',
+                referenceLabel: 'Reference',
+            },
+            notFound: {
+                eyebrow: '404',
+                title: 'Page not found',
+                body:
+                    "The page you were looking for doesn't exist — maybe the link is wrong, or the page has moved.",
+                goHome: 'Go home',
+                startCreating: 'Start creating',
+            },
+        },
         home: {
             metadataTitle: 'Create Custom AI Print-on-Demand Products',
             metadataDescription:
@@ -1049,6 +1452,261 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     fr: {
         localeLabel: 'Francais',
         returns: frReturnsCopy,
+        privacy: {
+            metadata: {
+                title: 'Politique de confidentialité',
+                description:
+                    'Comment SmartPrintAI traite vos données : base légale, sous-traitants, cookies, vos droits RGPD et nos coordonnées.',
+            },
+            headerTitle: 'Politique de confidentialité',
+            effectiveDate: 'Date d’entrée en vigueur : 18 mai 2026',
+            lastUpdated: 'Dernière mise à jour : 18 mai 2026',
+            nav: {
+                overview: 'Aperçu',
+                processors: 'Sous-traitants',
+                cookies: 'Cookies',
+                yourRights: 'Vos droits',
+                retention: 'Conservation',
+                contact: 'Contact',
+            },
+            intro: {
+                title: 'Ce que couvre cette politique',
+                body:
+                    "SmartPrintAI (« nous ») fournit un service d’impression à la demande propulsé par l’IA sur smartprintai.com. Cette politique explique les données personnelles que nous collectons, pourquoi nous les traitons, avec qui nous les partageons, combien de temps nous les conservons, et les droits que vous tenez du Règlement général sur la protection des données (RGPD).",
+                controller:
+                    'Responsable du traitement : SmartPrintAI, exploité par Matthieu Kokabi. Pour toute question relative à la protection des données : privacy@smartprintai.com.',
+            },
+            processors: {
+                title: 'Prestataires (sous-traitants)',
+                intro:
+                    'Nous utilisons les sous-traitants suivants pour faire fonctionner le service. Chacun ne reçoit que les données nécessaires à sa mission, dans le cadre d’un contrat de sous-traitance écrit.',
+                items: [
+                    {
+                        name: 'Stripe Payments Europe Ltd (Irlande) — maison mère Stripe, Inc. (États-Unis)',
+                        role: 'Traitement des paiements. Reçoit les données de carte, l’adresse de facturation, l’e-mail et le montant de la commande.',
+                        region: 'UE + États-Unis',
+                    },
+                    {
+                        name: 'Printful Latvia, SIA (Lettonie) et Printful, Inc. (États-Unis)',
+                        role: 'Production à la demande pour les articles routés vers Printful. Reçoit l’adresse de livraison, le nom du destinataire, l’e-mail, la variante du produit et l’URL du fichier de design.',
+                        region: 'UE + États-Unis',
+                    },
+                    {
+                        name: 'Gelato AS (Norvège)',
+                        role: 'Production à la demande pour les articles routés vers Gelato. Reçoit l’adresse de livraison, le nom du destinataire, l’e-mail, la variante du produit et l’URL du fichier de design.',
+                        region: 'Norvège (EEE) + réseau de production mondial',
+                    },
+                    {
+                        name: 'Gooten, Inc. (États-Unis)',
+                        role: 'Production à la demande pour les articles routés vers Gooten. Reçoit l’adresse de livraison, le nom du destinataire, l’e-mail, la variante du produit et l’URL du fichier de design.',
+                        region: 'États-Unis',
+                    },
+                    {
+                        name: 'Resend.com Inc. (États-Unis)',
+                        role: 'Envoi d’e-mails transactionnels et marketing (confirmation de commande, notification d’expédition, réponses du support, e-mails de code de réduction). Reçoit votre adresse e-mail et les métadonnées de commande.',
+                        region: 'États-Unis',
+                    },
+                    {
+                        name: 'Google LLC — API Gemini (États-Unis) et Google Ireland Ltd. (Irlande)',
+                        role: 'Génération d’images par IA. Reçoit l’invite (prompt) que vous saisissez. Ne reçoit ni votre e-mail ni votre adresse de livraison.',
+                        region: 'États-Unis + UE',
+                    },
+                    {
+                        name: 'Google LLC — Google Analytics 4 (États-Unis) et Google Ireland Ltd. (Irlande)',
+                        role: 'Statistiques agrégées du site. Les pings sans cookies (consent-mode v2) s’exécutent en permanence ; les cookies ne sont stockés qu’après votre clic sur Accepter sur la bannière. L’adresse IP est anonymisée.',
+                        region: 'États-Unis + UE',
+                    },
+                    {
+                        name: 'Make.com (Celonis SE, République tchèque)',
+                        role: 'Automatisation interne : alertes de commande, déclencheurs de panier abandonné, synthèse opérationnelle quotidienne. Reçoit les métadonnées de commande (identifiant, montant total, e-mail client, statut).',
+                        region: 'UE',
+                    },
+                    {
+                        name: 'Hostinger International Ltd. (Lituanie / Chypre)',
+                        role: 'Hébergeur VPS. Stocke la base de données, les fichiers de design, les journaux serveur et les sauvegardes du service.',
+                        region: 'UE',
+                    },
+                ],
+            },
+            cookies: {
+                title: 'Cookies',
+                intro:
+                    'Nous utilisons uniquement les cookies nécessaires au fonctionnement du site. Les cookies d’analyse ne se déclenchent qu’après votre clic sur Accepter sur la bannière.',
+                essential: {
+                    title: 'Cookies essentiels',
+                    body:
+                        'Contenu du panier, session, et votre choix de consentement aux cookies lui-même. Ils sont toujours actifs car le site ne peut fonctionner sans eux. Aucun partage de données personnelles avec des tiers.',
+                },
+                analytics: {
+                    title: 'Cookies d’analyse (consentement requis)',
+                    body:
+                        'Identifiant visiteur Google Analytics 4, attribution (source/medium/campagne/référent UTM) et notre visitor_id utilisé pour la mesure d’entonnoir. Aucun ne se déclenche avant votre clic sur Accepter. Si vous cliquez sur Refuser, aucun ne se déclenche.',
+                },
+                consentNote:
+                    'Vous pouvez modifier votre choix à tout moment en effaçant les cookies de ce site dans votre navigateur — la bannière réapparaîtra à votre prochaine visite.',
+            },
+            yourRights: {
+                title: 'Vos droits au titre du RGPD',
+                intro:
+                    'Vous disposez des droits suivants sur les données personnelles que nous traitons à votre sujet :',
+                items: [
+                    'Droit d’accès à vos données personnelles (article 15 RGPD)',
+                    'Droit de rectification des données inexactes (article 16 RGPD)',
+                    'Droit à l’effacement (« droit à l’oubli ») (article 17 RGPD)',
+                    'Droit à la limitation du traitement (article 18 RGPD)',
+                    'Droit à la portabilité des données (article 20 RGPD)',
+                    'Droit d’opposition au traitement (article 21 RGPD)',
+                    'Droit de retirer votre consentement à tout moment (article 7(3) RGPD)',
+                    'Droit d’introduire une réclamation auprès d’une autorité de contrôle (article 77 RGPD)',
+                ],
+                howToExercise:
+                    'Pour exercer l’un de ces droits, envoyez un e-mail à privacy@smartprintai.com depuis l’adresse associée à votre compte. Nous nous efforçons de répondre dans les 30 jours prévus par le RGPD.',
+                supervisoryAuthority:
+                    'Si vous estimez que nous ne traitons pas correctement vos données, vous pouvez introduire une réclamation auprès de l’autorité de protection des données de l’État membre de l’UE où vous résidez, travaillez ou où le problème s’est produit — par exemple la CNIL en France, le BfDI en Allemagne, l’AEPD en Espagne.',
+            },
+            retention: {
+                title: 'Durée de conservation',
+                intro:
+                    'Nous conservons les données personnelles uniquement le temps nécessaire à une finalité légitime :',
+                items: [
+                    { category: 'Registres de commande', period: '10 ans (obligatoire en vertu du droit fiscal et comptable de la plupart des États membres de l’UE)' },
+                    { category: 'Demandes de support', period: '2 ans à compter du dernier contact' },
+                    { category: 'Liste de diffusion marketing (inscription au code de réduction)', period: 'Jusqu’à votre désabonnement, puis suppression sous 30 jours' },
+                    { category: 'Données analytiques (avec consentement)', period: '14 mois dans Google Analytics 4, puis suppression automatique par Google' },
+                    { category: 'Journaux serveur', period: '30 jours, puis rotation automatique' },
+                    { category: 'Sauvegardes', period: '30 jours glissants, puis écrasement' },
+                ],
+            },
+            contact: {
+                title: 'Nous contacter',
+                body: 'Pour toute question, préoccupation ou demande concernant vos données personnelles :',
+                email: 'privacy@smartprintai.com',
+                supportLinkLabel: 'Pour les questions liées aux commandes, utilisez notre',
+                supportLinkText: 'centre de support',
+            },
+        },
+        terms: {
+            metadata: {
+                title: 'Conditions générales d’utilisation',
+                description:
+                    'L’accord entre vous et SmartPrintAI lorsque vous utilisez notre service d’impression à la demande propulsé par l’IA.',
+            },
+            headerTitle: 'Conditions générales d’utilisation',
+            effectiveDate: 'Date d’entrée en vigueur : 18 mai 2026',
+            lastUpdated: 'Dernière mise à jour : 18 mai 2026',
+            nav: {
+                overview: 'Aperçu',
+                orders: 'Commandes',
+                pricing: 'Tarification',
+                aiContent: 'Contenus IA',
+                intellectualProperty: 'PI',
+                returns: 'Retours et livraison',
+                liability: 'Responsabilité',
+                governingLaw: 'Droit applicable',
+                changes: 'Modifications',
+                contact: 'Contact',
+            },
+            intro: {
+                title: 'Accord',
+                body:
+                    'Les présentes Conditions régissent votre utilisation du service SmartPrintAI accessible sur smartprintai.com (le « Service »). En passant commande ou en utilisant le Service de toute autre manière, vous acceptez ces Conditions. SmartPrintAI est exploité par Matthieu Kokabi.',
+            },
+            orders: {
+                title: 'Commandes et exécution',
+                body:
+                    'Les articles personnalisés sont fabriqués à la demande — la production démarre uniquement après finalisation de votre paiement. Délai de production typique : 2 à 5 jours ouvrés ; la livraison prend ensuite 3 à 10 jours ouvrés selon le pays de destination et le partenaire d’exécution affecté à votre produit. Les notifications de confirmation, de mise en production et d’expédition sont envoyées à l’adresse e-mail fournie au paiement.',
+            },
+            pricing: {
+                title: 'Prix, taxes et paiement',
+                body:
+                    'Les prix affichés sur les fiches produits sont en dollars américains et incluent le design, la production et la marge du Service. Les frais de livraison sont calculés au paiement en fonction de la destination. Pour les clients de l’UE, la TVA est calculée et affichée au paiement conformément à votre pays de livraison. Le paiement est traité par Stripe ; nous ne stockons jamais l’intégralité des données de carte.',
+            },
+            aiContent: {
+                title: 'Designs générés par IA',
+                body:
+                    "Vous fournissez une invite textuelle et notre système génère une image. Vous êtes responsable du contenu de votre invite : elle ne doit pas porter atteinte aux droits de tiers, représenter des personnes réelles identifiables sans leur consentement, ni inclure des contenus interdits par les règles d’usage de Google Gemini ou par nos propres règles de plateforme (notamment incitation à la haine, contenus sexuels impliquant des mineurs, doxxing ou menaces violentes). Les designs en infraction peuvent être refusés en production et nous remboursons alors intégralement la commande.",
+            },
+            intellectualProperty: {
+                title: 'Propriété intellectuelle',
+                body:
+                    'Vous êtes propriétaire du design généré à partir de votre invite et du produit physique imprimé à partir de celui-ci. SmartPrintAI conserve une licence non exclusive d’utilisation des images et visuels (mockups) générés, limitée à la production, au support client et (lorsque permis) à l’amélioration anonymisée du modèle. Le nom, le logo et le logiciel SmartPrintAI sont notre propriété et ne peuvent être réutilisés sans autorisation.',
+            },
+            returns: {
+                title: 'Retours et livraison',
+                body:
+                    "Chaque article étant fabriqué à la demande, le droit de la consommation de l’UE (délai de rétractation de 14 jours) ne s’applique pas aux articles personnalisés, sauf en cas de produit défectueux ou endommagé à l’arrivée. Nous prenons en charge tous les défauts et dommages à nos frais et procédons au refait ou au remboursement dans un délai raisonnable après réception de preuves photographiques. Détails complets :",
+                returnsLinkLabel: 'Politique de retours',
+                shippingLinkLabel: 'Informations de livraison',
+            },
+            liability: {
+                title: 'Limitation de responsabilité',
+                body:
+                    'Dans la limite maximale permise par le droit de la consommation de l’UE, la responsabilité de SmartPrintAI pour une commande donnée est limitée au montant que vous avez payé pour cette commande, sauf en cas de décès, de dommage corporel, de fraude, de faute lourde ou lorsque le droit applicable interdit une telle limitation. Cette clause n’affecte pas les droits non disponibles que vous tenez de la loi en tant que consommateur.',
+            },
+            governingLaw: {
+                title: 'Droit applicable',
+                body:
+                    'Les présentes Conditions sont régies par le droit français, sous réserve de l’application impérative des règles de protection des consommateurs de votre pays de résidence habituelle. Les consommateurs de l’UE peuvent également porter les litiges devant les juridictions de leur État membre de résidence. La Commission européenne met à disposition une plateforme de résolution en ligne des litiges à l’adresse https://ec.europa.eu/consumers/odr.',
+            },
+            changes: {
+                title: 'Modifications des Conditions',
+                body:
+                    'Nous pouvons mettre à jour ces Conditions — par exemple pour refléter un nouveau sous-traitant, une exigence réglementaire ou une évolution produit. Les modifications substantielles vous seront notifiées par e-mail (si vous avez un compte) et affichées sur cette page avec une nouvelle date de « Dernière mise à jour ». Continuer à utiliser le Service après cette date vaut acceptation des Conditions mises à jour.',
+            },
+            contact: {
+                title: 'Contact',
+                body: 'Pour les questions liées aux commandes, utilisez notre centre de support ; pour les questions juridiques, écrivez-nous :',
+                email: 'legal@smartprintai.com',
+                supportLinkLabel: 'Problèmes de commande :',
+                supportLinkText: 'centre de support',
+            },
+        },
+        consent: {
+            title: 'Nous utilisons des cookies',
+            body:
+                'Les cookies essentiels permettent au site de fonctionner. Avec votre consentement, nous utilisons également des cookies d’analyse (Google Analytics 4) pour comprendre votre utilisation du site et l’améliorer. Vous pouvez changer d’avis à tout moment depuis notre Politique de confidentialité.',
+            accept: 'Tout accepter',
+            reject: 'Refuser les non-essentiels',
+            learnMore: 'Lire notre Politique de confidentialité',
+        },
+        footer: {
+            tagline: 'Décrivez-le. L’IA le crée. Nous l’imprimons et l’expédions.',
+            cta: 'Créer mon produit',
+            productsHeading: 'Produits',
+            productsList: {
+                tshirts: 'T-shirts',
+                hoodies: 'Sweats à capuche',
+                mugs: 'Mugs',
+                wallArt: 'Décoration murale',
+            },
+            supportHeading: 'Assistance',
+            supportLinks: {
+                shipping: 'Livraison',
+                returns: 'Retours',
+                terms: 'Conditions',
+                privacy: 'Confidentialité',
+            },
+            copyright: '© 2026 SmartPrintAI. Tous droits réservés.',
+        },
+        errors: {
+            generic: {
+                title: 'Une erreur est survenue',
+                body:
+                    'Nous avons rencontré une erreur inattendue. Veuillez réessayer. Si le problème persiste, contactez notre assistance.',
+                retry: 'Réessayer',
+                goHome: 'Retour à l’accueil',
+                contactSupport: 'Contacter l’assistance',
+                referenceLabel: 'Référence',
+            },
+            notFound: {
+                eyebrow: '404',
+                title: 'Page introuvable',
+                body:
+                    'La page que vous cherchiez n’existe pas — le lien est peut-être incorrect ou la page a été déplacée.',
+                goHome: 'Retour à l’accueil',
+                startCreating: 'Commencer à créer',
+            },
+        },
         home: {
             metadataTitle: 'Creez des produits personnalises avec IA',
             metadataDescription:
@@ -1300,6 +1958,266 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     de: {
         localeLabel: 'Deutsch',
         returns: deReturnsCopy,
+        privacy: {
+            metadata: {
+                title: 'Datenschutzerklärung',
+                description:
+                    'Wie SmartPrintAI Ihre Daten verarbeitet: Rechtsgrundlage, Auftragsverarbeiter, Cookies, Ihre DSGVO-Rechte und Kontaktwege.',
+            },
+            headerTitle: 'Datenschutzerklärung',
+            effectiveDate: 'Gültig ab: 18. Mai 2026',
+            lastUpdated: 'Zuletzt aktualisiert: 18. Mai 2026',
+            nav: {
+                overview: 'Übersicht',
+                processors: 'Auftragsverarbeiter',
+                cookies: 'Cookies',
+                yourRights: 'Ihre Rechte',
+                retention: 'Speicherdauer',
+                contact: 'Kontakt',
+            },
+            intro: {
+                title: 'Was diese Erklärung umfasst',
+                body:
+                    'SmartPrintAI („wir") betreibt einen KI-gestützten Print-on-Demand-Dienst auf smartprintai.com. Diese Erklärung beschreibt die personenbezogenen Daten, die wir erheben, warum wir sie verarbeiten, mit wem wir sie teilen, wie lange wir sie speichern, und die Rechte, die Ihnen nach der EU-Datenschutz-Grundverordnung (DSGVO) zustehen.',
+                controller:
+                    // CONFIRM: "Verantwortlicher" + dative phrasing — idiomatic German legal register?
+                    'Verantwortlicher: SmartPrintAI, betrieben von Matthieu Kokabi. Für Datenschutzanfragen wenden Sie sich an privacy@smartprintai.com.',
+            },
+            processors: {
+                title: 'Dienstleister (Auftragsverarbeiter)',
+                intro:
+                    'Wir nutzen die folgenden Auftragsverarbeiter zum Betrieb des Dienstes. Jeder erhält nur die Daten, die für seine jeweilige Aufgabe erforderlich sind, auf Grundlage eines schriftlichen Auftragsverarbeitungsvertrags.',
+                items: [
+                    {
+                        name: 'Stripe Payments Europe Ltd (Irland) — Muttergesellschaft Stripe, Inc. (USA)',
+                        role: 'Zahlungsabwicklung. Erhält Kartendaten, Rechnungsadresse, E-Mail und Bestellbetrag.',
+                        region: 'EU + USA',
+                    },
+                    {
+                        name: 'Printful Latvia, SIA (Lettland) und Printful, Inc. (USA)',
+                        role: 'On-Demand-Produktion für Printful-Artikel. Erhält Lieferadresse, Empfängername, E-Mail, Produktvariante und URL der Design-Datei.',
+                        region: 'EU + USA',
+                    },
+                    {
+                        name: 'Gelato AS (Norwegen)',
+                        role: 'On-Demand-Produktion für Gelato-Artikel. Erhält Lieferadresse, Empfängername, E-Mail, Produktvariante und URL der Design-Datei.',
+                        region: 'Norwegen (EWR) + globales Produktionsnetz',
+                    },
+                    {
+                        name: 'Gooten, Inc. (USA)',
+                        role: 'On-Demand-Produktion für Gooten-Artikel. Erhält Lieferadresse, Empfängername, E-Mail, Produktvariante und URL der Design-Datei.',
+                        region: 'USA',
+                    },
+                    {
+                        name: 'Resend.com Inc. (USA)',
+                        role: 'Versand transaktionaler und marketingbezogener E-Mails (Bestellbestätigung, Versandbenachrichtigung, Support-Antworten, Rabatt-Code-E-Mails). Erhält Ihre E-Mail-Adresse und Bestellmetadaten.',
+                        region: 'USA',
+                    },
+                    {
+                        name: 'Google LLC — Gemini API (USA) und Google Ireland Ltd. (Irland)',
+                        role: 'KI-Bildgenerierung. Erhält den Text-Prompt, den Sie eingeben. Erhält weder Ihre E-Mail-Adresse noch Ihre Lieferadresse.',
+                        region: 'USA + EU',
+                    },
+                    {
+                        name: 'Google LLC — Google Analytics 4 (USA) und Google Ireland Ltd. (Irland)',
+                        role: 'Aggregierte Website-Analytik. Cookie-lose Pings (Consent Mode v2) laufen durchgehend; Cookies werden erst nach Ihrem Klick auf „Akzeptieren" gesetzt. Die IP-Adresse wird anonymisiert.',
+                        region: 'USA + EU',
+                    },
+                    {
+                        name: 'Make.com (Celonis SE, Tschechische Republik)',
+                        role: 'Interne Automatisierung: Bestell-Event-Benachrichtigungen, Trigger für abgebrochene Warenkörbe, tägliche Ops-Übersicht. Erhält Bestellmetadaten (Bestell-ID, Gesamtbetrag, Kunden-E-Mail, Status).',
+                        region: 'EU',
+                    },
+                    {
+                        name: 'Hostinger International Ltd. (Litauen / Zypern)',
+                        role: 'VPS-Hosting-Anbieter. Speichert die Datenbank, Design-Dateien, Server-Logs und Backups des Dienstes.',
+                        region: 'EU',
+                    },
+                ],
+            },
+            cookies: {
+                title: 'Cookies',
+                intro:
+                    'Wir verwenden nur die Cookies, die für den Betrieb der Website erforderlich sind. Analyse-Cookies werden erst nach Ihrem Klick auf „Akzeptieren" gesetzt.',
+                essential: {
+                    title: 'Essenzielle Cookies',
+                    body:
+                        'Warenkorbinhalt, Sitzung und Ihre Cookie-Einwilligungsentscheidung selbst. Diese sind immer aktiv, da die Website ohne sie nicht funktionieren kann. Keine Weitergabe personenbezogener Daten an Dritte.',
+                },
+                analytics: {
+                    title: 'Analyse-Cookies (Einwilligung erforderlich)',
+                    body:
+                        // CONFIRM: visitor_id is a technical term — leave English or translate to "Besucher-ID"?
+                        'Google-Analytics-4-Besucherkennung, Attribution (UTM-Quelle/Medium/Kampagne/Verweis) und unsere visitor_id für die Funnel-Messung. Keines davon wird vor Ihrem Klick auf „Akzeptieren" gesetzt. Bei „Ablehnen" werden sie nie gesetzt.',
+                },
+                consentNote:
+                    'Sie können Ihre Wahl jederzeit ändern, indem Sie die Cookies dieser Website in Ihrem Browser löschen — das Banner erscheint bei Ihrem nächsten Besuch erneut.',
+            },
+            yourRights: {
+                title: 'Ihre Rechte nach der DSGVO',
+                intro:
+                    'Bezüglich der personenbezogenen Daten, die wir über Sie verarbeiten, haben Sie folgende Rechte:',
+                items: [
+                    'Auskunftsrecht über Ihre personenbezogenen Daten (Art. 15 DSGVO)',
+                    'Recht auf Berichtigung unrichtiger Daten (Art. 16 DSGVO)',
+                    'Recht auf Löschung („Recht auf Vergessenwerden") (Art. 17 DSGVO)',
+                    'Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)',
+                    'Recht auf Datenübertragbarkeit (Art. 20 DSGVO)',
+                    'Widerspruchsrecht gegen die Verarbeitung (Art. 21 DSGVO)',
+                    'Recht, Ihre Einwilligung jederzeit zu widerrufen (Art. 7 Abs. 3 DSGVO)',
+                    'Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO)',
+                ],
+                howToExercise:
+                    'Um eines dieser Rechte auszuüben, schreiben Sie eine E-Mail von der mit Ihrem Konto verknüpften Adresse an privacy@smartprintai.com. Wir bemühen uns, innerhalb der von der DSGVO vorgesehenen 30 Tage zu antworten.',
+                supervisoryAuthority:
+                    // CONFIRM: In Deutschland ist die zustaendige Behoerde der jeweilige Landesdatenschutzbeauftragte (nicht BfDI, der nur fuer Bundesbehoerden zustaendig ist). Dieser Satz nennt BfDI als Beispiel — fuer einen Endkunden ist der Landesbeauftragte zustaendiger. Operator: ist die generische Formulierung "BfDI als Beispiel" akzeptabel, oder soll ich auf "Landesdatenschutzbehoerde" wechseln?
+                    'Wenn Sie der Ansicht sind, dass wir Ihre Daten nicht ordnungsgemäß verarbeiten, können Sie sich an die Datenschutzbehörde des EU-Mitgliedstaats wenden, in dem Sie wohnen, arbeiten oder in dem der Vorfall eingetreten ist — beispielsweise die CNIL in Frankreich, die zuständige Landesdatenschutzbehörde in Deutschland oder die AEPD in Spanien.',
+            },
+            retention: {
+                title: 'Speicherdauer',
+                intro:
+                    'Wir speichern personenbezogene Daten nur so lange, wie wir einen rechtmäßigen Grund dafür haben:',
+                items: [
+                    { category: 'Bestelldaten', period: '10 Jahre (nach Steuer- und Handelsrecht der meisten EU-Mitgliedstaaten verpflichtend)' },
+                    { category: 'Support-Anfragen', period: '2 Jahre ab letztem Kontakt' },
+                    { category: 'Marketing-Verteiler (Rabattanmeldung)', period: 'Bis zur Abmeldung, danach Löschung innerhalb von 30 Tagen' },
+                    { category: 'Analytik-Daten (bei Einwilligung)', period: '14 Monate in Google Analytics 4, danach automatische Löschung durch Google' },
+                    { category: 'Server-Logs', period: '30 Tage, danach automatische Rotation' },
+                    { category: 'Backups', period: '30 Tage rollierend, danach Überschreibung' },
+                ],
+            },
+            contact: {
+                title: 'Kontakt',
+                body: 'Für Fragen, Anliegen oder Anträge zu Ihren personenbezogenen Daten:',
+                email: 'privacy@smartprintai.com',
+                supportLinkLabel: 'Bei bestellbezogenen Fragen nutzen Sie unser',
+                supportLinkText: 'Support-Center',
+            },
+        },
+        terms: {
+            metadata: {
+                title: 'Allgemeine Geschäftsbedingungen',
+                description:
+                    'Die Vereinbarung zwischen Ihnen und SmartPrintAI bei Nutzung unseres KI-gestützten Print-on-Demand-Dienstes.',
+            },
+            headerTitle: 'Allgemeine Geschäftsbedingungen',
+            effectiveDate: 'Gültig ab: 18. Mai 2026',
+            lastUpdated: 'Zuletzt aktualisiert: 18. Mai 2026',
+            nav: {
+                overview: 'Übersicht',
+                orders: 'Bestellungen',
+                pricing: 'Preise',
+                aiContent: 'KI-Inhalte',
+                intellectualProperty: 'Geistiges Eigentum',
+                returns: 'Rückgabe & Versand',
+                liability: 'Haftung',
+                governingLaw: 'Anwendbares Recht',
+                changes: 'Änderungen',
+                contact: 'Kontakt',
+            },
+            intro: {
+                title: 'Vereinbarung',
+                body:
+                    'Diese Bedingungen regeln Ihre Nutzung des SmartPrintAI-Dienstes auf smartprintai.com (der „Dienst"). Durch Aufgabe einer Bestellung oder anderweitige Nutzung des Dienstes akzeptieren Sie diese Bedingungen. SmartPrintAI wird von Matthieu Kokabi betrieben.',
+            },
+            orders: {
+                title: 'Bestellungen und Ausführung',
+                body:
+                    // CONFIRM: "auf Bestellung gefertigt" vs. "auftragsbezogen gefertigt" — welches passt besser im AGB-Register?
+                    'Personalisierte Artikel werden auf Bestellung gefertigt — die Produktion beginnt erst nach Abschluss Ihrer Zahlung. Typische Produktionszeit: 2–5 Werktage; der Versand dauert anschließend 3–10 Werktage je nach Zielland und dem für Ihr Produkt zuständigen Produktionspartner. Bestellbestätigung, Produktionsbeginn und Versandbenachrichtigung werden an die von Ihnen beim Bezahlvorgang angegebene E-Mail-Adresse gesendet.',
+            },
+            pricing: {
+                title: 'Preise, Steuern und Zahlung',
+                body:
+                    'Die auf den Produktseiten angezeigten Preise sind in US-Dollar und umfassen Design, Produktion und unsere Servicemarge. Die Versandkosten werden beim Bezahlvorgang anhand des Zielortes berechnet. Für Kunden in der EU wird die Mehrwertsteuer beim Bezahlvorgang gemäß Ihrem Lieferland berechnet und ausgewiesen. Die Zahlung erfolgt über Stripe; vollständige Kartendaten speichern wir nicht.',
+            },
+            aiContent: {
+                title: 'KI-generierte Designs',
+                body:
+                    'Sie geben einen Text-Prompt ein, und unser System erzeugt ein Bild. Sie sind für den Inhalt Ihres Prompts verantwortlich: Er darf keine Rechte Dritter verletzen, keine real identifizierbaren Personen ohne deren Einwilligung darstellen und keine Inhalte enthalten, die gegen die Nutzungsrichtlinien von Google Gemini oder unsere Plattformregeln verstoßen (insbesondere Hassrede, sexuelle Inhalte mit Minderjährigen, Doxxing oder Gewaltdrohungen). Designs, die dagegen verstoßen, können in der Produktion abgelehnt werden; in diesem Fall erstatten wir die Bestellung vollständig.',
+            },
+            intellectualProperty: {
+                title: 'Geistiges Eigentum',
+                body:
+                    'Sie sind Eigentümer des aus Ihrem Prompt erzeugten Designs und des daraus gefertigten physischen Produkts. SmartPrintAI behält sich eine nicht ausschließliche Lizenz zur Nutzung erzeugter Bilder und Mockups vor — beschränkt auf Produktion, Kundensupport und (sofern erlaubt) anonymisierte Modellverbesserung. Name, Logo und Software von SmartPrintAI sind unser Eigentum und dürfen ohne Erlaubnis nicht weiterverwendet werden.',
+            },
+            returns: {
+                title: 'Rückgabe und Versand',
+                body:
+                    // CONFIRM: 14-Tage-Widerrufsrecht — Ausnahme fuer "nach Kundenspezifikation angefertigte Waren" gemaess § 312g Abs. 2 Nr. 1 BGB. Diese Formulierung sollte das wiedergeben.
+                    'Da jeder Artikel auf Bestellung gefertigt wird, gilt das 14-tägige Widerrufsrecht des EU-Verbraucherrechts für individuell bedruckte Artikel grundsätzlich nicht — außer der Artikel ist bei Ankunft mangelhaft oder beschädigt. Mängel und Transportschäden tragen wir vollständig: Nach Erhalt eines Fotonachweises fertigen wir den Artikel innerhalb angemessener Frist neu oder erstatten den Kaufpreis. Vollständige Details:',
+                returnsLinkLabel: 'Rückgaberichtlinie',
+                shippingLinkLabel: 'Versandinformationen',
+            },
+            liability: {
+                title: 'Haftungsbeschränkung',
+                body:
+                    'Soweit gesetzlich zulässig, ist die Haftung von SmartPrintAI für eine einzelne Bestellung auf den Betrag begrenzt, den Sie für diese Bestellung gezahlt haben. Ausgenommen sind Fälle von Tod, Körperverletzung, Betrug, grober Fahrlässigkeit sowie Fälle, in denen das anwendbare Recht eine solche Beschränkung untersagt. Diese Klausel berührt keine zwingenden Verbraucherrechte, die Ihnen zustehen.',
+            },
+            governingLaw: {
+                title: 'Anwendbares Recht',
+                body:
+                    'Diese Bedingungen unterliegen französischem Recht; zwingende Verbraucherschutzbestimmungen Ihres Landes des gewöhnlichen Aufenthalts bleiben ausdrücklich unberührt. EU-Verbraucher können Streitigkeiten auch vor den Gerichten ihres Mitgliedstaats der Wohnsitzes anhängig machen. Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung unter https://ec.europa.eu/consumers/odr bereit.',
+            },
+            changes: {
+                title: 'Änderungen dieser Bedingungen',
+                body:
+                    'Wir können diese Bedingungen aktualisieren — etwa um einen neuen Auftragsverarbeiter, eine regulatorische Anforderung oder eine Produktänderung abzubilden. Wesentliche Änderungen kündigen wir per E-Mail an (sofern ein Konto besteht) und kennzeichnen die Seite mit einem neuen „Zuletzt aktualisiert"-Datum. Mit der weiteren Nutzung des Dienstes nach diesem Datum akzeptieren Sie die geänderten Bedingungen.',
+            },
+            contact: {
+                title: 'Kontakt',
+                body: 'Bei bestellbezogenen Anliegen nutzen Sie unser Support-Center; für rechtliche Fragen schreiben Sie uns:',
+                email: 'legal@smartprintai.com',
+                supportLinkLabel: 'Bestellprobleme:',
+                supportLinkText: 'Support-Center',
+            },
+        },
+        consent: {
+            title: 'Wir verwenden Cookies',
+            body:
+                'Essenzielle Cookies sind für den Betrieb der Website erforderlich. Mit Ihrer Einwilligung nutzen wir zusätzlich Analyse-Cookies (Google Analytics 4), um zu verstehen, wie Sie die Website nutzen, und sie zu verbessern. Sie können Ihre Wahl jederzeit in unserer Datenschutzerklärung ändern.',
+            accept: 'Alle akzeptieren',
+            reject: 'Nicht-essenzielle ablehnen',
+            learnMore: 'Datenschutzerklärung lesen',
+        },
+        footer: {
+            tagline: 'Beschreibe es. Die KI erstellt es. Wir drucken und versenden es.',
+            cta: 'Produkt erstellen',
+            productsHeading: 'Produkte',
+            productsList: {
+                tshirts: 'T-Shirts',
+                hoodies: 'Hoodies',
+                mugs: 'Tassen',
+                wallArt: 'Wandkunst',
+            },
+            supportHeading: 'Hilfe',
+            supportLinks: {
+                shipping: 'Versand',
+                returns: 'Rückgabe',
+                terms: 'AGB',
+                privacy: 'Datenschutz',
+            },
+            copyright: '© 2026 SmartPrintAI. Alle Rechte vorbehalten.',
+        },
+        errors: {
+            generic: {
+                title: 'Etwas ist schiefgelaufen',
+                body:
+                    'Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich an unseren Support.',
+                retry: 'Erneut versuchen',
+                goHome: 'Zur Startseite',
+                contactSupport: 'Support kontaktieren',
+                referenceLabel: 'Referenz',
+            },
+            notFound: {
+                eyebrow: '404',
+                title: 'Seite nicht gefunden',
+                body:
+                    'Die gesuchte Seite existiert nicht — vielleicht ist der Link falsch, oder die Seite wurde verschoben.',
+                goHome: 'Zur Startseite',
+                startCreating: 'Mit dem Erstellen beginnen',
+            },
+        },
         home: {
             metadataTitle: 'Erstelle personalisierte Produkte mit KI',
             metadataDescription:
@@ -1551,6 +2469,264 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     es: {
         localeLabel: 'Espanol',
         returns: esReturnsCopy,
+        privacy: {
+            metadata: {
+                title: 'Política de Privacidad',
+                description:
+                    'Cómo SmartPrintAI gestiona sus datos: base legal, encargados del tratamiento, cookies, sus derechos RGPD y contacto.',
+            },
+            headerTitle: 'Política de Privacidad',
+            effectiveDate: 'Fecha de entrada en vigor: 18 de mayo de 2026',
+            lastUpdated: 'Última actualización: 18 de mayo de 2026',
+            nav: {
+                overview: 'Resumen',
+                processors: 'Encargados',
+                cookies: 'Cookies',
+                yourRights: 'Sus derechos',
+                retention: 'Conservación',
+                contact: 'Contacto',
+            },
+            intro: {
+                title: 'Alcance de esta política',
+                body:
+                    'SmartPrintAI («nosotros») presta un servicio de impresión bajo demanda potenciado por IA en smartprintai.com. Esta política explica los datos personales que recopilamos, por qué los tratamos, con quién los compartimos, durante cuánto tiempo los conservamos y los derechos que le reconoce el Reglamento General de Protección de Datos (RGPD).',
+                controller:
+                    // CONFIRM: "Responsable del tratamiento" es el termino RGPD estandar. ¿Idiomatico?
+                    'Responsable del tratamiento: SmartPrintAI, operado por Matthieu Kokabi. Para consultas sobre protección de datos: privacy@smartprintai.com.',
+            },
+            processors: {
+                title: 'Proveedores (encargados del tratamiento)',
+                intro:
+                    'Utilizamos los siguientes encargados del tratamiento para operar el servicio. Cada uno recibe únicamente los datos necesarios para su tarea, en virtud de un contrato de encargo del tratamiento por escrito.',
+                items: [
+                    {
+                        name: 'Stripe Payments Europe Ltd (Irlanda) — matriz Stripe, Inc. (EE. UU.)',
+                        role: 'Procesamiento de pagos. Recibe los datos de la tarjeta, dirección de facturación, correo electrónico e importe del pedido.',
+                        region: 'UE + EE. UU.',
+                    },
+                    {
+                        name: 'Printful Latvia, SIA (Letonia) y Printful, Inc. (EE. UU.)',
+                        role: 'Producción bajo demanda para artículos Printful. Recibe la dirección de envío, nombre del destinatario, correo electrónico, variante del producto y URL del archivo de diseño.',
+                        region: 'UE + EE. UU.',
+                    },
+                    {
+                        name: 'Gelato AS (Noruega)',
+                        role: 'Producción bajo demanda para artículos Gelato. Recibe la dirección de envío, nombre del destinatario, correo electrónico, variante del producto y URL del archivo de diseño.',
+                        region: 'Noruega (EEE) + red mundial de producción',
+                    },
+                    {
+                        name: 'Gooten, Inc. (Estados Unidos)',
+                        role: 'Producción bajo demanda para artículos Gooten. Recibe la dirección de envío, nombre del destinatario, correo electrónico, variante del producto y URL del archivo de diseño.',
+                        region: 'EE. UU.',
+                    },
+                    {
+                        name: 'Resend.com Inc. (Estados Unidos)',
+                        role: 'Envío de correos electrónicos transaccionales y de marketing (confirmación de pedido, notificación de envío, respuestas de soporte, correos de código de descuento). Recibe su dirección de correo electrónico y metadatos de pedido.',
+                        region: 'EE. UU.',
+                    },
+                    {
+                        name: 'Google LLC — API Gemini (EE. UU.) y Google Ireland Ltd. (Irlanda)',
+                        role: 'Generación de imágenes con IA. Recibe el «prompt» (instrucción de texto) que usted introduce. No recibe su correo electrónico ni su dirección de envío.',
+                        region: 'EE. UU. + UE',
+                    },
+                    {
+                        name: 'Google LLC — Google Analytics 4 (EE. UU.) y Google Ireland Ltd. (Irlanda)',
+                        role: 'Analítica agregada del sitio. Las solicitudes sin cookies (Consent Mode v2) se ejecutan siempre; las cookies se almacenan únicamente tras su clic en «Aceptar». La IP se anonimiza.',
+                        region: 'EE. UU. + UE',
+                    },
+                    {
+                        name: 'Make.com (Celonis SE, República Checa)',
+                        role: 'Automatización interna: alertas de pedidos, disparadores de carrito abandonado, resumen operativo diario. Recibe metadatos de pedido (ID, importe total, correo electrónico del cliente, estado).',
+                        region: 'UE',
+                    },
+                    {
+                        name: 'Hostinger International Ltd. (Lituania / Chipre)',
+                        role: 'Proveedor de alojamiento VPS. Almacena la base de datos, archivos de diseño, registros de servidor y copias de seguridad del servicio.',
+                        region: 'UE',
+                    },
+                ],
+            },
+            cookies: {
+                title: 'Cookies',
+                intro:
+                    'Usamos únicamente las cookies necesarias para operar el sitio. Las cookies de análisis solo se activan tras su clic en «Aceptar».',
+                essential: {
+                    title: 'Cookies esenciales',
+                    body:
+                        'Contenido del carrito, sesión y su propia elección de consentimiento de cookies. Siempre están activas porque el sitio no puede funcionar sin ellas. No se comparten datos personales con terceros.',
+                },
+                analytics: {
+                    title: 'Cookies de análisis (consentimiento requerido)',
+                    body:
+                        'Identificador de visitante de Google Analytics 4, atribución (fuente/medio/campaña/referente UTM) y nuestra visitor_id para la medición del embudo. Ninguna se activa antes de su clic en «Aceptar». Si pulsa «Rechazar», nunca se activan.',
+                },
+                consentNote:
+                    'Puede cambiar su elección en cualquier momento borrando las cookies de este sitio en su navegador — el banner volverá a aparecer en su próxima visita.',
+            },
+            yourRights: {
+                title: 'Sus derechos al amparo del RGPD',
+                intro:
+                    'Tiene los siguientes derechos sobre los datos personales que tratamos sobre usted:',
+                items: [
+                    'Derecho de acceso a sus datos personales (art. 15 RGPD)',
+                    'Derecho de rectificación de datos inexactos (art. 16 RGPD)',
+                    'Derecho de supresión («derecho al olvido») (art. 17 RGPD)',
+                    'Derecho a la limitación del tratamiento (art. 18 RGPD)',
+                    'Derecho a la portabilidad de los datos (art. 20 RGPD)',
+                    'Derecho de oposición al tratamiento (art. 21 RGPD)',
+                    'Derecho a retirar su consentimiento en cualquier momento (art. 7.3 RGPD)',
+                    'Derecho a presentar una reclamación ante una autoridad de control (art. 77 RGPD)',
+                ],
+                howToExercise:
+                    'Para ejercer cualquiera de estos derechos, envíe un correo electrónico a privacy@smartprintai.com desde la dirección asociada a su cuenta. Procuramos responder dentro de los 30 días previstos por el RGPD.',
+                supervisoryAuthority:
+                    'Si considera que no estamos gestionando correctamente sus datos, puede presentar una reclamación ante la autoridad de protección de datos del Estado miembro de la UE en el que reside, trabaja o donde se haya producido la incidencia — por ejemplo, la CNIL en Francia, el BfDI en Alemania o la AEPD en España.',
+            },
+            retention: {
+                title: 'Plazos de conservación',
+                intro:
+                    'Conservamos los datos personales solo durante el tiempo en que tengamos un motivo legítimo para hacerlo:',
+                items: [
+                    { category: 'Registros de pedidos', period: '10 años (obligatorio en virtud de la normativa fiscal y contable en la mayoría de Estados miembros de la UE)' },
+                    { category: 'Solicitudes de soporte', period: '2 años desde el último contacto' },
+                    { category: 'Lista de marketing (alta para código de descuento)', period: 'Hasta que se dé de baja; supresión en un plazo de 30 días' },
+                    { category: 'Datos analíticos (con consentimiento)', period: '14 meses en Google Analytics 4, después borrado automático por Google' },
+                    { category: 'Registros de servidor', period: '30 días, después rotación automática' },
+                    { category: 'Copias de seguridad', period: '30 días rotativos, después sobrescritura' },
+                ],
+            },
+            contact: {
+                title: 'Contacto',
+                body: 'Para cualquier pregunta, inquietud o solicitud sobre sus datos personales:',
+                email: 'privacy@smartprintai.com',
+                supportLinkLabel: 'Para consultas relacionadas con pedidos, utilice nuestro',
+                supportLinkText: 'centro de soporte',
+            },
+        },
+        terms: {
+            metadata: {
+                title: 'Términos de Servicio',
+                description:
+                    'El acuerdo entre usted y SmartPrintAI cuando utiliza nuestro servicio de impresión bajo demanda potenciado por IA.',
+            },
+            headerTitle: 'Términos de Servicio',
+            effectiveDate: 'Fecha de entrada en vigor: 18 de mayo de 2026',
+            lastUpdated: 'Última actualización: 18 de mayo de 2026',
+            nav: {
+                overview: 'Resumen',
+                orders: 'Pedidos',
+                pricing: 'Precios',
+                aiContent: 'Contenidos IA',
+                intellectualProperty: 'PI',
+                returns: 'Devoluciones y envío',
+                liability: 'Responsabilidad',
+                governingLaw: 'Ley aplicable',
+                changes: 'Cambios',
+                contact: 'Contacto',
+            },
+            intro: {
+                title: 'Acuerdo',
+                body:
+                    'Los presentes Términos regulan su uso del servicio SmartPrintAI accesible en smartprintai.com (el «Servicio»). Al realizar un pedido o utilizar el Servicio de cualquier otra forma, usted acepta estos Términos. SmartPrintAI es operado por Matthieu Kokabi.',
+            },
+            orders: {
+                title: 'Pedidos y entrega',
+                body:
+                    // CONFIRM: "fabricado bajo demanda" / "hecho a pedido" — ¿cual encaja mejor en el registro legal espanol?
+                    'Los artículos personalizados se fabrican bajo demanda — la producción comienza únicamente tras finalizar el pago. Tiempo de producción típico: de 2 a 5 días laborables; el envío posterior tarda de 3 a 10 días laborables según el país de destino y el socio de producción asignado a su producto. Las notificaciones de confirmación, producción y envío se envían al correo electrónico facilitado en el pago.',
+            },
+            pricing: {
+                title: 'Precios, impuestos y pago',
+                body:
+                    'Los precios mostrados en las páginas de producto están en dólares estadounidenses e incluyen el diseño, la producción y el margen del Servicio. Los gastos de envío se calculan en el pago según el destino. Para clientes de la UE, el IVA se calcula y muestra en el pago conforme a su país de entrega. El pago se procesa a través de Stripe; nunca almacenamos los datos completos de la tarjeta.',
+            },
+            aiContent: {
+                title: 'Diseños generados por IA',
+                body:
+                    'Usted proporciona una instrucción de texto («prompt») y nuestro sistema genera una imagen. Es responsable del contenido de su prompt: no debe vulnerar derechos de terceros, representar personas reales identificables sin su consentimiento, ni incluir contenido prohibido por las políticas de uso de Google Gemini o por nuestras propias políticas (en particular, incitación al odio, contenido sexual con menores, doxing o amenazas violentas). Los diseños que infrinjan estas normas pueden ser rechazados en producción y reembolsaremos el pedido íntegramente.',
+            },
+            intellectualProperty: {
+                title: 'Propiedad intelectual',
+                body:
+                    'Usted es titular del diseño generado a partir de su prompt y del producto físico impreso a partir de él. SmartPrintAI conserva una licencia no exclusiva para usar las imágenes y mockups generados, limitada a producción, atención al cliente y (cuando esté permitido) mejora anonimizada del modelo. El nombre, logotipo y software de SmartPrintAI son de nuestra propiedad y no pueden reutilizarse sin permiso.',
+            },
+            returns: {
+                title: 'Devoluciones y envío',
+                body:
+                    // CONFIRM: la excepcion "bienes confeccionados conforme a las especificaciones del consumidor" (art. 103 LGDCU en Espana) — esta formulacion deberia coincidir.
+                    'Dado que cada artículo se fabrica bajo demanda, el derecho de desistimiento de 14 días previsto en la normativa de consumidores de la UE no se aplica a artículos personalizados, salvo que el producto llegue defectuoso o dañado. Asumimos por completo los defectos y daños de transporte: tras recibir prueba fotográfica, refabricamos o reembolsamos el artículo en un plazo razonable. Detalles completos:',
+                returnsLinkLabel: 'Política de devoluciones',
+                shippingLinkLabel: 'Información de envío',
+            },
+            liability: {
+                title: 'Limitación de responsabilidad',
+                body:
+                    'En la máxima medida permitida por la normativa de protección al consumidor de la UE, la responsabilidad de SmartPrintAI por cualquier pedido se limita al importe pagado por dicho pedido, salvo en casos de fallecimiento, lesión personal, fraude, culpa grave o cuando la ley aplicable prohíba tal limitación. Esta cláusula no afecta a los derechos irrenunciables que le reconoce la ley como consumidor.',
+            },
+            governingLaw: {
+                title: 'Ley aplicable',
+                body:
+                    'Los presentes Términos se rigen por el derecho francés, sin perjuicio de las normas imperativas de protección al consumidor de su país de residencia habitual. Los consumidores de la UE también pueden someter las controversias a los tribunales de su Estado miembro de residencia. La Comisión Europea pone a disposición una plataforma de resolución de litigios en línea en https://ec.europa.eu/consumers/odr.',
+            },
+            changes: {
+                title: 'Cambios en estos Términos',
+                body:
+                    'Podemos actualizar estos Términos — por ejemplo, para reflejar un nuevo encargado del tratamiento, una exigencia normativa o un cambio de producto. Los cambios sustanciales se notificarán por correo electrónico (si dispone de cuenta) y se mostrarán en esta página con una nueva fecha de «Última actualización». El uso continuado del Servicio tras esa fecha implica la aceptación de los Términos modificados.',
+            },
+            contact: {
+                title: 'Contacto',
+                body: 'Para asuntos relacionados con pedidos, utilice nuestro centro de soporte; para consultas legales, escríbanos:',
+                email: 'legal@smartprintai.com',
+                supportLinkLabel: 'Problemas de pedido:',
+                supportLinkText: 'centro de soporte',
+            },
+        },
+        consent: {
+            title: 'Usamos cookies',
+            body:
+                'Las cookies esenciales permiten el funcionamiento del sitio. Con su consentimiento también utilizamos cookies de análisis (Google Analytics 4) para entender cómo usa el sitio y mejorarlo. Puede cambiar su elección en cualquier momento desde nuestra Política de Privacidad.',
+            accept: 'Aceptar todo',
+            reject: 'Rechazar no esenciales',
+            learnMore: 'Leer nuestra Política de Privacidad',
+        },
+        footer: {
+            tagline: 'Descríbelo. La IA lo crea. Nosotros lo imprimimos y enviamos.',
+            cta: 'Crear mi producto',
+            productsHeading: 'Productos',
+            productsList: {
+                tshirts: 'Camisetas',
+                hoodies: 'Sudaderas',
+                mugs: 'Tazas',
+                wallArt: 'Arte mural',
+            },
+            supportHeading: 'Ayuda',
+            supportLinks: {
+                shipping: 'Envío',
+                returns: 'Devoluciones',
+                terms: 'Términos',
+                privacy: 'Privacidad',
+            },
+            copyright: '© 2026 SmartPrintAI. Todos los derechos reservados.',
+        },
+        errors: {
+            generic: {
+                title: 'Algo salió mal',
+                body:
+                    'Se ha producido un error inesperado. Por favor, vuelva a intentarlo. Si el problema persiste, contacte con nuestro soporte.',
+                retry: 'Intentar de nuevo',
+                goHome: 'Ir al inicio',
+                contactSupport: 'Contactar con soporte',
+                referenceLabel: 'Referencia',
+            },
+            notFound: {
+                eyebrow: '404',
+                title: 'Página no encontrada',
+                body:
+                    'La página que buscaba no existe — es posible que el enlace sea incorrecto o que la página haya sido movida.',
+                goHome: 'Ir al inicio',
+                startCreating: 'Empezar a crear',
+            },
+        },
         home: {
             metadataTitle: 'Crea productos personalizados con IA',
             metadataDescription:

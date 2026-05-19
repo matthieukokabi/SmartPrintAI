@@ -10,6 +10,7 @@ import {
     serializeAttributionCookie,
 } from '@/lib/analytics-attribution'
 import { rateLimitRequest } from '@/lib/rate-limit'
+import { readConsentState } from '@/lib/consent'
 import { appendHomepageEventRecord, isFunnelEventName } from '@/lib/homepage-funnel-report'
 import {
     HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC,
@@ -117,6 +118,16 @@ export async function POST(req: NextRequest) {
         const response = jsonWithRequestId(requestId, { error: 'Rate limit exceeded.' }, { status: 429 })
         response.headers.set('retry-after', String(rateLimit.resetInSec))
         return response
+    }
+
+    // Consent gate (GDPR/ePrivacy): pre-consent traffic does NOT write a
+    // funnel event and does NOT set the visitor_id or attribution cookies.
+    // Only an explicit `consent_state=accepted` cookie (set by the user
+    // clicking Accept on the banner) opens the gate. See src/lib/consent.ts.
+    const consent = readConsentState(req)
+    if (consent !== 'accepted') {
+        logApiInfo(ROUTE, requestId, 'consent_gate_blocked', { consent })
+        return jsonWithRequestId(requestId, { ok: true, consentSkipped: true }, { status: 202 })
     }
 
     let payload: EventPayload

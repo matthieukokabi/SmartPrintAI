@@ -5,6 +5,7 @@ import './globals.css'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
+import CookieConsentBanner from '@/components/consent/CookieConsentBanner'
 import { getMetadataBase } from '@/lib/site'
 import { DEFAULT_LOCALE, isSupportedLocale, type SupportedLocale } from '@/lib/i18n'
 
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Navbar />
                 <main className="min-h-screen pt-20">{children}</main>
                 <Footer />
+                <CookieConsentBanner locale={locale} />
             </body>
         </html>
     )
