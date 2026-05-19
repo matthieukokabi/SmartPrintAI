@@ -41,20 +41,41 @@ function writeConsentCookie(value: ConsentState): void {
         (secure ? '; secure' : '')
 }
 
-// Notifies the loaded gtag library (if any) that the user just accepted
-// analytics. Default state is "denied" until this fires. Loading gtag
-// before this runs is fine — Consent Mode v2 honors the default-denied
-// state and only enables storage after the update call.
+// Notifies the gtag pipeline that the user accepted analytics. We push
+// directly to window.dataLayer instead of calling window.gtag(...) for
+// timing reasons:
+//
+//   At useEffect mount time on a RETURNING visit, the Next.js <Script
+//   strategy="afterInteractive"> tags for gtag.js + ga4-init.js have not
+//   yet injected/executed. window.gtag is undefined. The previous typeof-
+//   gtag guard silently dropped the consent update for the entire session.
+//   Verified Phase 6 smoke 2026-05-19 on commit e68c5a0: returning consenting
+//   visitor's dataLayer contained zero ['consent','update'] entries and
+//   window.google_tag_data.ics.entries.analytics_storage stayed
+//   { implicit: true, default: false, quiet: false } indefinitely.
+//
+// The dataLayer queue is the Consent Mode v2 contract: any consumer that
+// later attaches (gtag library, GTM container) replays queued entries in
+// order. We initialize the array ourselves if it doesn't exist yet — the
+// later ga4-init.js does `window.dataLayer = window.dataLayer || []`,
+// which preserves our queued entry.
+//
+// Ordering note: ga4-init.js's `['consent','default',{...denied...}]`
+// fires AFTER this `['consent','update',{granted}]` in the queue. Per
+// Consent Mode v2 spec, 'default' only initializes categories that have
+// no prior explicit value — so the 'update granted' wins for
+// analytics_storage, while 'default denied' still applies to ad_storage /
+// ad_user_data / ad_personalization (which this update doesn't touch).
+//
+// Do not "simplify" this back to a window.gtag(...) call — the timing
+// race documented above will silently break returning-visitor analytics,
+// A/B experiment exposure, and Google Ads conversion tracking.
 function fireGtagConsentUpdate(state: ConsentState): void {
     if (typeof window === 'undefined') return
-    const w = window as unknown as {
-        gtag?: (cmd: string, action: string, params: Record<string, string>) => void
-    }
-    if (typeof w.gtag !== 'function') return
+    const w = window as unknown as { dataLayer?: unknown[] }
+    w.dataLayer = w.dataLayer || []
     if (state === 'accepted') {
-        w.gtag('consent', 'update', {
-            analytics_storage: 'granted',
-        })
+        w.dataLayer.push(['consent', 'update', { analytics_storage: 'granted' }])
     }
 }
 
