@@ -24,9 +24,18 @@ function readCookieFromDocument(): ConsentState {
 function writeConsentCookie(value: ConsentState): void {
     if (typeof document === 'undefined') return
     const secure = typeof window !== 'undefined' && window.location.protocol === 'https:'
+    // Both `expires=` and `max-age=` set the same instant. max-age wins per
+    // RFC 6265 in any browser that supports it (all modern ones do); the
+    // explicit expires= is belt-and-braces defense for any oddly-old browser
+    // that ignores max-age. Not a fix for an observed bug — the Phase 6
+    // smoke claim of "~180 day cookie" was traced to a measurement artifact
+    // (the agent was inspecting spai_visitor_id, which legitimately uses
+    // HOMEPAGE_HERO_VARIANT_MAX_AGE_SEC = 180d).
+    const expiresUtc = new Date(Date.now() + CONSENT_MAX_AGE_SEC * 1000).toUTCString()
     document.cookie =
         `${CONSENT_COOKIE_NAME}=${value}; ` +
         `path=/; ` +
+        `expires=${expiresUtc}; ` +
         `max-age=${CONSENT_MAX_AGE_SEC}; ` +
         `samesite=lax` +
         (secure ? '; secure' : '')
@@ -54,7 +63,21 @@ export default function CookieConsentBanner({ locale }: CookieConsentBannerProps
     const copy = useMemo(() => getLocaleCopy(locale).consent, [locale])
 
     useEffect(() => {
-        setState(readCookieFromDocument())
+        const initial = readCookieFromDocument()
+        setState(initial)
+        // ga4-init.js applies gtag('consent','default',{analytics_storage:
+        // 'denied', ...}) on every page load BEFORE the gtag library finishes
+        // loading. For a returning visitor who previously accepted, we have
+        // to re-fire the consent update on mount; otherwise gtag stays
+        // denied for the entire session and analytics + A/B exposure events
+        // + Google Ads conversion pings are all silently lost. Verified
+        // Phase 6 smoke 2026-05-19: without this re-grant,
+        // window.google_tag_data.ics.entries.analytics_storage reports
+        // { implicit: true, default: false } for returning consenting
+        // visitors. Do not remove this without re-verifying the smoke.
+        if (initial === 'accepted') {
+            fireGtagConsentUpdate('accepted')
+        }
     }, [])
 
     if (state === 'loading' || state === 'accepted' || state === 'rejected') {
