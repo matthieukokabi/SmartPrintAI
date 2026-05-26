@@ -88,6 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: now,
             changeFrequency: 'yearly',
             priority: 0.4,
+            alternates: buildAlternates(siteUrl, '/shipping'),
         },
         {
             url: `${siteUrl}/blog`,

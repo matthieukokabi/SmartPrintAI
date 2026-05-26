@@ -246,6 +246,12 @@ export type ReturnsPageCopy = {
     supportLinkLabel: string
 }
 
+// Shipping page copy reuses the same shape as returns — sections of
+// paragraphs and lists, with optional {email} substitution and \n line
+// breaks. Aliased so the renderer (ReturnsPolicyContent) accepts both
+// without semantic confusion at call sites.
+export type ShippingPageCopy = ReturnsPageCopy
+
 // English returns/refund policy copy. Sections render in array order.
 // Strings may contain the literal token "{email}" — the renderer
 // substitutes a mailto: link at render time. Paragraph text may
@@ -778,6 +784,374 @@ const esReturnsCopy: ReturnsPageCopy = {
     supportLinkLabel: 'Ir al soporte',
 }
 
+// ─── Shipping & Delivery — English ──────────────────────────────────
+
+const enShippingCopy: ShippingPageCopy = {
+    metaTitle: 'Shipping & Delivery',
+    metaDescription: 'Production and delivery times, tracking, shipping costs, and customs information for SmartPrintAI orders.',
+    title: 'Shipping & Delivery',
+    effectiveDate: 'Effective date: April 24, 2026',
+    sections: [
+        {
+            id: 'production-time',
+            heading: 'Production time',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Each item is custom-printed when you order. Production takes 2–5 business days before the parcel ships.',
+                },
+            ],
+        },
+        {
+            id: 'delivery-windows',
+            heading: 'Delivery windows',
+            body: [
+                { type: 'paragraph', text: 'After production, typical carrier delivery times are:' },
+                {
+                    type: 'list',
+                    items: [
+                        'United States: 3–7 business days (USPS / UPS, depending on item).',
+                        'Canada: 5–10 business days.',
+                        'United Kingdom & European Union: 6–12 business days.',
+                        'Rest of world: 10–20 business days.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'Combined production + shipping is usually 3–10 business days within the US, and up to 25 business days for international destinations.',
+                },
+            ],
+        },
+        {
+            id: 'tracking',
+            heading: 'Tracking',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Once the parcel leaves our fulfilment partner you receive an email with a tracking number. You can also view live order status from your account on the orders page.',
+                },
+            ],
+        },
+        {
+            id: 'shipping-costs',
+            heading: 'Shipping costs',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Calculated at checkout based on destination and the items in your cart.',
+                },
+            ],
+        },
+        {
+            id: 'customs',
+            heading: 'Customs and duties',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'International orders may be subject to import duties or taxes assessed by your local customs authority. These charges are the recipient’s responsibility and are not included in the price you pay at checkout.',
+                },
+            ],
+        },
+        {
+            id: 'wrong-address',
+            heading: 'Wrong address',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'If you spot an address error, email {email} within 1 hour of ordering and we will correct it before production starts. After production begins, address changes are not possible.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contact',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'SmartPrintAI Support\nEmail: {email}\nResponse time: within 1 business day, Monday–Friday.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Go to support',
+}
+
+// ─── Shipping & Delivery — French ───────────────────────────────────
+
+const frShippingCopy: ShippingPageCopy = {
+    metaTitle: 'Livraison et expédition',
+    metaDescription: 'Délais de production et de livraison, suivi, frais d’expédition et droits de douane pour les commandes SmartPrintAI.',
+    title: 'Livraison et expédition',
+    effectiveDate: 'Date d’effet : 24 avril 2026',
+    sections: [
+        {
+            id: 'production-time',
+            heading: 'Délai de production',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Chaque article est imprimé sur mesure lors de votre commande. La production prend de 2 à 5 jours ouvrés avant l’expédition du colis.',
+                },
+            ],
+        },
+        {
+            id: 'delivery-windows',
+            heading: 'Délais de livraison',
+            body: [
+                { type: 'paragraph', text: 'Après la production, les délais de livraison habituels du transporteur sont :' },
+                {
+                    type: 'list',
+                    items: [
+                        'États-Unis : 3 à 7 jours ouvrés (USPS / UPS, selon l’article).',
+                        'Canada : 5 à 10 jours ouvrés.',
+                        'Royaume-Uni et Union européenne : 6 à 12 jours ouvrés.',
+                        'Reste du monde : 10 à 20 jours ouvrés.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'Production et expédition cumulées prennent généralement 3 à 10 jours ouvrés aux États-Unis, et jusqu’à 25 jours ouvrés pour les destinations internationales.',
+                },
+            ],
+        },
+        {
+            id: 'tracking',
+            heading: 'Suivi',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Dès que le colis quitte notre partenaire logistique, vous recevez un e-mail contenant un numéro de suivi. Vous pouvez également consulter le statut en temps réel depuis votre espace, sur la page de vos commandes.',
+                },
+            ],
+        },
+        {
+            id: 'shipping-costs',
+            heading: 'Frais d’expédition',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Calculés au moment du paiement en fonction de la destination et des articles présents dans votre panier.',
+                },
+            ],
+        },
+        {
+            id: 'customs',
+            heading: 'Douane et droits d’importation',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Les commandes internationales peuvent être soumises à des droits de douane ou taxes imposés par votre administration locale. Ces frais sont à la charge du destinataire et ne sont pas inclus dans le prix payé au moment du paiement.',
+                },
+            ],
+        },
+        {
+            id: 'wrong-address',
+            heading: 'Adresse erronée',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Si vous repérez une erreur dans l’adresse, écrivez à {email} dans l’heure suivant votre commande et nous la corrigerons avant le début de la production. Une fois la production lancée, les modifications d’adresse ne sont plus possibles.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contact',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Support SmartPrintAI\nE-mail : {email}\nDélai de réponse : sous 1 jour ouvré, du lundi au vendredi.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Aller au support',
+}
+
+// ─── Shipping & Delivery — German ───────────────────────────────────
+
+const deShippingCopy: ShippingPageCopy = {
+    metaTitle: 'Versand und Lieferung',
+    metaDescription: 'Produktions- und Lieferzeiten, Sendungsverfolgung, Versandkosten und Zollinformationen für SmartPrintAI-Bestellungen.',
+    title: 'Versand und Lieferung',
+    effectiveDate: 'Gültig ab: 24. April 2026',
+    sections: [
+        {
+            id: 'production-time',
+            heading: 'Produktionszeit',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Jeder Artikel wird nach Ihrer Bestellung individuell bedruckt. Die Produktion dauert 2 bis 5 Werktage, bevor das Paket versandt wird.',
+                },
+            ],
+        },
+        {
+            id: 'delivery-windows',
+            heading: 'Lieferzeiten',
+            body: [
+                { type: 'paragraph', text: 'Nach der Produktion betragen die üblichen Lieferzeiten der Versanddienstleister:' },
+                {
+                    type: 'list',
+                    items: [
+                        'Vereinigte Staaten: 3 bis 7 Werktage (USPS / UPS, je nach Artikel).',
+                        'Kanada: 5 bis 10 Werktage.',
+                        'Vereinigtes Königreich und Europäische Union: 6 bis 12 Werktage.',
+                        'Übrige Welt: 10 bis 20 Werktage.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'Produktion und Versand zusammen dauern in der Regel 3 bis 10 Werktage innerhalb der USA und bis zu 25 Werktage für internationale Ziele.',
+                },
+            ],
+        },
+        {
+            id: 'tracking',
+            heading: 'Sendungsverfolgung',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Sobald das Paket unseren Fulfillment-Partner verlässt, erhalten Sie eine E-Mail mit der Sendungsnummer. Den aktuellen Bestellstatus können Sie zusätzlich in Ihrem Konto auf der Bestellungsseite einsehen.',
+                },
+            ],
+        },
+        {
+            id: 'shipping-costs',
+            heading: 'Versandkosten',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Werden beim Bezahlvorgang abhängig vom Lieferziel und den Artikeln in Ihrem Warenkorb berechnet.',
+                },
+            ],
+        },
+        {
+            id: 'customs',
+            heading: 'Zoll und Einfuhrabgaben',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Bei internationalen Bestellungen können Einfuhrzölle oder Steuern durch Ihre örtliche Zollbehörde anfallen. Diese Gebühren gehen zulasten der Empfängerin oder des Empfängers und sind nicht im Kaufpreis enthalten.',
+                },
+            ],
+        },
+        {
+            id: 'wrong-address',
+            heading: 'Falsche Adresse',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Wenn Sie einen Adressfehler bemerken, schreiben Sie innerhalb einer Stunde nach Bestellung an {email}, und wir korrigieren die Angabe vor Produktionsbeginn. Nach Produktionsstart sind Adressänderungen nicht mehr möglich.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Kontakt',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'SmartPrintAI Support\nE-Mail: {email}\nAntwortzeit: innerhalb von 1 Werktag, Montag bis Freitag.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Zum Support',
+}
+
+// ─── Shipping & Delivery — Spanish ──────────────────────────────────
+
+const esShippingCopy: ShippingPageCopy = {
+    metaTitle: 'Envío y entrega',
+    metaDescription: 'Tiempos de producción y entrega, seguimiento, costes de envío e información aduanera para los pedidos de SmartPrintAI.',
+    title: 'Envío y entrega',
+    effectiveDate: 'Fecha de entrada en vigor: 24 de abril de 2026',
+    sections: [
+        {
+            id: 'production-time',
+            heading: 'Tiempo de producción',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Cada artículo se imprime a medida al realizar el pedido. La producción tarda entre 2 y 5 días hábiles antes del envío del paquete.',
+                },
+            ],
+        },
+        {
+            id: 'delivery-windows',
+            heading: 'Plazos de entrega',
+            body: [
+                { type: 'paragraph', text: 'Tras la producción, los plazos habituales del transportista son:' },
+                {
+                    type: 'list',
+                    items: [
+                        'Estados Unidos: entre 3 y 7 días hábiles (USPS / UPS, según el artículo).',
+                        'Canadá: entre 5 y 10 días hábiles.',
+                        'Reino Unido y Unión Europea: entre 6 y 12 días hábiles.',
+                        'Resto del mundo: entre 10 y 20 días hábiles.',
+                    ],
+                },
+                {
+                    type: 'paragraph',
+                    text: 'En conjunto, la producción más el envío suelen tardar entre 3 y 10 días hábiles dentro de Estados Unidos, y hasta 25 días hábiles para destinos internacionales.',
+                },
+            ],
+        },
+        {
+            id: 'tracking',
+            heading: 'Seguimiento',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Cuando el paquete sale de nuestro socio de fabricación, recibirá un correo con el número de seguimiento. También puede consultar el estado en tiempo real desde su cuenta, en la página de pedidos.',
+                },
+            ],
+        },
+        {
+            id: 'shipping-costs',
+            heading: 'Costes de envío',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Se calculan al finalizar la compra en función del destino y los artículos del carrito.',
+                },
+            ],
+        },
+        {
+            id: 'customs',
+            heading: 'Aduanas y aranceles',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Los pedidos internacionales pueden estar sujetos a aranceles o impuestos aplicados por su autoridad aduanera local. Estos cargos corren a cargo del destinatario y no están incluidos en el precio que paga al finalizar la compra.',
+                },
+            ],
+        },
+        {
+            id: 'wrong-address',
+            heading: 'Dirección incorrecta',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Si detecta un error en la dirección, escriba a {email} en la hora siguiente al pedido y lo corregiremos antes de que comience la producción. Una vez iniciada la producción, no es posible cambiar la dirección.',
+                },
+            ],
+        },
+        {
+            id: 'contact',
+            heading: 'Contacto',
+            body: [
+                {
+                    type: 'paragraph',
+                    text: 'Soporte de SmartPrintAI\nCorreo electrónico: {email}\nTiempo de respuesta: en 1 día hábil, de lunes a viernes.',
+                },
+            ],
+        },
+    ],
+    supportLinkLabel: 'Ir al soporte',
+}
+
 type ProcessorEntry = {
     name: string
     role: string
@@ -924,6 +1298,7 @@ export type LocaleCopy = {
     success: SuccessPageCopy
     support: SupportPageCopy
     returns: ReturnsPageCopy
+    shipping: ShippingPageCopy
     privacy: PrivacyPageCopy
     terms: TermsPageCopy
     consent: ConsentBannerCopy
@@ -935,6 +1310,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     en: {
         localeLabel: 'English',
         returns: enReturnsCopy,
+        shipping: enShippingCopy,
         privacy: {
             metadata: {
                 title: 'Privacy Policy',
@@ -1452,6 +1828,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     fr: {
         localeLabel: 'Francais',
         returns: frReturnsCopy,
+        shipping: frShippingCopy,
         privacy: {
             metadata: {
                 title: 'Politique de confidentialité',
@@ -1958,6 +2335,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     de: {
         localeLabel: 'Deutsch',
         returns: deReturnsCopy,
+        shipping: deShippingCopy,
         privacy: {
             metadata: {
                 title: 'Datenschutzerklärung',
@@ -2469,6 +2847,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
     es: {
         localeLabel: 'Espanol',
         returns: esReturnsCopy,
+        shipping: esShippingCopy,
         privacy: {
             metadata: {
                 title: 'Política de Privacidad',
