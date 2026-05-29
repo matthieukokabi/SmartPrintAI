@@ -32,6 +32,16 @@ npm run db:migrate:deploy-safe
 
 log "step 4/7: build to .next.staging"
 rm -rf .next.staging
+# Prune stale type stubs left over from the previous deploy. Next.js
+# generates .next/types/app/<route>/<file>.ts stubs during build, but
+# does NOT prune them when source files are deleted. tsconfig.json
+# includes both `.next/types/**/*.ts` AND `.next.staging/types/**/*.ts`
+# so any commit that deletes a route file with metadata would fail the
+# typecheck on its first deploy with "Cannot find module '../../../../
+# src/app/<route>/<file>.js'". The next build's typecheck regenerates
+# stubs into .next.staging/types/, so wiping .next/types/ here costs
+# nothing (and the live .next/server/ etc. is untouched). See issue #2.
+rm -rf .next/types
 NEXT_DIST_DIR=.next.staging npm run build
 
 log "step 5/7: validate build integrity"
