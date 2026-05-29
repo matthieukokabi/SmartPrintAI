@@ -13,7 +13,7 @@ vi.mock('@/lib/prisma', () => ({
 }))
 
 import { metadata as homeMetadata } from '@/app/page'
-import { metadata as createMetadata } from '@/app/create/layout'
+import { generateMetadata as generateCreateMetadata } from '@/app/create/page'
 import { metadata as productsMetadata } from '@/app/products/page'
 import { metadata as blogMetadata } from '@/app/blog/page'
 import { metadata as supportMetadata } from '@/app/support/layout'
@@ -54,6 +54,9 @@ describe('Wave 2 metadata regression coverage', () => {
     })
 
     it('keeps social metadata present on key default templates', () => {
+        // /create metadata is generated per-request (noindex when query
+        // params present); pass {} to get the canonical, indexable form.
+        const createMetadata = generateCreateMetadata({ searchParams: {} })
         const templates = [homeMetadata, createMetadata, productsMetadata, blogMetadata, supportMetadata]
 
         for (const template of templates) {
@@ -70,6 +73,12 @@ describe('Wave 2 metadata regression coverage', () => {
 
         expectLocaleAlternates(homeMetadata.alternates?.languages as Record<string, string> | undefined, '/')
         expectLocaleAlternates(createMetadata.alternates?.languages as Record<string, string> | undefined, '/create')
+        // Sanity: with no params, /create stays indexable (no robots.index=false).
+        expect(
+            typeof createMetadata.robots === 'object' && createMetadata.robots !== null
+                ? (createMetadata.robots as { index?: boolean }).index
+                : undefined,
+        ).not.toBe(false)
         expectLocaleAlternates(productsMetadata.alternates?.languages as Record<string, string> | undefined, '/products')
         expectLocaleAlternates(blogMetadata.alternates?.languages as Record<string, string> | undefined, '/blog')
         expectLocaleAlternates(supportMetadata.alternates?.languages as Record<string, string> | undefined, '/support')

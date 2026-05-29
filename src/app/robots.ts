@@ -17,13 +17,17 @@ export default function robots(): MetadataRoute.Robots {
                     '/cart',
                     '/success',
                     '/admin',
-                    // Parametric /create variants (?productId=/?color=/?size=)
-                    // are deduplicated via <link rel="canonical"> on the
-                    // rendered page, NOT via robots.txt. Blocking at robots
-                    // level prevented Google from seeing the canonical
-                    // signal — see GSC alert 2026-05-05 and the canonical
-                    // declarations in src/app/create/layout.tsx and
-                    // src/app/[locale]/create/page.tsx.
+                    // Parametric /create variants (?productId=/?color=/?size=
+                    // /?utm_*=) are NOT blocked here. They're handled at the
+                    // page level: the rendered metadata sets robots:
+                    // { index: false, follow: true } when any query param is
+                    // present, while keeping the canonical <link> tag so
+                    // Google consolidates link equity onto /create. Blocking
+                    // at the robots level prevented Google from seeing the
+                    // canonical signal — see GSC alert 2026-05-05 and the
+                    // generateMetadata implementations in
+                    // src/app/create/page.tsx and src/app/[locale]/create/page.tsx
+                    // (and GSC Soft 404 fix 2026-05-29).
                 ],
             },
         ],

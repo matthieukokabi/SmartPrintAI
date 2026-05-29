@@ -11,6 +11,7 @@ type LocaleCreatePageProps = {
     params: {
         locale: string
     }
+    searchParams?: Record<string, string | string[] | undefined>
 }
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +21,11 @@ export function generateStaticParams() {
     return SUPPORTED_LOCALES.map((locale) => ({ locale }))
 }
 
-export function generateMetadata({ params }: LocaleCreatePageProps): Metadata {
+// See src/app/create/page.tsx for the rationale on noindex-when-params.
+// Same permissive any-param rule applies here so /fr/create?productId=X,
+// /de/create?utm_source=..., etc. all get noindex and consolidate onto
+// the locale-correct canonical (/fr/create, /de/create, /es/create).
+export function generateMetadata({ params, searchParams }: LocaleCreatePageProps): Metadata {
     if (!isSupportedLocale(params.locale)) {
         return {}
     }
@@ -29,7 +34,7 @@ export function generateMetadata({ params }: LocaleCreatePageProps): Metadata {
     const copy = getLocaleCopy(locale).create
     const canonicalPath = buildLocaleCanonical(locale, '/create')
 
-    return {
+    const base: Metadata = {
         title: copy.metadataTitle,
         description: copy.metadataDescription,
         alternates: {
@@ -43,6 +48,11 @@ export function generateMetadata({ params }: LocaleCreatePageProps): Metadata {
             description: copy.metadataDescription,
         }),
     }
+
+    if (searchParams && Object.keys(searchParams).length > 0) {
+        return { ...base, robots: { index: false, follow: true } }
+    }
+    return base
 }
 
 export default function LocalizedCreatePage({ params }: LocaleCreatePageProps) {
