@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     title: copy.metadataTitle,
     description: copy.metadataDescription,
     alternates: {
-        canonical: 'https://smartprintai.com',
+        canonical: '/',
         languages: buildLocaleAlternates('/'),
     },
     ...buildLocalizedSocialMetadata({

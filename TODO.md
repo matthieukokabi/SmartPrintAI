@@ -4,6 +4,7 @@ Last sync: 2026-03-16
 Sources: PRD.md, MARKETING.md, CLAUDE.md, production work completed on VPS.
 
 ## Done (Completed)
+- [x] Canonical host migration to `https://print.zuerifix.tech` (2026-08-29: moved metadata-base defaults, root canonicals, sitemap/robots host generation, and middleware redirect fallback away from the retiring `smartprintai.com` domain)
 - [x] Google indexing unblock: direct HTTP crawl access for `/robots.txt` and `/sitemap.xml` on production Nginx (2026-03-29: patched SmartPrintAI VPS HTTP server block to proxy these two paths without HTTPS redirect while keeping all other HTTP routes on 301 -> HTTPS, validated live headers `http://smartprintai.com/robots.txt` = `200` and `http://smartprintai.com/sitemap.xml` = `200`; also updated `src/app/robots.ts` to emit canonical `host` as full `https://smartprintai.com`)
 - [x] VPS foundation up (Postgres, Redis, MinIO)
 - [x] Reverse proxy + HTTPS live (Nginx + Let's Encrypt)

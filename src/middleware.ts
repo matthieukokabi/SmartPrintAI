@@ -54,7 +54,7 @@ export function middleware(req: NextRequest) {
     // that into the Location response header.
     if (pathname === '/en' || pathname.startsWith('/en/')) {
         const newPathname = pathname === '/en' ? '/' : pathname.slice(3)
-        const host = req.headers.get('host') || 'smartprintai.com'
+        const host = req.headers.get('host') || 'print.zuerifix.tech'
         const proto = req.headers.get('x-forwarded-proto') || 'https'
         const target = new URL(newPathname + search, `${proto}://${host}`)
         return NextResponse.redirect(target, 308)
