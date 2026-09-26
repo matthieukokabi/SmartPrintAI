@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getStandardRateUsd } from '@/lib/shipping-rates'
 import crypto from 'crypto'
 import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
@@ -349,7 +350,7 @@ async function processCheckoutSession(
                 subtotal: session.amount_subtotal! / 100,
                 shippingCost: session.shipping_cost?.amount_total
                     ? session.shipping_cost.amount_total / 100
-                    : 5.99,
+                    : getStandardRateUsd(),
                 total: session.amount_total! / 100,
                 shippingAddress: { ...shippingDetails.address },
                 paymentProvider,

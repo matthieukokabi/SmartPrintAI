@@ -73,6 +73,8 @@ export default function CartPageClient({ locale, createPath, copy }: CartPageCli
                         checkoutLabel: copy.checkoutLabel,
                         checkoutFailedLabel: copy.checkoutFailedLabel,
                         secureCheckoutLabel: copy.secureCheckoutLabel,
+                        freeLabel: copy.freeLabel,
+                        shippingNote: copy.shippingNote,
                     }}
                 />
             </div>

@@ -99,3 +99,13 @@ export function getShippingRatesForProduct(product: {
     const countries = getAllowedCountriesForProduct(product, SHIPPING_COUNTRIES)
     return countries.flatMap((country) => SHIPPING_SERVICES_USD.map((svc) => ({ country, ...svc })))
 }
+
+/**
+ * What the cart summary shows before Stripe: the flat Standard rate, or
+ * 0 once the subtotal reaches the free-shipping threshold (mirrors the
+ * checkout's `subtotalCents >= FREE_SHIPPING_THRESHOLD_USD * 100`).
+ */
+export function getCartShippingUsd(subtotalUsd: number, itemCount: number): number {
+    if (itemCount > 0 && subtotalUsd >= FREE_SHIPPING_THRESHOLD_USD) return 0
+    return getStandardRateUsd()
+}

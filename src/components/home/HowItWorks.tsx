@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { buildHomeShipStepDescription } from '@/lib/shipping-copy'
 import HowItWorksStory from '@/components/home/HowItWorksStory'
 import { curatedShowcase, howItWorksShowcaseOrder } from '@/components/home/curatedShowcase'
 
@@ -31,7 +32,7 @@ const defaultCopy: HowItWorksCopy = {
         },
         {
             title: 'We Print & Ship',
-            description: 'Your custom product is printed on demand and shipped worldwide in 3-7 business days.',
+            description: buildHomeShipStepDescription('en'),
         },
     ],
 }

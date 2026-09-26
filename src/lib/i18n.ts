@@ -1,3 +1,13 @@
+import {
+    buildDeliveryWindowsBlocks,
+    buildHomeShipStepDescription,
+    buildProductionTimeBlocks,
+    buildShippingCostsBlocks,
+    buildSuccessSubtitle,
+    buildTermsFulfillmentSentence,
+    buildTermsPricingSentence,
+} from '@/lib/shipping-copy'
+
 export const SUPPORTED_LOCALES = ['en', 'fr', 'de', 'es'] as const
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 export const DEFAULT_LOCALE: SupportedLocale = 'en'
@@ -162,6 +172,8 @@ type CartPageCopy = {
     checkoutLabel: string
     checkoutFailedLabel: string
     secureCheckoutLabel: string
+    freeLabel: string
+    shippingNote: string
 }
 
 type OrderTimelineCopy = {
@@ -795,32 +807,12 @@ const enShippingCopy: ShippingPageCopy = {
         {
             id: 'production-time',
             heading: 'Production time',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Each item is custom-printed when you order. Production takes 2–5 business days before the parcel ships.',
-                },
-            ],
+            body: buildProductionTimeBlocks('en'),
         },
         {
             id: 'delivery-windows',
             heading: 'Delivery windows',
-            body: [
-                { type: 'paragraph', text: 'After production, typical carrier delivery times are:' },
-                {
-                    type: 'list',
-                    items: [
-                        'United States: 3–7 business days (USPS / UPS, depending on item).',
-                        'Canada: 5–10 business days.',
-                        'United Kingdom & European Union: 6–12 business days.',
-                        'Rest of world: 10–20 business days.',
-                    ],
-                },
-                {
-                    type: 'paragraph',
-                    text: 'Combined production + shipping is usually 3–10 business days within the US, and up to 25 business days for international destinations.',
-                },
-            ],
+            body: buildDeliveryWindowsBlocks('en'),
         },
         {
             id: 'tracking',
@@ -835,12 +827,7 @@ const enShippingCopy: ShippingPageCopy = {
         {
             id: 'shipping-costs',
             heading: 'Shipping costs',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Calculated at checkout based on destination and the items in your cart.',
-                },
-            ],
+            body: buildShippingCostsBlocks('en'),
         },
         {
             id: 'customs',
@@ -887,32 +874,12 @@ const frShippingCopy: ShippingPageCopy = {
         {
             id: 'production-time',
             heading: 'Délai de production',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Chaque article est imprimé sur mesure lors de votre commande. La production prend de 2 à 5 jours ouvrés avant l’expédition du colis.',
-                },
-            ],
+            body: buildProductionTimeBlocks('fr'),
         },
         {
             id: 'delivery-windows',
             heading: 'Délais de livraison',
-            body: [
-                { type: 'paragraph', text: 'Après la production, les délais de livraison habituels du transporteur sont :' },
-                {
-                    type: 'list',
-                    items: [
-                        'États-Unis : 3 à 7 jours ouvrés (USPS / UPS, selon l’article).',
-                        'Canada : 5 à 10 jours ouvrés.',
-                        'Royaume-Uni et Union européenne : 6 à 12 jours ouvrés.',
-                        'Reste du monde : 10 à 20 jours ouvrés.',
-                    ],
-                },
-                {
-                    type: 'paragraph',
-                    text: 'Production et expédition cumulées prennent généralement 3 à 10 jours ouvrés aux États-Unis, et jusqu’à 25 jours ouvrés pour les destinations internationales.',
-                },
-            ],
+            body: buildDeliveryWindowsBlocks('fr'),
         },
         {
             id: 'tracking',
@@ -927,12 +894,7 @@ const frShippingCopy: ShippingPageCopy = {
         {
             id: 'shipping-costs',
             heading: 'Frais d’expédition',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Calculés au moment du paiement en fonction de la destination et des articles présents dans votre panier.',
-                },
-            ],
+            body: buildShippingCostsBlocks('fr'),
         },
         {
             id: 'customs',
@@ -979,32 +941,12 @@ const deShippingCopy: ShippingPageCopy = {
         {
             id: 'production-time',
             heading: 'Produktionszeit',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Jeder Artikel wird nach Ihrer Bestellung individuell bedruckt. Die Produktion dauert 2 bis 5 Werktage, bevor das Paket versandt wird.',
-                },
-            ],
+            body: buildProductionTimeBlocks('de'),
         },
         {
             id: 'delivery-windows',
             heading: 'Lieferzeiten',
-            body: [
-                { type: 'paragraph', text: 'Nach der Produktion betragen die üblichen Lieferzeiten der Versanddienstleister:' },
-                {
-                    type: 'list',
-                    items: [
-                        'Vereinigte Staaten: 3 bis 7 Werktage (USPS / UPS, je nach Artikel).',
-                        'Kanada: 5 bis 10 Werktage.',
-                        'Vereinigtes Königreich und Europäische Union: 6 bis 12 Werktage.',
-                        'Übrige Welt: 10 bis 20 Werktage.',
-                    ],
-                },
-                {
-                    type: 'paragraph',
-                    text: 'Produktion und Versand zusammen dauern in der Regel 3 bis 10 Werktage innerhalb der USA und bis zu 25 Werktage für internationale Ziele.',
-                },
-            ],
+            body: buildDeliveryWindowsBlocks('de'),
         },
         {
             id: 'tracking',
@@ -1019,12 +961,7 @@ const deShippingCopy: ShippingPageCopy = {
         {
             id: 'shipping-costs',
             heading: 'Versandkosten',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Werden beim Bezahlvorgang abhängig vom Lieferziel und den Artikeln in Ihrem Warenkorb berechnet.',
-                },
-            ],
+            body: buildShippingCostsBlocks('de'),
         },
         {
             id: 'customs',
@@ -1071,32 +1008,12 @@ const esShippingCopy: ShippingPageCopy = {
         {
             id: 'production-time',
             heading: 'Tiempo de producción',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Cada artículo se imprime a medida al realizar el pedido. La producción tarda entre 2 y 5 días hábiles antes del envío del paquete.',
-                },
-            ],
+            body: buildProductionTimeBlocks('es'),
         },
         {
             id: 'delivery-windows',
             heading: 'Plazos de entrega',
-            body: [
-                { type: 'paragraph', text: 'Tras la producción, los plazos habituales del transportista son:' },
-                {
-                    type: 'list',
-                    items: [
-                        'Estados Unidos: entre 3 y 7 días hábiles (USPS / UPS, según el artículo).',
-                        'Canadá: entre 5 y 10 días hábiles.',
-                        'Reino Unido y Unión Europea: entre 6 y 12 días hábiles.',
-                        'Resto del mundo: entre 10 y 20 días hábiles.',
-                    ],
-                },
-                {
-                    type: 'paragraph',
-                    text: 'En conjunto, la producción más el envío suelen tardar entre 3 y 10 días hábiles dentro de Estados Unidos, y hasta 25 días hábiles para destinos internacionales.',
-                },
-            ],
+            body: buildDeliveryWindowsBlocks('es'),
         },
         {
             id: 'tracking',
@@ -1111,12 +1028,7 @@ const esShippingCopy: ShippingPageCopy = {
         {
             id: 'shipping-costs',
             heading: 'Costes de envío',
-            body: [
-                {
-                    type: 'paragraph',
-                    text: 'Se calculan al finalizar la compra en función del destino y los artículos del carrito.',
-                },
-            ],
+            body: buildShippingCostsBlocks('es'),
         },
         {
             id: 'customs',
@@ -1481,12 +1393,12 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             orders: {
                 title: 'Orders and fulfillment',
                 body:
-                    'Custom items are made to order — production begins only after you complete checkout. Typical production time is 2–5 business days; shipping then takes 3–10 business days depending on the destination country and the fulfillment partner routed for your product. Order confirmation, in-production, and shipped notifications are sent to the email you provide at checkout.',
+                    'Custom items are made to order — production begins only after you complete checkout. ' + buildTermsFulfillmentSentence('en') + ' Order confirmation, in-production, and shipped notifications are sent to the email you provide at checkout.',
             },
             pricing: {
                 title: 'Prices, taxes, and payment',
                 body:
-                    'Prices shown on product pages are in US dollars and include the design, production, and the Service margin. Shipping is calculated at checkout based on destination. For EU customers, VAT is calculated and shown at checkout in accordance with your country of delivery. Payment is processed by Stripe; we never store full card details.',
+                    'Prices shown on product pages are in US dollars and include the design, production, and the Service margin. ' + buildTermsPricingSentence('en') + ' For EU customers, VAT is calculated and shown at checkout in accordance with your country of delivery. Payment is processed by Stripe; we never store full card details.',
             },
             aiContent: {
                 title: 'AI-generated designs',
@@ -1610,7 +1522,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     },
                     {
                         title: 'We Print & Ship',
-                        description: 'Your custom product is printed on demand and shipped worldwide in 3-7 business days.',
+                        description: buildHomeShipStepDescription('en'),
                     },
                 ],
             },
@@ -1764,11 +1676,13 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Checkout with Stripe',
             checkoutFailedLabel: 'Checkout failed. Please try again.',
             secureCheckoutLabel: 'Secure checkout powered by Stripe',
+            freeLabel: 'Free',
+            shippingNote: 'Standard shipping, free from {threshold}. Express ({express}, {standard} from {threshold}) can be selected at checkout.',
         },
         success: {
             metadataTitle: 'Order Success',
             heading: 'Order Confirmed!',
-            subtitle: 'Thank you for your order! Your custom product is being produced and will ship within 3-7 business days.',
+            subtitle: buildSuccessSubtitle('en'),
             nextStepsLabel: 'What happens next',
             manualReviewReassurance: 'We are confirming address details before production. No payment action is needed from you.',
             progressLabel: 'Order progress',
@@ -1991,12 +1905,12 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             orders: {
                 title: 'Commandes et exécution',
                 body:
-                    'Les articles personnalisés sont fabriqués à la demande — la production démarre uniquement après finalisation de votre paiement. Délai de production typique : 2 à 5 jours ouvrés ; la livraison prend ensuite 3 à 10 jours ouvrés selon le pays de destination et le partenaire d’exécution affecté à votre produit. Les notifications de confirmation, de mise en production et d’expédition sont envoyées à l’adresse e-mail fournie au paiement.',
+                    'Les articles personnalisés sont fabriqués à la demande — la production démarre uniquement après finalisation de votre paiement. ' + buildTermsFulfillmentSentence('fr') + ' Les notifications de confirmation, de mise en production et d’expédition sont envoyées à l’adresse e-mail fournie au paiement.',
             },
             pricing: {
                 title: 'Prix, taxes et paiement',
                 body:
-                    'Les prix affichés sur les fiches produits sont en dollars américains et incluent le design, la production et la marge du Service. Les frais de livraison sont calculés au paiement en fonction de la destination. Pour les clients de l’UE, la TVA est calculée et affichée au paiement conformément à votre pays de livraison. Le paiement est traité par Stripe ; nous ne stockons jamais l’intégralité des données de carte.',
+                    'Les prix affichés sur les fiches produits sont en dollars américains et incluent le design, la production et la marge du Service. ' + buildTermsPricingSentence('fr') + ' Pour les clients de l’UE, la TVA est calculée et affichée au paiement conformément à votre pays de livraison. Le paiement est traité par Stripe ; nous ne stockons jamais l’intégralité des données de carte.',
             },
             aiContent: {
                 title: 'Designs générés par IA',
@@ -2120,7 +2034,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     },
                     {
                         title: 'Nous imprimons et livrons',
-                        description: 'Votre produit est imprime a la demande et livre dans le monde entier en 3 a 7 jours ouvres.',
+                        description: buildHomeShipStepDescription('fr'),
                     },
                 ],
             },
@@ -2271,11 +2185,13 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Payer avec Stripe',
             checkoutFailedLabel: "Echec du paiement. Veuillez reessayer.",
             secureCheckoutLabel: 'Paiement securise propulse par Stripe',
+            freeLabel: 'Offerte',
+            shippingNote: 'Livraison Standard, offerte dès {threshold}. L’Express ({express}, {standard} dès {threshold}) se choisit au paiement.',
         },
         success: {
             metadataTitle: 'Commande confirmee',
             heading: 'Commande confirmee !',
-            subtitle: 'Merci pour votre commande ! Votre produit est en production et sera expedie sous 3 a 7 jours ouvres.',
+            subtitle: buildSuccessSubtitle('fr'),
             nextStepsLabel: 'Prochaines etapes',
             manualReviewReassurance: 'Nous validons les details de livraison avant lancement production. Aucune action de paiement n est requise.',
             progressLabel: 'Progression de la commande',
@@ -2502,12 +2418,12 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 title: 'Bestellungen und Ausführung',
                 body:
                     // CONFIRM: "auf Bestellung gefertigt" vs. "auftragsbezogen gefertigt" — welches passt besser im AGB-Register?
-                    'Personalisierte Artikel werden auf Bestellung gefertigt — die Produktion beginnt erst nach Abschluss Ihrer Zahlung. Typische Produktionszeit: 2–5 Werktage; der Versand dauert anschließend 3–10 Werktage je nach Zielland und dem für Ihr Produkt zuständigen Produktionspartner. Bestellbestätigung, Produktionsbeginn und Versandbenachrichtigung werden an die von Ihnen beim Bezahlvorgang angegebene E-Mail-Adresse gesendet.',
+                    'Personalisierte Artikel werden auf Bestellung gefertigt — die Produktion beginnt erst nach Abschluss Ihrer Zahlung. ' + buildTermsFulfillmentSentence('de') + ' Bestellbestätigung, Produktionsbeginn und Versandbenachrichtigung werden an die von Ihnen beim Bezahlvorgang angegebene E-Mail-Adresse gesendet.',
             },
             pricing: {
                 title: 'Preise, Steuern und Zahlung',
                 body:
-                    'Die auf den Produktseiten angezeigten Preise sind in US-Dollar und umfassen Design, Produktion und unsere Servicemarge. Die Versandkosten werden beim Bezahlvorgang anhand des Zielortes berechnet. Für Kunden in der EU wird die Mehrwertsteuer beim Bezahlvorgang gemäß Ihrem Lieferland berechnet und ausgewiesen. Die Zahlung erfolgt über Stripe; vollständige Kartendaten speichern wir nicht.',
+                    'Die auf den Produktseiten angezeigten Preise sind in US-Dollar und umfassen Design, Produktion und unsere Servicemarge. ' + buildTermsPricingSentence('de') + ' Für Kunden in der EU wird die Mehrwertsteuer beim Bezahlvorgang gemäß Ihrem Lieferland berechnet und ausgewiesen. Die Zahlung erfolgt über Stripe; vollständige Kartendaten speichern wir nicht.',
             },
             aiContent: {
                 title: 'KI-generierte Designs',
@@ -2632,7 +2548,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     },
                     {
                         title: 'Wir drucken und versenden',
-                        description: 'Dein Produkt wird on-demand gedruckt und weltweit in 3-7 Werktagen versendet.',
+                        description: buildHomeShipStepDescription('de'),
                     },
                 ],
             },
@@ -2783,11 +2699,13 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Mit Stripe bezahlen',
             checkoutFailedLabel: 'Checkout fehlgeschlagen. Bitte versuche es erneut.',
             secureCheckoutLabel: 'Sicherer Checkout mit Stripe',
+            freeLabel: 'Kostenlos',
+            shippingNote: 'Standardversand, kostenlos ab {threshold}. Express ({express}, {standard} ab {threshold}) kann im Checkout gewählt werden.',
         },
         success: {
             metadataTitle: 'Bestellung bestaetigt',
             heading: 'Bestellung bestaetigt!',
-            subtitle: 'Danke fuer deine Bestellung! Dein Produkt ist in Produktion und wird in 3-7 Werktagen versendet.',
+            subtitle: buildSuccessSubtitle('de'),
             nextStepsLabel: 'Was als Naechstes passiert',
             manualReviewReassurance: 'Wir bestaetigen die Lieferdetails vor Produktionsstart. Keine Zahlungsaktion von dir erforderlich.',
             progressLabel: 'Bestellfortschritt',
@@ -3012,12 +2930,12 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 title: 'Pedidos y entrega',
                 body:
                     // CONFIRM: "fabricado bajo demanda" / "hecho a pedido" — ¿cual encaja mejor en el registro legal espanol?
-                    'Los artículos personalizados se fabrican bajo demanda — la producción comienza únicamente tras finalizar el pago. Tiempo de producción típico: de 2 a 5 días laborables; el envío posterior tarda de 3 a 10 días laborables según el país de destino y el socio de producción asignado a su producto. Las notificaciones de confirmación, producción y envío se envían al correo electrónico facilitado en el pago.',
+                    'Los artículos personalizados se fabrican bajo demanda — la producción comienza únicamente tras finalizar el pago. ' + buildTermsFulfillmentSentence('es') + ' Las notificaciones de confirmación, producción y envío se envían al correo electrónico facilitado en el pago.',
             },
             pricing: {
                 title: 'Precios, impuestos y pago',
                 body:
-                    'Los precios mostrados en las páginas de producto están en dólares estadounidenses e incluyen el diseño, la producción y el margen del Servicio. Los gastos de envío se calculan en el pago según el destino. Para clientes de la UE, el IVA se calcula y muestra en el pago conforme a su país de entrega. El pago se procesa a través de Stripe; nunca almacenamos los datos completos de la tarjeta.',
+                    'Los precios mostrados en las páginas de producto están en dólares estadounidenses e incluyen el diseño, la producción y el margen del Servicio. ' + buildTermsPricingSentence('es') + ' Para clientes de la UE, el IVA se calcula y muestra en el pago conforme a su país de entrega. El pago se procesa a través de Stripe; nunca almacenamos los datos completos de la tarjeta.',
             },
             aiContent: {
                 title: 'Diseños generados por IA',
@@ -3142,7 +3060,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     },
                     {
                         title: 'Imprimimos y enviamos',
-                        description: 'Tu producto se imprime bajo demanda y se envia mundialmente en 3-7 dias habiles.',
+                        description: buildHomeShipStepDescription('es'),
                     },
                 ],
             },
@@ -3293,11 +3211,13 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             checkoutLabel: 'Pagar con Stripe',
             checkoutFailedLabel: 'El pago fallo. Intentalo de nuevo.',
             secureCheckoutLabel: 'Pago seguro impulsado por Stripe',
+            freeLabel: 'Gratis',
+            shippingNote: 'Envío Estándar, gratis desde {threshold}. El Exprés ({express}, {standard} desde {threshold}) se elige al pagar.',
         },
         success: {
             metadataTitle: 'Pedido confirmado',
             heading: 'Pedido confirmado!',
-            subtitle: 'Gracias por tu pedido! Tu producto se esta fabricando y se enviara en 3-7 dias habiles.',
+            subtitle: buildSuccessSubtitle('es'),
             nextStepsLabel: 'Que pasa ahora',
             manualReviewReassurance: 'Estamos verificando los datos de envio antes de produccion. No necesitas hacer ninguna accion de pago.',
             progressLabel: 'Progreso del pedido',
