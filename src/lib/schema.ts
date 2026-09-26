@@ -1,5 +1,6 @@
 import { buildLocaleCanonical, type SupportedLocale } from './i18n'
 import { toAbsoluteUrl } from './site'
+import { buildOfferShippingDetails } from './shipping-copy'
 
 type BreadcrumbKey = 'home' | 'create' | 'products' | 'blog' | 'support'
 
@@ -70,33 +71,8 @@ export function buildProductOfferSchema(input: ProductOfferSchemaInput) {
             '@type': 'Organization',
             name: 'SmartPrintAI',
         },
-        shippingDetails: {
-            '@type': 'OfferShippingDetails',
-            shippingRate: {
-                '@type': 'MonetaryAmount',
-                value: '5.99',
-                currency,
-            },
-            shippingDestination: {
-                '@type': 'DefinedRegion',
-                addressCountry: 'US',
-            },
-            deliveryTime: {
-                '@type': 'ShippingDeliveryTime',
-                handlingTime: {
-                    '@type': 'QuantitativeValue',
-                    minValue: 1,
-                    maxValue: 3,
-                    unitCode: 'DAY',
-                },
-                transitTime: {
-                    '@type': 'QuantitativeValue',
-                    minValue: 2,
-                    maxValue: 7,
-                    unitCode: 'DAY',
-                },
-            },
-        },
+        // Same rates, countries and windows as checkout and the merchant feed.
+        shippingDetails: buildOfferShippingDetails(currency),
         hasMerchantReturnPolicy: {
             '@type': 'MerchantReturnPolicy',
             '@id': 'https://print.zuerifix.tech/returns#policy',

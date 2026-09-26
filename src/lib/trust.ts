@@ -1,4 +1,5 @@
 import { buildLocaleCanonical, type SupportedLocale } from './i18n'
+import { buildTrustDeliveryValue } from './shipping-copy'
 
 type TrustSignalCopy = {
     deliveryLabel: string
@@ -14,7 +15,7 @@ type TrustSignalCopy = {
 const TRUST_SIGNAL_COPY: Record<SupportedLocale, TrustSignalCopy> = {
     en: {
         deliveryLabel: 'Delivery SLA',
-        deliveryValue: 'Production + shipping usually arrives within 3-10 business days.',
+        deliveryValue: buildTrustDeliveryValue('en'),
         supportLabel: 'Support Promise',
         supportValue: 'Human support replies within 24 hours on business days.',
         supportLinkLabel: 'Contact support',
@@ -24,7 +25,7 @@ const TRUST_SIGNAL_COPY: Record<SupportedLocale, TrustSignalCopy> = {
     },
     fr: {
         deliveryLabel: 'Delai de livraison',
-        deliveryValue: 'Production + expedition en general sous 3 a 10 jours ouvres.',
+        deliveryValue: buildTrustDeliveryValue('fr'),
         supportLabel: 'Promesse support',
         supportValue: 'Le support humain repond sous 24 heures les jours ouvres.',
         supportLinkLabel: 'Contacter le support',
@@ -34,7 +35,7 @@ const TRUST_SIGNAL_COPY: Record<SupportedLocale, TrustSignalCopy> = {
     },
     de: {
         deliveryLabel: 'Lieferzeit',
-        deliveryValue: 'Produktion + Versand in der Regel innerhalb von 3-10 Werktagen.',
+        deliveryValue: buildTrustDeliveryValue('de'),
         supportLabel: 'Support-Versprechen',
         supportValue: 'Der Support antwortet an Werktagen innerhalb von 24 Stunden.',
         supportLinkLabel: 'Support kontaktieren',
@@ -44,7 +45,7 @@ const TRUST_SIGNAL_COPY: Record<SupportedLocale, TrustSignalCopy> = {
     },
     es: {
         deliveryLabel: 'Plazo de entrega',
-        deliveryValue: 'Produccion + envio normalmente en 3-10 dias habiles.',
+        deliveryValue: buildTrustDeliveryValue('es'),
         supportLabel: 'Compromiso de soporte',
         supportValue: 'El soporte humano responde en 24 horas en dias habiles.',
         supportLinkLabel: 'Contactar soporte',

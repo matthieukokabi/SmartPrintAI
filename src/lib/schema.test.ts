@@ -49,14 +49,23 @@ describe('schema helpers', () => {
             price: '29.99',
             availability: 'https://schema.org/InStock',
             url: 'https://print.zuerifix.tech/products/prod_1',
-            shippingDetails: {
-                '@type': 'OfferShippingDetails',
-            },
             hasMerchantReturnPolicy: {
                 '@type': 'MerchantReturnPolicy',
                 url: 'https://print.zuerifix.tech/returns',
             },
         })
+
+        // One OfferShippingDetails per checkout service, each covering the
+        // nine countries checkout accepts, with the rates the feed publishes.
+        const shipping = offer.shippingDetails
+        expect(shipping).toHaveLength(2)
+        expect(shipping.map((d) => d.name)).toEqual(['Standard Shipping', 'Express Shipping'])
+        expect(shipping.map((d) => d.shippingRate.value)).toEqual(['5.99', '12.99'])
+        for (const d of shipping) {
+            expect(d['@type']).toBe('OfferShippingDetails')
+            expect(d.shippingRate.currency).toBe('USD')
+            expect(d.shippingDestination.map((r) => r.addressCountry)).toEqual(['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH'])
+        }
     })
 
     it('returns localized breadcrumb labels', () => {

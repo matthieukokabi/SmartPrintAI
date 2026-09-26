@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useCart } from '@/store/cart'
 import { Loader2, ShieldCheck } from 'lucide-react'
+import { getCartShippingUsd } from '@/lib/shipping-rates'
+import { fillShippingTokens } from '@/lib/shipping-copy'
 
 type CartSummaryProps = {
     copy: {
@@ -14,6 +16,8 @@ type CartSummaryProps = {
         checkoutLabel: string
         checkoutFailedLabel: string
         secureCheckoutLabel: string
+        freeLabel: string
+        shippingNote: string
     }
 }
 
@@ -22,7 +26,10 @@ export default function CartSummary({ copy }: CartSummaryProps) {
     const [isLoading, setIsLoading] = useState(false)
 
     const subtotal = total()
-    const shipping = 5.99
+    // Same numbers checkout charges (src/lib/shipping-rates.ts): flat
+    // Standard rate, free once the subtotal reaches the threshold.
+    const shipping = getCartShippingUsd(subtotal, items.length)
+    const freeShipping = shipping === 0
     const grandTotal = subtotal + shipping
 
     const handleCheckout = async () => {
@@ -69,8 +76,9 @@ export default function CartSummary({ copy }: CartSummaryProps) {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                     <span>{copy.shippingLabel}</span>
-                    <span>${shipping.toFixed(2)}</span>
+                    <span data-testid="cart-shipping">{freeShipping ? copy.freeLabel : `$${shipping.toFixed(2)}`}</span>
                 </div>
+                <p className="text-xs text-muted-foreground" data-testid="cart-shipping-note">{fillShippingTokens(copy.shippingNote)}</p>
                 <div className="border-t border-white/10 pt-3 flex justify-between font-bold text-lg">
                     <span>{copy.totalLabel}</span>
                     <span className="text-gradient">${grandTotal.toFixed(2)}</span>
