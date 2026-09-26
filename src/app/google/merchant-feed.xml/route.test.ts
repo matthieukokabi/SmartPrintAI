@@ -24,6 +24,12 @@ vi.mock('@/lib/site', () => ({
 
 import { GET } from './route'
 
+const CHECKOUT_COUNTRIES = ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH']
+
+function items(xml: string): string[] {
+  return xml.match(/<item>.*?<\/item>/g) ?? []
+}
+
 describe('/google/merchant-feed.xml GET', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -33,17 +39,19 @@ describe('/google/merchant-feed.xml GET', () => {
     mocks.findMany.mockResolvedValue([
       {
         id: 'prod_1',
-        name: 'Cats & Dogs Tee',
+        name: "Unisex Cats & Dogs Tee",
+        printfulId: '71',
         description: 'Fun <bold> shirt for pet lovers',
-        category: 'Apparel',
+        category: 'T-Shirts & Tops',
         sellPrice: 29.99,
         imageUrl: 'https://cdn.example.com/prod-1.png',
-        colors: [{ name: 'Black' }],
+        colors: [{ name: 'Black' }, { name: 'White' }],
         sizes: ['M', 'L'],
       },
       {
         id: 'prod_2',
         name: 'Boho Tote',
+        printfulId: '327',
         description: 'Soft pastel tote',
         category: 'Accessories',
         sellPrice: 24,
@@ -54,8 +62,9 @@ describe('/google/merchant-feed.xml GET', () => {
       {
         id: 'prod_3',
         name: 'Cozy Pillow',
+        printfulId: '95',
         description: 'Comfy pillow',
-        category: 'Home',
+        category: 'Home & Decor',
         sellPrice: 19.5,
         imageUrl: '/images/pillow.png',
         colors: [],
@@ -70,39 +79,91 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(res.headers.get('cache-control')).toContain('s-maxage=3600')
 
     const xml = await res.text()
-
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>')
-    expect(xml).toContain('<g:id>prod_1</g:id>')
-    expect(xml).toContain('<title>Cats &amp; Dogs Tee</title>')
-    expect(xml).toContain('Fun &lt;bold&gt; shirt for pet lovers')
-    expect(xml).toContain('<g:price>29.99 USD</g:price>')
-    expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing</g:google_product_category>')
-    expect(xml).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories</g:google_product_category>')
-    expect(xml).toContain('<g:google_product_category>Home &amp; Garden</g:google_product_category>')
-    expect(xml).toContain('<g:color>Black</g:color>')
-    expect(xml).toContain('<g:color>White</g:color>')
-    expect(xml).toContain('<g:gender>unisex</g:gender>')
-    expect(xml).toContain('<g:age_group>adult</g:age_group>')
-    expect(xml).toContain('<g:size>M</g:size>')
-    expect(xml).toContain('<link>https://print.zuerifix.tech/products/prod_2</link>')
-    expect(xml).toContain('<g:image_link>https://print.zuerifix.tech/images/tote.png</g:image_link>')
+    expect(xml).not.toContain('smartprintai.com')
 
-    const genderTags = xml.match(/<g:gender>/g) ?? []
-    const ageGroupTags = xml.match(/<g:age_group>/g) ?? []
-    const colorTags = xml.match(/<g:color>/g) ?? []
-    expect(genderTags).toHaveLength(3)
-    expect(ageGroupTags).toHaveLength(3)
-    expect(colorTags).toHaveLength(3)
+    // Apparel is split into one item per size, grouped by product id.
+    const [teeM, teeL, tote, pillow] = items(xml)
+    expect(items(xml)).toHaveLength(4)
+    expect(teeM).toContain('<g:id>prod_1-m</g:id>')
+    expect(teeM).toContain('<g:item_group_id>prod_1</g:item_group_id>')
+    expect(teeM).toContain('<title>Unisex Cats &amp; Dogs Tee - M</title>')
+    expect(teeM).toContain('<g:size>M</g:size>')
+    expect(teeL).toContain('<g:id>prod_1-l</g:id>')
+    expect(teeL).toContain('<g:size>L</g:size>')
+    expect(teeM).toContain('Fun &lt;bold&gt; shirt for pet lovers')
+    expect(teeM).toContain('<g:price>29.99 USD</g:price>')
+    expect(teeM).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing</g:google_product_category>')
+    expect(teeM).toContain('<g:color>Black/White</g:color>')
+    expect(teeM).toContain('<g:gender>unisex</g:gender>')
+    expect(teeM).toContain('<g:age_group>adult</g:age_group>')
+    expect(teeM).toContain('<link>https://print.zuerifix.tech/products/prod_1</link>')
 
-    // <g:shipping> blocks: one per item per published rate
-    // (Standard $5.99 + Express $12.99 = 2 per item; 3 items → 6).
-    const shippingTags = xml.match(/<g:shipping>/g) ?? []
-    expect(shippingTags).toHaveLength(6)
-    expect(xml).toContain('<g:country>US</g:country>')
-    expect(xml).toContain('<g:service>Standard Shipping</g:service>')
-    expect(xml).toContain('<g:service>Express Shipping</g:service>')
-    expect(xml).toContain('<g:price>5.99 USD</g:price>')
-    expect(xml).toContain('<g:price>12.99 USD</g:price>')
+    // Non-apparel stays a single item with the plain id and no apparel attributes.
+    expect(tote).toContain('<g:id>prod_2</g:id>')
+    expect(tote).not.toContain('<g:item_group_id>')
+    expect(tote).toContain('<g:google_product_category>Apparel &amp; Accessories &gt; Clothing Accessories</g:google_product_category>')
+    expect(tote).toContain('<g:image_link>https://print.zuerifix.tech/images/tote.png</g:image_link>')
+    expect(tote).not.toContain('<g:color>')        // "Default" is not a colour
+    expect(tote).not.toContain('<g:size>')
+    expect(tote).not.toContain('<g:gender>')
+    expect(tote).not.toContain('<g:age_group>')
+
+    expect(pillow).toContain('<g:id>prod_3</g:id>')
+    expect(pillow).toContain('<g:google_product_category>Home &amp; Garden &gt; Decor</g:google_product_category>')
+    expect(pillow).not.toContain('<g:color>')
+    expect(pillow).not.toContain('<g:gender>')
+
+    // Shipping: every item carries Standard + Express for each checkout country.
+    for (const item of items(xml)) {
+      const shippingTags = item.match(/<g:shipping>/g) ?? []
+      expect(shippingTags).toHaveLength(CHECKOUT_COUNTRIES.length * 2)
+      for (const country of CHECKOUT_COUNTRIES) {
+        expect(item).toContain(`<g:country>${country}</g:country>`)
+      }
+      expect(item).toContain('<g:service>Standard Shipping</g:service><g:price>5.99 USD</g:price><g:min_transit_time>5</g:min_transit_time><g:max_transit_time>10</g:max_transit_time>')
+      expect(item).toContain('<g:service>Express Shipping</g:service><g:price>12.99 USD</g:price><g:min_transit_time>2</g:min_transit_time><g:max_transit_time>4</g:max_transit_time>')
+      expect(item).toContain('<g:min_handling_time>2</g:min_handling_time><g:max_handling_time>5</g:max_handling_time>')
+    }
+  })
+
+  it('emits gender and age_group only when the product name states them', async () => {
+    mocks.findMany.mockResolvedValue([
+      { id: 'w', name: "Women's Racerback Tank", printfulId: '1', description: '', category: 'apparel', sellPrice: 20, imageUrl: '/w.png', colors: [], sizes: ['S'] },
+      { id: 'm', name: "Men's Fleece Joggers", printfulId: '2', description: '', category: 'Bottoms', sellPrice: 40, imageUrl: '/m.png', colors: [], sizes: ['S'] },
+      { id: 'k', name: 'All-Over Print Kids Leggings', printfulId: '3', description: '', category: 'Kids', sellPrice: 25, imageUrl: '/k.png', colors: [], sizes: ['2T'] },
+      { id: 'y', name: 'Hoodies (Youth Sizes)', printfulId: '96', description: '', category: 'apparel', sellPrice: 35, imageUrl: '/y.png', colors: [{ name: 'Black' }], sizes: ['XS'] },
+      { id: 'd', name: 'All-Over Print Bodycon Dress', printfulId: '4', description: '', category: 'Dresses', sellPrice: 45, imageUrl: '/d.png', colors: [{ name: 'Default' }], sizes: ['M'] },
+    ])
+
+    const xml = await (await GET()).text()
+    const [women, men, kids, youth, dress] = items(xml)
+
+    expect(women).toContain('<g:gender>female</g:gender>')
+    expect(women).toContain('<g:age_group>adult</g:age_group>')
+    expect(men).toContain('<g:gender>male</g:gender>')
+    expect(men).toContain('<g:age_group>adult</g:age_group>')
+    expect(kids).not.toContain('<g:gender>')
+    expect(kids).toContain('<g:age_group>kids</g:age_group>')
+    expect(youth).toContain('<g:age_group>kids</g:age_group>')
+    expect(youth).toContain('<g:color>Black</g:color>')
+    // No stated gender or age in the name: nothing invented.
+    expect(dress).not.toContain('<g:gender>')
+    expect(dress).not.toContain('<g:age_group>')
+    expect(dress).not.toContain('<g:color>')
+    expect(dress).toContain('<g:size>M</g:size>')
+  })
+
+  it('limits shipping to the countries a US-only product can reach', async () => {
+    mocks.findMany.mockResolvedValue([
+      { id: 'orn', name: 'Acrylic Ornaments', printfulId: '793', description: '', category: 'Accessories', sellPrice: 12, imageUrl: '/o.png', colors: [], sizes: ['Circle'] },
+    ])
+
+    const xml = await (await GET()).text()
+    const [item] = items(xml)
+    expect(item.match(/<g:shipping>/g) ?? []).toHaveLength(2)
+    expect(item).toContain('<g:country>US</g:country>')
+    expect(item).not.toContain('<g:country>DE</g:country>')
   })
 
   it('returns an empty valid feed when no products exist', async () => {
