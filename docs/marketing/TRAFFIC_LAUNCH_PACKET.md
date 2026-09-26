@@ -10,29 +10,29 @@ All URLs follow the canonical UTM contract and route to homepage (`/`) so the ex
 
 ### Meta (`utm_source=meta`, `utm_medium=paid_social`)
 - Creative A:
-`https://smartprintai.com/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=video_hook_a`
+`https://print.zuerifix.tech/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=video_hook_a`
 - Creative B:
-`https://smartprintai.com/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=carousel_mockup_b`
+`https://print.zuerifix.tech/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=carousel_mockup_b`
 
 ### Google (`utm_source=google`, `utm_medium=paid_search`)
 - Search ad A:
-`https://smartprintai.com/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_content=text_ad_a&utm_term=ai_tshirt_design`
+`https://print.zuerifix.tech/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_content=text_ad_a&utm_term=ai_tshirt_design`
 - Search ad B:
-`https://smartprintai.com/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_content=text_ad_b&utm_term=custom_hoodie_print`
+`https://print.zuerifix.tech/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_content=text_ad_b&utm_term=custom_hoodie_print`
 
 ### TikTok (`utm_source=tiktok`, `utm_medium=paid_social`)
 - Creative A:
-`https://smartprintai.com/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=creator_demo_a`
+`https://print.zuerifix.tech/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=creator_demo_a`
 - Creative B:
-`https://smartprintai.com/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=trend_cut_b`
+`https://print.zuerifix.tech/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=trend_cut_b`
 
 ### X Organic (`utm_source=x`, `utm_medium=organic_social`)
 - Organic post:
-`https://smartprintai.com/?utm_source=x&utm_medium=organic_social&utm_campaign=social_awareness_global_launch_2026_03&utm_content=thread_teaser_a`
+`https://print.zuerifix.tech/?utm_source=x&utm_medium=organic_social&utm_campaign=social_awareness_global_launch_2026_03&utm_content=thread_teaser_a`
 
 ### X Paid (optional) (`utm_source=x`, `utm_medium=paid_social`)
 - Paid post:
-`https://smartprintai.com/?utm_source=x&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_test_2026_03&utm_content=paid_post_a`
+`https://print.zuerifix.tech/?utm_source=x&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_test_2026_03&utm_content=paid_post_a`
 
 ## 2) Initial Traffic Plan (Controlled Batch)
 Objective: collect usable early signal without contaminating active experiments through aggressive spikes.

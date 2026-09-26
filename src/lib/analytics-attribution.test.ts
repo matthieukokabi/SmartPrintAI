@@ -12,7 +12,7 @@ describe('analytics attribution normalization', () => {
       pathname: '/',
       search: '?utm_source=facebook&utm_medium=Paid Social&utm_campaign=Spring Launch 2026&utm_content=Hero A',
       referrer: 'https://instagram.com/smartprintai',
-      origin: 'https://smartprintai.com',
+      origin: 'https://print.zuerifix.tech',
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
     })
 
@@ -42,8 +42,8 @@ describe('analytics attribution normalization', () => {
       visitorId: 'visitor_2',
       pathname: '/',
       search: '?utm_medium=organic_social&utm_campaign=awareness_global',
-      referrer: 'https://l.instagram.com/?u=https%3A%2F%2Fsmartprintai.com',
-      origin: 'https://smartprintai.com',
+      referrer: 'https://l.instagram.com/?u=https%3A%2F%2Fprint.zuerifix.tech',
+      origin: 'https://print.zuerifix.tech',
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0)',
     })
 

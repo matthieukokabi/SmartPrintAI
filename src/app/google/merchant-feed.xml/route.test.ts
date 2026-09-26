@@ -18,7 +18,7 @@ vi.mock('@/lib/site', () => ({
       return pathOrUrl
     }
     const normalized = pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`
-    return `https://smartprintai.com${normalized}`
+    return `https://print.zuerifix.tech${normalized}`
   },
 }))
 
@@ -84,8 +84,8 @@ describe('/google/merchant-feed.xml GET', () => {
     expect(xml).toContain('<g:gender>unisex</g:gender>')
     expect(xml).toContain('<g:age_group>adult</g:age_group>')
     expect(xml).toContain('<g:size>M</g:size>')
-    expect(xml).toContain('<link>https://smartprintai.com/products/prod_2</link>')
-    expect(xml).toContain('<g:image_link>https://smartprintai.com/images/tote.png</g:image_link>')
+    expect(xml).toContain('<link>https://print.zuerifix.tech/products/prod_2</link>')
+    expect(xml).toContain('<g:image_link>https://print.zuerifix.tech/images/tote.png</g:image_link>')
 
     const genderTags = xml.match(/<g:gender>/g) ?? []
     const ageGroupTags = xml.match(/<g:age_group>/g) ?? []

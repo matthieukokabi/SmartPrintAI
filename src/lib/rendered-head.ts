@@ -125,7 +125,7 @@ export function parseRenderedHead(html: string): ParsedHead {
 }
 
 export function toPathname(href: string): string {
-    const parsed = new URL(href, 'https://smartprintai.com')
+    const parsed = new URL(href, 'https://print.zuerifix.tech')
     const normalized = parsed.pathname.replace(/\/+$/, '')
     return normalized.length > 0 ? normalized : '/'
 }

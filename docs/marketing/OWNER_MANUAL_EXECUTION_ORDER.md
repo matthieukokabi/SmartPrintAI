@@ -12,7 +12,7 @@ Close remaining high-priority manual tasks in the correct order with proof artif
 Reference: [../PROD_LIVE_PURCHASE_CHECKLIST.md](../PROD_LIVE_PURCHASE_CHECKLIST.md)
 
 Manual owner actions:
-- Complete one real paid checkout on `https://smartprintai.com`.
+- Complete one real paid checkout on `https://print.zuerifix.tech`.
 - Save:
   - success URL with `session_id=...`
   - buyer email used

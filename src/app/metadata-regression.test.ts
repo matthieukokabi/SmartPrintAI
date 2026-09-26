@@ -49,7 +49,7 @@ function expectLocaleAlternates(languages: Record<string, string> | undefined, p
 
 describe('Wave 2 metadata regression coverage', () => {
     beforeEach(() => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
         mocks.findUnique.mockReset()
     })
 
@@ -87,28 +87,28 @@ describe('Wave 2 metadata regression coverage', () => {
     it('uses locale-aware OpenGraph metadata and keeps en canonical collapse for localized routes', () => {
         const localizedHome = generateLocalizedHomeMetadata({ params: { locale: 'fr' } })
         expect(localizedHome.openGraph?.locale).toBe('fr_FR')
-        expect(localizedHome.openGraph?.url).toBe('https://smartprintai.com/fr')
+        expect(localizedHome.openGraph?.url).toBe('https://print.zuerifix.tech/fr')
         expectLocaleAlternates(localizedHome.alternates?.languages as Record<string, string> | undefined, '/')
 
         const localizedCreateEn = generateLocalizedCreateMetadata({ params: { locale: 'en' } })
         expect(localizedCreateEn.alternates?.canonical).toBe('/create')
-        expect(localizedCreateEn.openGraph?.url).toBe('https://smartprintai.com/create')
+        expect(localizedCreateEn.openGraph?.url).toBe('https://print.zuerifix.tech/create')
         expect(localizedCreateEn.openGraph?.locale).toBe('en_US')
         expectLocaleAlternates(localizedCreateEn.alternates?.languages as Record<string, string> | undefined, '/create')
 
         const localizedProducts = generateLocalizedProductsMetadata({ params: { locale: 'de' } })
         expect(localizedProducts.openGraph?.locale).toBe('de_DE')
-        expect(localizedProducts.openGraph?.url).toBe('https://smartprintai.com/de/products')
+        expect(localizedProducts.openGraph?.url).toBe('https://print.zuerifix.tech/de/products')
         expectLocaleAlternates(localizedProducts.alternates?.languages as Record<string, string> | undefined, '/products')
 
         const localizedBlog = generateLocalizedBlogMetadata({ params: { locale: 'es' } })
         expect(localizedBlog.openGraph?.locale).toBe('es_ES')
-        expect(localizedBlog.openGraph?.url).toBe('https://smartprintai.com/es/blog')
+        expect(localizedBlog.openGraph?.url).toBe('https://print.zuerifix.tech/es/blog')
         expectLocaleAlternates(localizedBlog.alternates?.languages as Record<string, string> | undefined, '/blog')
 
         const localizedSupport = generateLocalizedSupportMetadata({ params: { locale: 'fr' } })
         expect(localizedSupport.openGraph?.locale).toBe('fr_FR')
-        expect(localizedSupport.openGraph?.url).toBe('https://smartprintai.com/fr/support')
+        expect(localizedSupport.openGraph?.url).toBe('https://print.zuerifix.tech/fr/support')
         expectLocaleAlternates(localizedSupport.alternates?.languages as Record<string, string> | undefined, '/support')
     })
 
@@ -116,19 +116,19 @@ describe('Wave 2 metadata regression coverage', () => {
         const slug = 'creative-ai-tshirt-ideas-for-dog-lovers'
 
         const defaultMeta = await generateBlogPostMetadata({ params: { slug } })
-        expect(defaultMeta.openGraph?.url).toBe(`https://smartprintai.com/blog/${slug}`)
+        expect(defaultMeta.openGraph?.url).toBe(`https://print.zuerifix.tech/blog/${slug}`)
         expect(defaultMeta.openGraph?.locale).toBe('en_US')
         expect(defaultMeta.twitter?.title).toBeTruthy()
         expectLocaleAlternates(defaultMeta.alternates?.languages as Record<string, string> | undefined, `/blog/${slug}`)
 
         const localizedMetaEn = await generateLocalizedBlogPostMetadata({ params: { locale: 'en', slug } })
         expect(localizedMetaEn.alternates?.canonical).toBe(`/blog/${slug}`)
-        expect(localizedMetaEn.openGraph?.url).toBe(`https://smartprintai.com/blog/${slug}`)
+        expect(localizedMetaEn.openGraph?.url).toBe(`https://print.zuerifix.tech/blog/${slug}`)
         expect(localizedMetaEn.openGraph?.locale).toBe('en_US')
         expectLocaleAlternates(localizedMetaEn.alternates?.languages as Record<string, string> | undefined, `/blog/${slug}`)
 
         const localizedMetaFr = await generateLocalizedBlogPostMetadata({ params: { locale: 'fr', slug } })
-        expect(localizedMetaFr.openGraph?.url).toBe(`https://smartprintai.com/fr/blog/${slug}`)
+        expect(localizedMetaFr.openGraph?.url).toBe(`https://print.zuerifix.tech/fr/blog/${slug}`)
         expect(localizedMetaFr.openGraph?.locale).toBe('fr_FR')
         expectLocaleAlternates(localizedMetaFr.alternates?.languages as Record<string, string> | undefined, `/blog/${slug}`)
     })
@@ -142,20 +142,20 @@ describe('Wave 2 metadata regression coverage', () => {
         })
 
         const defaultMeta = await generateProductMetadata({ params: { id: 'prod_1' } })
-        expect(defaultMeta.openGraph?.url).toBe('https://smartprintai.com/products/prod_1')
+        expect(defaultMeta.openGraph?.url).toBe('https://print.zuerifix.tech/products/prod_1')
         expect(defaultMeta.openGraph?.locale).toBe('en_US')
-        expect(defaultMeta.twitter?.images).toEqual(['https://smartprintai.com/images/prod_1.png'])
+        expect(defaultMeta.twitter?.images).toEqual(['https://print.zuerifix.tech/images/prod_1.png'])
         expectLocaleAlternates(defaultMeta.alternates?.languages as Record<string, string> | undefined, '/products/prod_1')
 
         const localizedMetaEn = await generateLocalizedProductMetadata({ params: { locale: 'en', id: 'prod_1' } })
         expect(localizedMetaEn.alternates?.canonical).toBe('/products/prod_1')
-        expect(localizedMetaEn.openGraph?.url).toBe('https://smartprintai.com/products/prod_1')
+        expect(localizedMetaEn.openGraph?.url).toBe('https://print.zuerifix.tech/products/prod_1')
         expect(localizedMetaEn.openGraph?.locale).toBe('en_US')
         expectLocaleAlternates(localizedMetaEn.alternates?.languages as Record<string, string> | undefined, '/products/prod_1')
 
         const localizedMetaDe = await generateLocalizedProductMetadata({ params: { locale: 'de', id: 'prod_1' } })
         expect(localizedMetaDe.alternates?.canonical).toBe('/de/products/prod_1')
-        expect(localizedMetaDe.openGraph?.url).toBe('https://smartprintai.com/de/products/prod_1')
+        expect(localizedMetaDe.openGraph?.url).toBe('https://print.zuerifix.tech/de/products/prod_1')
         expect(localizedMetaDe.openGraph?.locale).toBe('de_DE')
         expectLocaleAlternates(localizedMetaDe.alternates?.languages as Record<string, string> | undefined, '/products/prod_1')
     })

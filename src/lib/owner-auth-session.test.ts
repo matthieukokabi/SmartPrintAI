@@ -33,17 +33,17 @@ describe('owner auth session token helpers', () => {
     })
 
     it('creates and validates owner session token', () => {
-        const token = createOwnerSessionToken('Owner@SmartPrintAI.com')
-        expect(readOwnerSessionToken(token)).toEqual({ email: 'owner@smartprintai.com' })
+        const token = createOwnerSessionToken('print@zuerifix.tech')
+        expect(readOwnerSessionToken(token)).toEqual({ email: 'print@zuerifix.tech' })
     })
 
     it('rejects expired owner session token', () => {
-        const token = createOwnerSessionToken('owner@smartprintai.com', -1)
+        const token = createOwnerSessionToken('print@zuerifix.tech', -1)
         expect(readOwnerSessionToken(token)).toBeNull()
     })
 
     it('sets host-only cookie in local environments', () => {
-        const token = createOwnerSessionToken('owner@smartprintai.com')
+        const token = createOwnerSessionToken('print@zuerifix.tech')
         const { response, calls, appendedHeaders } = createCookieRecorder()
 
         setOwnerSessionCookie(response, token)
@@ -56,21 +56,21 @@ describe('owner auth session token helpers', () => {
     })
 
     it('clears host-only + domain cookie variants to prevent stale owner sessions', () => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://www.smartprintai.com'
-        const token = createOwnerSessionToken('owner@smartprintai.com')
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
+        const token = createOwnerSessionToken('print@zuerifix.tech')
         const { response, calls, appendedHeaders } = createCookieRecorder()
 
         setOwnerSessionCookie(response, token)
         clearOwnerSessionCookie(response)
 
         expect(calls).toHaveLength(1)
-        expect(calls[0].options.domain).toBe('smartprintai.com')
+        expect(calls[0].options.domain).toBe('print.zuerifix.tech')
         expect(appendedHeaders).toEqual(
             expect.arrayContaining([
                 expect.stringContaining('spai_owner_session=; Path=/;'),
                 expect.stringContaining('spai_owner_session=; Path=/admin;'),
-                expect.stringContaining('Domain=smartprintai.com'),
-                expect.stringContaining('Domain=.smartprintai.com'),
+                expect.stringContaining('Domain=print.zuerifix.tech'),
+                expect.stringContaining('Domain=.print.zuerifix.tech'),
                 expect.stringContaining('Max-Age=0'),
                 expect.stringContaining('Expires=Thu, 01 Jan 1970 00:00:00 GMT'),
             ]),

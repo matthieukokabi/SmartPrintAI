@@ -1331,9 +1331,9 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'What this policy covers',
                 body:
-                    "SmartPrintAI (\"we\", \"us\") provides an AI-powered print-on-demand service at smartprintai.com. This policy explains the personal data we collect, why we process it, who we share it with, how long we keep it, and the rights you have under the EU General Data Protection Regulation (GDPR).",
+                    "SmartPrintAI (\"we\", \"us\") provides an AI-powered print-on-demand service at print.zuerifix.tech. This policy explains the personal data we collect, why we process it, who we share it with, how long we keep it, and the rights you have under the EU General Data Protection Regulation (GDPR).",
                 controller:
-                    'Data controller: SmartPrintAI, operated by Matthieu Kokabi. For data-protection enquiries, contact privacy@smartprintai.com.',
+                    'Data controller: SmartPrintAI, operated by Matthieu Kokabi. For data-protection enquiries, contact print@zuerifix.tech.',
             },
             processors: {
                 title: 'Service providers (processors)',
@@ -1428,7 +1428,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     'Right to lodge a complaint with a supervisory authority (Article 77 GDPR)',
                 ],
                 howToExercise:
-                    'To exercise any of these rights, email privacy@smartprintai.com from the address associated with your account. We aim to respond within 30 days as required by the GDPR.',
+                    'To exercise any of these rights, email print@zuerifix.tech from the address associated with your account. We aim to respond within 30 days as required by the GDPR.',
                 supervisoryAuthority:
                     'If you believe we are not handling your data correctly, you may complain to the data-protection authority in the EU member state where you live, work, or where the issue occurred — for example the CNIL in France, the BfDI in Germany, or the AEPD in Spain.',
             },
@@ -1447,7 +1447,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Contact us',
                 body: 'For any question, concern, or request about your personal data:',
-                email: 'privacy@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'For order-related questions, use our',
                 supportLinkText: 'support center',
             },
@@ -1476,7 +1476,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Agreement',
                 body:
-                    "These Terms govern your use of the SmartPrintAI service at smartprintai.com (the \"Service\"). By placing an order or otherwise using the Service, you accept these Terms. SmartPrintAI is operated by Matthieu Kokabi.",
+                    "These Terms govern your use of the SmartPrintAI service at print.zuerifix.tech (the \"Service\"). By placing an order or otherwise using the Service, you accept these Terms. SmartPrintAI is operated by Matthieu Kokabi.",
             },
             orders: {
                 title: 'Orders and fulfillment',
@@ -1523,7 +1523,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Contact',
                 body: 'For order-related issues use our support center; for legal questions email us:',
-                email: 'legal@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Order issues:',
                 supportLinkText: 'support center',
             },
@@ -1678,7 +1678,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Act like owners: customer trust, reliability, and margins matter.',
             ],
             closingLine:
-                "Don't see your exact role? Send us your profile and what you want to build at hello@smartprintai.com.",
+                "Don't see your exact role? Send us your profile and what you want to build at print@zuerifix.tech.",
         },
         products: {
             metadataTitle: 'All Products',
@@ -1849,9 +1849,9 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Ce que couvre cette politique',
                 body:
-                    "SmartPrintAI (« nous ») fournit un service d’impression à la demande propulsé par l’IA sur smartprintai.com. Cette politique explique les données personnelles que nous collectons, pourquoi nous les traitons, avec qui nous les partageons, combien de temps nous les conservons, et les droits que vous tenez du Règlement général sur la protection des données (RGPD).",
+                    "SmartPrintAI (« nous ») fournit un service d’impression à la demande propulsé par l’IA sur print.zuerifix.tech. Cette politique explique les données personnelles que nous collectons, pourquoi nous les traitons, avec qui nous les partageons, combien de temps nous les conservons, et les droits que vous tenez du Règlement général sur la protection des données (RGPD).",
                 controller:
-                    'Responsable du traitement : SmartPrintAI, exploité par Matthieu Kokabi. Pour toute question relative à la protection des données : privacy@smartprintai.com.',
+                    'Responsable du traitement : SmartPrintAI, exploité par Matthieu Kokabi. Pour toute question relative à la protection des données : print@zuerifix.tech.',
             },
             processors: {
                 title: 'Prestataires (sous-traitants)',
@@ -1937,7 +1937,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     'Droit d’introduire une réclamation auprès d’une autorité de contrôle (article 77 RGPD)',
                 ],
                 howToExercise:
-                    'Pour exercer l’un de ces droits, envoyez un e-mail à privacy@smartprintai.com depuis l’adresse associée à votre compte. Nous nous efforçons de répondre dans les 30 jours prévus par le RGPD.',
+                    'Pour exercer l’un de ces droits, envoyez un e-mail à print@zuerifix.tech depuis l’adresse associée à votre compte. Nous nous efforçons de répondre dans les 30 jours prévus par le RGPD.',
                 supervisoryAuthority:
                     'Si vous estimez que nous ne traitons pas correctement vos données, vous pouvez introduire une réclamation auprès de l’autorité de protection des données de l’État membre de l’UE où vous résidez, travaillez ou où le problème s’est produit — par exemple la CNIL en France, le BfDI en Allemagne, l’AEPD en Espagne.',
             },
@@ -1957,7 +1957,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Nous contacter',
                 body: 'Pour toute question, préoccupation ou demande concernant vos données personnelles :',
-                email: 'privacy@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Pour les questions liées aux commandes, utilisez notre',
                 supportLinkText: 'centre de support',
             },
@@ -1986,7 +1986,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Accord',
                 body:
-                    'Les présentes Conditions régissent votre utilisation du service SmartPrintAI accessible sur smartprintai.com (le « Service »). En passant commande ou en utilisant le Service de toute autre manière, vous acceptez ces Conditions. SmartPrintAI est exploité par Matthieu Kokabi.',
+                    'Les présentes Conditions régissent votre utilisation du service SmartPrintAI accessible sur print.zuerifix.tech (le « Service »). En passant commande ou en utilisant le Service de toute autre manière, vous acceptez ces Conditions. SmartPrintAI est exploité par Matthieu Kokabi.',
             },
             orders: {
                 title: 'Commandes et exécution',
@@ -2033,7 +2033,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Contact',
                 body: 'Pour les questions liées aux commandes, utilisez notre centre de support ; pour les questions juridiques, écrivez-nous :',
-                email: 'legal@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Problèmes de commande :',
                 supportLinkText: 'centre de support',
             },
@@ -2184,7 +2184,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Agir en proprietaire: confiance client, fiabilite et marge.',
             ],
             closingLine:
-                "Vous ne voyez pas le role parfait? Ecrivez-nous avec votre profil et ce que vous voulez construire: hello@smartprintai.com.",
+                "Vous ne voyez pas le role parfait? Ecrivez-nous avec votre profil et ce que vous voulez construire: print@zuerifix.tech.",
         },
         products: {
             metadataTitle: 'Tous les produits',
@@ -2356,10 +2356,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Was diese Erklärung umfasst',
                 body:
-                    'SmartPrintAI („wir") betreibt einen KI-gestützten Print-on-Demand-Dienst auf smartprintai.com. Diese Erklärung beschreibt die personenbezogenen Daten, die wir erheben, warum wir sie verarbeiten, mit wem wir sie teilen, wie lange wir sie speichern, und die Rechte, die Ihnen nach der EU-Datenschutz-Grundverordnung (DSGVO) zustehen.',
+                    'SmartPrintAI („wir") betreibt einen KI-gestützten Print-on-Demand-Dienst auf print.zuerifix.tech. Diese Erklärung beschreibt die personenbezogenen Daten, die wir erheben, warum wir sie verarbeiten, mit wem wir sie teilen, wie lange wir sie speichern, und die Rechte, die Ihnen nach der EU-Datenschutz-Grundverordnung (DSGVO) zustehen.',
                 controller:
                     // CONFIRM: "Verantwortlicher" + dative phrasing — idiomatic German legal register?
-                    'Verantwortlicher: SmartPrintAI, betrieben von Matthieu Kokabi. Für Datenschutzanfragen wenden Sie sich an privacy@smartprintai.com.',
+                    'Verantwortlicher: SmartPrintAI, betrieben von Matthieu Kokabi. Für Datenschutzanfragen wenden Sie sich an print@zuerifix.tech.',
             },
             processors: {
                 title: 'Dienstleister (Auftragsverarbeiter)',
@@ -2446,7 +2446,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     'Recht auf Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO)',
                 ],
                 howToExercise:
-                    'Um eines dieser Rechte auszuüben, schreiben Sie eine E-Mail von der mit Ihrem Konto verknüpften Adresse an privacy@smartprintai.com. Wir bemühen uns, innerhalb der von der DSGVO vorgesehenen 30 Tage zu antworten.',
+                    'Um eines dieser Rechte auszuüben, schreiben Sie eine E-Mail von der mit Ihrem Konto verknüpften Adresse an print@zuerifix.tech. Wir bemühen uns, innerhalb der von der DSGVO vorgesehenen 30 Tage zu antworten.',
                 supervisoryAuthority:
                     // CONFIRM: In Deutschland ist die zustaendige Behoerde der jeweilige Landesdatenschutzbeauftragte (nicht BfDI, der nur fuer Bundesbehoerden zustaendig ist). Dieser Satz nennt BfDI als Beispiel — fuer einen Endkunden ist der Landesbeauftragte zustaendiger. Operator: ist die generische Formulierung "BfDI als Beispiel" akzeptabel, oder soll ich auf "Landesdatenschutzbehoerde" wechseln?
                     'Wenn Sie der Ansicht sind, dass wir Ihre Daten nicht ordnungsgemäß verarbeiten, können Sie sich an die Datenschutzbehörde des EU-Mitgliedstaats wenden, in dem Sie wohnen, arbeiten oder in dem der Vorfall eingetreten ist — beispielsweise die CNIL in Frankreich, die zuständige Landesdatenschutzbehörde in Deutschland oder die AEPD in Spanien.',
@@ -2467,7 +2467,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Kontakt',
                 body: 'Für Fragen, Anliegen oder Anträge zu Ihren personenbezogenen Daten:',
-                email: 'privacy@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Bei bestellbezogenen Fragen nutzen Sie unser',
                 supportLinkText: 'Support-Center',
             },
@@ -2496,7 +2496,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Vereinbarung',
                 body:
-                    'Diese Bedingungen regeln Ihre Nutzung des SmartPrintAI-Dienstes auf smartprintai.com (der „Dienst"). Durch Aufgabe einer Bestellung oder anderweitige Nutzung des Dienstes akzeptieren Sie diese Bedingungen. SmartPrintAI wird von Matthieu Kokabi betrieben.',
+                    'Diese Bedingungen regeln Ihre Nutzung des SmartPrintAI-Dienstes auf print.zuerifix.tech (der „Dienst"). Durch Aufgabe einer Bestellung oder anderweitige Nutzung des Dienstes akzeptieren Sie diese Bedingungen. SmartPrintAI wird von Matthieu Kokabi betrieben.',
             },
             orders: {
                 title: 'Bestellungen und Ausführung',
@@ -2545,7 +2545,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Kontakt',
                 body: 'Bei bestellbezogenen Anliegen nutzen Sie unser Support-Center; für rechtliche Fragen schreiben Sie uns:',
-                email: 'legal@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Bestellprobleme:',
                 supportLinkText: 'Support-Center',
             },
@@ -2696,7 +2696,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Wie Eigentuemer handeln: Vertrauen, Zuverlaessigkeit, Marge.',
             ],
             closingLine:
-                'Du siehst keine perfekte Rolle? Schreib uns mit deinem Profil und was du bauen willst: hello@smartprintai.com.',
+                'Du siehst keine perfekte Rolle? Schreib uns mit deinem Profil und was du bauen willst: print@zuerifix.tech.',
         },
         products: {
             metadataTitle: 'Alle Produkte',
@@ -2868,10 +2868,10 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Alcance de esta política',
                 body:
-                    'SmartPrintAI («nosotros») presta un servicio de impresión bajo demanda potenciado por IA en smartprintai.com. Esta política explica los datos personales que recopilamos, por qué los tratamos, con quién los compartimos, durante cuánto tiempo los conservamos y los derechos que le reconoce el Reglamento General de Protección de Datos (RGPD).',
+                    'SmartPrintAI («nosotros») presta un servicio de impresión bajo demanda potenciado por IA en print.zuerifix.tech. Esta política explica los datos personales que recopilamos, por qué los tratamos, con quién los compartimos, durante cuánto tiempo los conservamos y los derechos que le reconoce el Reglamento General de Protección de Datos (RGPD).',
                 controller:
                     // CONFIRM: "Responsable del tratamiento" es el termino RGPD estandar. ¿Idiomatico?
-                    'Responsable del tratamiento: SmartPrintAI, operado por Matthieu Kokabi. Para consultas sobre protección de datos: privacy@smartprintai.com.',
+                    'Responsable del tratamiento: SmartPrintAI, operado por Matthieu Kokabi. Para consultas sobre protección de datos: print@zuerifix.tech.',
             },
             processors: {
                 title: 'Proveedores (encargados del tratamiento)',
@@ -2957,7 +2957,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                     'Derecho a presentar una reclamación ante una autoridad de control (art. 77 RGPD)',
                 ],
                 howToExercise:
-                    'Para ejercer cualquiera de estos derechos, envíe un correo electrónico a privacy@smartprintai.com desde la dirección asociada a su cuenta. Procuramos responder dentro de los 30 días previstos por el RGPD.',
+                    'Para ejercer cualquiera de estos derechos, envíe un correo electrónico a print@zuerifix.tech desde la dirección asociada a su cuenta. Procuramos responder dentro de los 30 días previstos por el RGPD.',
                 supervisoryAuthority:
                     'Si considera que no estamos gestionando correctamente sus datos, puede presentar una reclamación ante la autoridad de protección de datos del Estado miembro de la UE en el que reside, trabaja o donde se haya producido la incidencia — por ejemplo, la CNIL en Francia, el BfDI en Alemania o la AEPD en España.',
             },
@@ -2977,7 +2977,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Contacto',
                 body: 'Para cualquier pregunta, inquietud o solicitud sobre sus datos personales:',
-                email: 'privacy@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Para consultas relacionadas con pedidos, utilice nuestro',
                 supportLinkText: 'centro de soporte',
             },
@@ -3006,7 +3006,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             intro: {
                 title: 'Acuerdo',
                 body:
-                    'Los presentes Términos regulan su uso del servicio SmartPrintAI accesible en smartprintai.com (el «Servicio»). Al realizar un pedido o utilizar el Servicio de cualquier otra forma, usted acepta estos Términos. SmartPrintAI es operado por Matthieu Kokabi.',
+                    'Los presentes Términos regulan su uso del servicio SmartPrintAI accesible en print.zuerifix.tech (el «Servicio»). Al realizar un pedido o utilizar el Servicio de cualquier otra forma, usted acepta estos Términos. SmartPrintAI es operado por Matthieu Kokabi.',
             },
             orders: {
                 title: 'Pedidos y entrega',
@@ -3055,7 +3055,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
             contact: {
                 title: 'Contacto',
                 body: 'Para asuntos relacionados con pedidos, utilice nuestro centro de soporte; para consultas legales, escríbanos:',
-                email: 'legal@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 supportLinkLabel: 'Problemas de pedido:',
                 supportLinkText: 'centro de soporte',
             },
@@ -3206,7 +3206,7 @@ export const LOCALE_COPY: Record<SupportedLocale, LocaleCopy> = {
                 'Actuar como duenos: confianza, fiabilidad y margen.',
             ],
             closingLine:
-                'No ves tu rol exacto? Envia tu perfil y lo que quieres construir a hello@smartprintai.com.',
+                'No ves tu rol exacto? Envia tu perfil y lo que quieres construir a print@zuerifix.tech.',
         },
         products: {
             metadataTitle: 'Todos los productos',

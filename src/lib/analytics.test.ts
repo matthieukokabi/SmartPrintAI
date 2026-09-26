@@ -142,7 +142,7 @@ describe('trackEvent', () => {
       location: {
         pathname: '/',
         search: '?utm_source=tiktok&utm_medium=paid_social&utm_campaign=spring_launch&utm_content=hero_a&utm_term=ai+shirt',
-        origin: 'https://smartprintai.com',
+        origin: 'https://print.zuerifix.tech',
         protocol: 'https:',
       },
     } as unknown as Window
@@ -201,7 +201,7 @@ describe('trackEvent', () => {
       location: {
         pathname: '/create',
         search: '?utm_source=tiktok&utm_medium=paid_social&utm_campaign=retargeting',
-        origin: 'https://smartprintai.com',
+        origin: 'https://print.zuerifix.tech',
         protocol: 'https:',
       },
     } as unknown as Window

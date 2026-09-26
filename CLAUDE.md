@@ -66,7 +66,7 @@ names 9 data processors with their role and region: Stripe Payments
 Europe Ltd, Printful Latvia SIA, Gelato AS, Gooten Inc., Resend.com
 Inc., Google LLC (Gemini API + GA4 listed separately), Make.com
 (Celonis SE), and Hostinger International Ltd. Controller contact:
-`privacy@smartprintai.com` and `legal@smartprintai.com` (ImprovMX
+`print@zuerifix.tech` and `print@zuerifix.tech` (ImprovMX
 aliases forwarding to operator's inbox).
 
 The consent gate is all-or-nothing: pre-consent traffic does not

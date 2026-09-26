@@ -106,7 +106,7 @@ async function main() {
             console.log('  ---- Customer email template (UNSENT) ----')
             const emailTemplate = `Hi,
 
-Thanks for your order on smartprintai.com. We discovered a defect in our
+Thanks for your order on print.zuerifix.tech. We discovered a defect in our
 print-file pipeline that affected your ${product.name} (order ${order.id.slice(-8).toUpperCase()})
 shipped on ${order.createdAt.toISOString().slice(0, 10)}: the artwork was sent to our
 fulfillment partner without the correct print-area sizing for a

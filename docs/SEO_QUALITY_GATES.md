@@ -125,4 +125,4 @@
 - Useful environment flags:
   - `SEO_VERIFY_INCLUDE_LOCAL=0` to skip local checks.
   - `SEO_VERIFY_INCLUDE_PROD=0` to skip production checks.
-  - `SEO_VERIFY_PROD_BASE_URL=https://smartprintai.com` to override the production base URL.
+  - `SEO_VERIFY_PROD_BASE_URL=https://print.zuerifix.tech` to override the production base URL.

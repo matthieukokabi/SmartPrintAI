@@ -39,7 +39,7 @@ For each planned post, fill:
 
 Use one format for all social links:
 
-`https://smartprintai.com/create?utm_source=<channel>&utm_medium=social&utm_campaign=<yyyy-week>&utm_content=<post-slug>`
+`https://print.zuerifix.tech/create?utm_source=<channel>&utm_medium=social&utm_campaign=<yyyy-week>&utm_content=<post-slug>`
 
 Examples:
 - `utm_source=tiktok`

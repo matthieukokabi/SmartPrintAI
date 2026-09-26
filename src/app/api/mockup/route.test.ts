@@ -122,7 +122,7 @@ describe('/api/mockup POST', () => {
   it('returns cached mockup without consuming route quota', async () => {
     mocks.prisma.mockup.findUnique.mockResolvedValue({
       id: 'mockup_cached_1',
-      mockupUrl: 'https://cdn.smartprintai.com/mockups/cached.png',
+      mockupUrl: 'https://cdn.print.zuerifix.tech/mockups/cached.png',
     })
 
     const res = await POST(createRequest(JSON.stringify({
@@ -133,7 +133,7 @@ describe('/api/mockup POST', () => {
 
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
-      mockupUrl: 'https://cdn.smartprintai.com/mockups/cached.png',
+      mockupUrl: 'https://cdn.print.zuerifix.tech/mockups/cached.png',
     })
     expect(mocks.rateLimitRequest).not.toHaveBeenCalled()
   })

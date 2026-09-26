@@ -6,7 +6,7 @@ This runbook documents the production deployment flow for SmartPrintAI on VPS `1
 
 - App path: `/root/smartprintai`
 - Production app service: `smartprintai` (binds `127.0.0.1:3100`)
-- Reverse proxy/TLS: Nginx (public via `https://smartprintai.com`)
+- Reverse proxy/TLS: Nginx (public via `https://print.zuerifix.tech`)
 - Infra dependencies (Docker): Postgres, Redis, MinIO
 
 ## 2) Pre-Deploy Checks
@@ -80,8 +80,8 @@ systemctl restart smartprintai
 systemctl is-active smartprintai
 curl -sS -o /dev/null -w local_home:%{http_code} http://127.0.0.1:3100/; echo
 curl -sS -o /dev/null -w local_products:%{http_code} http://127.0.0.1:3100/api/products; echo
-curl -sS -o /dev/null -w public_home:%{http_code} https://smartprintai.com/; echo
-curl -sS -o /dev/null -w public_products:%{http_code} https://smartprintai.com/api/products; echo
+curl -sS -o /dev/null -w public_home:%{http_code} https://print.zuerifix.tech/; echo
+curl -sS -o /dev/null -w public_products:%{http_code} https://print.zuerifix.tech/api/products; echo
 npm run test:e2e
 ```
 
@@ -109,7 +109,7 @@ systemctl restart smartprintai
 # 4) Re-verify health
 systemctl is-active smartprintai
 curl -sS -o /dev/null -w local_home:%{http_code} http://127.0.0.1:3100/; echo
-curl -sS -o /dev/null -w public_home:%{http_code} https://smartprintai.com/; echo
+curl -sS -o /dev/null -w public_home:%{http_code} https://print.zuerifix.tech/; echo
 ```
 
 If DB migrations were applied and are not backward-compatible, restore DB from your pre-deploy backup before restarting the old app build.
@@ -117,5 +117,5 @@ If DB migrations were applied and are not backward-compatible, restore DB from y
 ## 6) Operational Guardrails
 
 - Never print or paste secret values in terminal logs.
-- Always run local (`127.0.0.1`) and public (`https://smartprintai.com`) health checks after restart.
+- Always run local (`127.0.0.1`) and public (`https://print.zuerifix.tech`) health checks after restart.
 - Keep `smartprintai-uptime-check.timer` enabled for continuous endpoint checks.

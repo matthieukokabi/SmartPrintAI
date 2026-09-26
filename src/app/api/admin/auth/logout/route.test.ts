@@ -38,26 +38,26 @@ describe('/api/admin/auth/logout', () => {
     })
 
     it('uses configured public app origin instead of localhost when available', async () => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
         const req = new NextRequest('http://localhost:3100/api/admin/auth/logout')
         const res = await GET(req)
 
         expect(res.status).toBe(307)
-        expect(res.headers.get('location')).toBe('https://smartprintai.com/admin/login?next=%2Fadmin')
+        expect(res.headers.get('location')).toBe('https://print.zuerifix.tech/admin/login?next=%2Fadmin')
         expect(mocks.clearOwnerSessionCookie).toHaveBeenCalledTimes(1)
     })
 
     it('uses forwarded host/proto when app origin is not configured', async () => {
         const req = new NextRequest('http://127.0.0.1:3000/api/admin/auth/logout', {
             headers: {
-                'x-forwarded-host': 'smartprintai.com',
+                'x-forwarded-host': 'print.zuerifix.tech',
                 'x-forwarded-proto': 'https',
             },
         })
         const res = await GET(req)
 
         expect(res.status).toBe(307)
-        expect(res.headers.get('location')).toBe('https://smartprintai.com/admin/login?next=%2Fadmin')
+        expect(res.headers.get('location')).toBe('https://print.zuerifix.tech/admin/login?next=%2Fadmin')
         expect(mocks.clearOwnerSessionCookie).toHaveBeenCalledTimes(1)
     })
 

@@ -35,12 +35,12 @@ run_case_successful_bootstrap() {
 
   cat > "${tmp_dir}/.env.local" <<'EOF'
 DATABASE_URL=postgresql://env-loader:test@localhost:5432/smartprintai
-NEXT_PUBLIC_APP_URL=https://smartprintai.com
+NEXT_PUBLIC_APP_URL=https://print.zuerifix.tech
 EOF
 
   local output
   output="$(bash -c "set -euo pipefail; source '$ENV_LOADER'; smartprintai_bootstrap_env '${tmp_dir}/.env.local' DATABASE_URL NEXT_PUBLIC_APP_URL; printf '%s|%s|%s' \"\$DATABASE_URL\" \"\$NEXT_PUBLIC_APP_URL\" \"\$SMARTPRINTAI_ENV_FILE_LOADED\"")"
-  assert_eq "$output" "postgresql://env-loader:test@localhost:5432/smartprintai|https://smartprintai.com|${tmp_dir}/.env.local" "bootstrap should load and export required variables"
+  assert_eq "$output" "postgresql://env-loader:test@localhost:5432/smartprintai|https://print.zuerifix.tech|${tmp_dir}/.env.local" "bootstrap should load and export required variables"
 
   rm -rf "$tmp_dir"
   trap - RETURN
@@ -67,7 +67,7 @@ run_case_missing_required_var_message() {
   trap 'rm -rf "$tmp_dir"' RETURN
 
   cat > "${tmp_dir}/.env.local" <<'EOF'
-NEXT_PUBLIC_APP_URL=https://smartprintai.com
+NEXT_PUBLIC_APP_URL=https://print.zuerifix.tech
 EOF
 
   local output status

@@ -569,14 +569,14 @@ describe('/api/webhooks/stripe POST', () => {
         name: 'adidas Premium Polo Shirt',
         printfulId: '123',
         sellPrice: 72,
-        imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+        imageUrl: 'https://cdn.print.zuerifix.tech/catalog/adidas-polo.png',
         colors: [{ name: 'Black', printfulVariantId: 9876 }],
       },
     ])
     mocks.prisma.design.findMany.mockResolvedValue([])
     mocks.prisma.design.upsert.mockResolvedValue({
       id: 'ready_prod-ready',
-      imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/catalog/adidas-polo.png',
     })
     mocks.prisma.order.create.mockResolvedValue({ id: 'order_ready_1', total: 77.99 })
     mocks.printful.createOrder.mockResolvedValue({ id: 'pf_ready_123' })
@@ -594,7 +594,7 @@ describe('/api/webhooks/stripe POST', () => {
           sessionId: 'cs_test_ready_buy',
           prompt: '[ready-to-buy] adidas Premium Polo Shirt',
           style: 'ready_to_buy',
-          imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+          imageUrl: 'https://cdn.print.zuerifix.tech/catalog/adidas-polo.png',
         }),
       })
     )
@@ -604,7 +604,7 @@ describe('/api/webhooks/stripe POST', () => {
         items: [
           expect.objectContaining({
             variantId: 9876,
-            imageUrl: 'https://cdn.smartprintai.com/catalog/adidas-polo.png',
+            imageUrl: 'https://cdn.print.zuerifix.tech/catalog/adidas-polo.png',
           }),
         ],
       })

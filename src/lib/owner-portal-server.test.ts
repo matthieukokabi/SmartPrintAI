@@ -37,7 +37,7 @@ describe('owner portal server session guard', () => {
     })
 
     it('clears stale owner session before returning to login when allowlist access fails', () => {
-        mocks.getOwnerSessionFromCookieStore.mockReturnValue({ email: 'stale@smartprintai.com' })
+        mocks.getOwnerSessionFromCookieStore.mockReturnValue({ email: 'print@zuerifix.tech' })
         mocks.canAccessOwnerPortal.mockReturnValue(false)
 
         expect(() => requireOwnerPortalSession('/admin/orders/cmn3p5lxs000c8fl2tvkivxxw')).toThrow(

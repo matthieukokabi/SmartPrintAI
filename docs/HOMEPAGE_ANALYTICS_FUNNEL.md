@@ -256,10 +256,10 @@ Run controlled QA before paid traffic launch:
 5. Verify segmented tables include canonical `utm_source` / `utm_campaign` rows for the tested tags.
 
 Sample tagged URL templates:
-- `https://smartprintai.com/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=video_hook_a`
-- `https://smartprintai.com/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_term=ai_tshirt`
-- `https://smartprintai.com/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=creator_demo_a`
-- `https://smartprintai.com/?utm_source=x&utm_medium=organic_social&utm_campaign=social_awareness_global_launch_2026_03`
+- `https://print.zuerifix.tech/?utm_source=meta&utm_medium=paid_social&utm_campaign=social_conversion_us_creators_drop1_2026_03&utm_content=video_hook_a`
+- `https://print.zuerifix.tech/?utm_source=google&utm_medium=paid_search&utm_campaign=search_conversion_us_intent_high_2026_03&utm_term=ai_tshirt`
+- `https://print.zuerifix.tech/?utm_source=tiktok&utm_medium=paid_social&utm_campaign=social_conversion_us_genz_hook1_2026_03&utm_content=creator_demo_a`
+- `https://print.zuerifix.tech/?utm_source=x&utm_medium=organic_social&utm_campaign=social_awareness_global_launch_2026_03`
 
 ### Traffic Launch Readiness Checklist
 - [ ] `visitor_id` linkage confirmed (`trackedUsers > 0` in homepage report).

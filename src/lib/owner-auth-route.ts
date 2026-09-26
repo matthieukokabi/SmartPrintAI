@@ -1,5 +1,5 @@
 export const OWNER_ADMIN_DEFAULT_PATH = '/admin'
-const SAFE_CALLBACK_ORIGIN = 'https://smartprintai.com'
+const SAFE_CALLBACK_ORIGIN = 'https://print.zuerifix.tech'
 
 function extractSafePath(rawPath: string): string | null {
     if (!rawPath.startsWith('/')) return null

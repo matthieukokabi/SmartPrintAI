@@ -18,19 +18,19 @@ export function getResend(): Resend {
 }
 
 function supportRecipients(): string[] {
-    const primary = (process.env.SUPPORT_EMAIL || 'support@smartprintai.com').trim().toLowerCase()
-    const secondary = (process.env.CONTACT_EMAIL || 'contact@smartprintai.com').trim().toLowerCase()
+    const primary = (process.env.SUPPORT_EMAIL || 'print@zuerifix.tech').trim().toLowerCase()
+    const secondary = (process.env.CONTACT_EMAIL || 'print@zuerifix.tech').trim().toLowerCase()
     return Array.from(new Set([primary, secondary].filter(Boolean)))
 }
 
 function marketingRecipients(): string[] {
-    const primary = (process.env.MARKETING_EMAIL || process.env.SUPPORT_EMAIL || 'support@smartprintai.com')
+    const primary = (process.env.MARKETING_EMAIL || process.env.SUPPORT_EMAIL || 'print@zuerifix.tech')
         .trim()
         .toLowerCase()
     return Array.from(new Set([primary, ...supportRecipients()].filter(Boolean)))
 }
 
-const APP_URL = () => (process.env.NEXT_PUBLIC_APP_URL || 'https://smartprintai.com').replace(/\/+$/, '')
+const APP_URL = () => (process.env.NEXT_PUBLIC_APP_URL || 'https://print.zuerifix.tech').replace(/\/+$/, '')
 
 function emailShell(body: string): string {
     return `<!DOCTYPE html>
@@ -99,7 +99,7 @@ export async function sendOrderConfirmation(params: {
             .join('')
 
         await getResend().emails.send({
-            from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+            from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
             to: params.email,
             subject: `Your order is confirmed — SmartPrintAI #${shortId}`,
             html: emailShell(`
@@ -133,7 +133,7 @@ export async function sendOrderInReview(params: {
 }) {
     const shortId = params.orderId.slice(-8).toUpperCase()
     const result = await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: params.email,
         subject: `We're reviewing your order — SmartPrintAI #${shortId}`,
         html: emailShell(`
@@ -175,7 +175,7 @@ export async function sendShipmentNotification(params: {
         .join('')
 
     const result = await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: params.email,
         subject: `Your order is on its way! 🚀 #${shortId}`,
         html: emailShell(`
@@ -204,7 +204,7 @@ export async function sendSignInLink(params: {
     verifyUrl: string
 }) {
     await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: params.email,
         subject: 'Your SmartPrintAI sign-in link',
         html: emailShell(`
@@ -230,7 +230,7 @@ export async function sendSupportRequest(params: {
 }) {
     const recipients = supportRecipients()
     await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: recipients,
         subject: '[Support] ' + params.subject,
         replyTo: params.email,
@@ -257,7 +257,7 @@ export async function sendSupportAutoReply(params: {
     orderId?: string
 }) {
     await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: params.email,
         subject: 'We received your support request — SmartPrintAI',
         html: emailShell(`
@@ -285,7 +285,7 @@ export async function sendDiscountLeadNotification(params: {
 }) {
     const recipients = marketingRecipients()
     await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: recipients,
         subject: '[Lead] First-order discount signup',
         replyTo: params.email,
@@ -312,7 +312,7 @@ export async function sendFirstOrderCouponEmail(params: {
     const createUrl = params.locale === 'en' ? `${APP_URL()}/create` : `${APP_URL()}/${params.locale}/create`
 
     await getResend().emails.send({
-        from: process.env.EMAIL_FROM || 'noreply@smartprintai.com',
+        from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
         to: params.email,
         subject: 'Your exclusive discount — SmartPrintAI',
         html: emailShell(`
@@ -337,7 +337,7 @@ export async function sendOrderInProduction(params: {
         const shortId = params.orderId.slice(-8).toUpperCase()
 
         await getResend().emails.send({
-            from: process.env.EMAIL_FROM || 'orders@smartprintai.com',
+            from: process.env.EMAIL_FROM || 'SmartPrintAI <print@zuerifix.tech>',
             to: params.email,
             subject: `Your SmartPrintAI order is in production 🎨 #${shortId}`,
             html: emailShell(`

@@ -1,5 +1,5 @@
 {
-  "defaultBaseUrl": "https://smartprintai.com",
+  "defaultBaseUrl": "https://print.zuerifix.tech",
   "runsPerRoute": 2,
   "thresholds": {
     "performance": 0.6,

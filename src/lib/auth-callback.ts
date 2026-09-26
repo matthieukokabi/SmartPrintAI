@@ -1,6 +1,6 @@
 export const DEFAULT_AUTH_CALLBACK_PATH = '/account/orders'
 
-const SAFE_CALLBACK_ORIGIN = 'https://smartprintai.com'
+const SAFE_CALLBACK_ORIGIN = 'https://print.zuerifix.tech'
 
 function isDisallowedAuthCallbackPath(path: string): boolean {
     return path === '/admin' || path.startsWith('/admin/')

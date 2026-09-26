@@ -21,7 +21,7 @@ What it validates:
 
 ## 2) Owner-only action (Matthieu)
 
-Complete one real purchase on `https://smartprintai.com` using a real card.
+Complete one real purchase on `https://print.zuerifix.tech` using a real card.
 
 Required capture after payment:
 

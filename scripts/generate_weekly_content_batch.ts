@@ -201,7 +201,7 @@ function buildPlan(weekStart: Date): string {
     })
     lines.push('')
     lines.push('## Quality gate before publishing')
-    lines.push('- Every post links to https://smartprintai.com/create or localized equivalent.')
+    lines.push('- Every post links to https://print.zuerifix.tech/create or localized equivalent.')
     lines.push('- Product visuals match real catalog products and real colorways.')
     lines.push('- Captions include one clear CTA and one audience-specific keyword.')
     lines.push('- No copyrighted characters, logos, or trademarked franchises in prompts.')

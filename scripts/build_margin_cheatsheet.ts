@@ -145,7 +145,7 @@ function resolveCatalogUrl(): string {
         return explicit.endsWith('/api/products') ? explicit : `${explicit.replace(/\/+$/, '')}/api/products`
     }
 
-    const appUrl = asString(process.env.NEXT_PUBLIC_APP_URL) || 'https://smartprintai.com'
+    const appUrl = asString(process.env.NEXT_PUBLIC_APP_URL) || 'https://print.zuerifix.tech'
     return `${appUrl.replace(/\/+$/, '')}/api/products`
 }
 

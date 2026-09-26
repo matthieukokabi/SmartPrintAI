@@ -147,7 +147,7 @@ Expected payload envelope:
     "designId": "des_...",
     "prompt": "funny french bulldog in sunglasses",
     "style": "pop-art",
-    "imageUrl": "https://cdn.smartprintai.com/designs/...",
+    "imageUrl": "https://cdn.print.zuerifix.tech/designs/...",
     "sessionId": "sess_...",
     "createdAtIso": "2026-03-11T10:00:00.000Z"
   }
@@ -199,7 +199,7 @@ Then sends a `daily_digest` envelope to `MAKE_DAILY_DIGEST_WEBHOOK_URL`.
 Run from VPS:
 
 ```bash
-curl -sS -X POST "https://smartprintai.com/api/automations/daily-digest" \
+curl -sS -X POST "https://print.zuerifix.tech/api/automations/daily-digest" \
   -H "x-automation-token: <AUTOMATION_SHARED_SECRET>" \
   -H "content-type: application/json" \
   --data '{"windowHours":24}'
