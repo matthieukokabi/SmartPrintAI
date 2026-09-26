@@ -52,7 +52,7 @@ describe('/api/admin/auth/login POST', () => {
         })
 
         const res = await POST(createRequest(JSON.stringify({
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             password: 'OwnerPassword123!',
         })))
 
@@ -67,7 +67,7 @@ describe('/api/admin/auth/login POST', () => {
         })
 
         const res = await POST(createRequest(JSON.stringify({
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             password: 'wrong-password',
         })))
 
@@ -82,7 +82,7 @@ describe('/api/admin/auth/login POST', () => {
         })
 
         const res = await POST(createRequest(JSON.stringify({
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             password: 'OwnerPassword123!',
         })))
 
@@ -95,18 +95,18 @@ describe('/api/admin/auth/login POST', () => {
     it('sets owner session cookie and returns redirect path on success', async () => {
         mocks.authenticateOwnerLogin.mockResolvedValue({
             ok: true,
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             mustRotatePassword: false,
         })
 
         const res = await POST(createRequest(JSON.stringify({
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             password: 'OwnerPassword123!',
             next: '/admin/orders/cmn3p5lxs000c8fl2tvkivxxw',
         }), { 'x-request-id': 'req-owner-login' }))
 
         expect(res.status).toBe(200)
-        expect(mocks.createOwnerSessionToken).toHaveBeenCalledWith('owner@smartprintai.com')
+        expect(mocks.createOwnerSessionToken).toHaveBeenCalledWith('print@zuerifix.tech')
         expect(mocks.setOwnerSessionCookie).toHaveBeenCalledTimes(1)
         expect(res.headers.get('x-request-id')).toBe('req-owner-login')
         await expect(res.json()).resolves.toEqual({

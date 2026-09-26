@@ -7,7 +7,7 @@ import {
 describe('lighthouse product detail route helpers', () => {
     it('extracts product detail path from relative and absolute links', () => {
         expect(discoverProductDetailPathFromHtml('<a href="/products/prod_123">x</a>')).toBe('/products/prod_123')
-        expect(discoverProductDetailPathFromHtml('<a href="https://smartprintai.com/products/prod_456">x</a>')).toBe(
+        expect(discoverProductDetailPathFromHtml('<a href="https://print.zuerifix.tech/products/prod_456">x</a>')).toBe(
             '/products/prod_456',
         )
         expect(discoverProductDetailPathFromHtml('<a href="/fr/products/prod_789">x</a>')).toBe('/fr/products/prod_789')

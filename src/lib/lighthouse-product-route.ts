@@ -29,7 +29,7 @@ export function discoverProductDetailPathFromHtml(html: string): string | null {
             continue
         }
 
-        const candidate = new URL(match[2], 'https://smartprintai.com').pathname
+        const candidate = new URL(match[2], 'https://print.zuerifix.tech').pathname
         if (candidate === '/products') {
             continue
         }

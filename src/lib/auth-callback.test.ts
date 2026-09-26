@@ -8,7 +8,7 @@ import {
 describe('auth callback helpers', () => {
     it('normalizes safe callback paths and strips external origins', () => {
         expect(normalizeAuthCallbackPath('/account/orders?tab=latest')).toBe('/account/orders?tab=latest')
-        expect(normalizeAuthCallbackPath('https://smartprintai.com/account/orders?tab=items')).toBe('/account/orders?tab=items')
+        expect(normalizeAuthCallbackPath('https://print.zuerifix.tech/account/orders?tab=items')).toBe('/account/orders?tab=items')
         expect(normalizeAuthCallbackPath('https://evil.example/admin/orders/abc')).toBe(DEFAULT_AUTH_CALLBACK_PATH)
         expect(normalizeAuthCallbackPath('//evil.example/redirect')).toBe(DEFAULT_AUTH_CALLBACK_PATH)
     })

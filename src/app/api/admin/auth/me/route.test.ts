@@ -35,7 +35,7 @@ describe('/api/admin/auth/me GET', () => {
     })
 
     it('returns owner session payload for authenticated owner', async () => {
-        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'owner@smartprintai.com' })
+        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'print@zuerifix.tech' })
         mocks.canAccessOwnerPortal.mockReturnValue(true)
         mocks.getOwnerCredentialState.mockResolvedValue({ exists: true, mustRotatePassword: false })
 
@@ -44,7 +44,7 @@ describe('/api/admin/auth/me GET', () => {
         expect(res.status).toBe(200)
         await expect(res.json()).resolves.toEqual({
             owner: {
-                email: 'owner@smartprintai.com',
+                email: 'print@zuerifix.tech',
                 mustRotatePassword: false,
             },
         })

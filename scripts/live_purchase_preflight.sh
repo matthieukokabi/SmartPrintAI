@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${LIVE_PRECHECK_BASE_URL:-https://smartprintai.com}"
+BASE_URL="${LIVE_PRECHECK_BASE_URL:-https://print.zuerifix.tech}"
 TIMEOUT_SEC="${LIVE_PRECHECK_TIMEOUT_SEC:-15}"
 
 check_endpoint() {

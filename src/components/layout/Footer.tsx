@@ -27,7 +27,7 @@ export default function Footer() {
     const copy = getLocaleCopy(locale).footer
     const prefix = localePrefix(locale)
     const createHref = `${prefix}/create`
-    const supportEmail = 'help@smartprintai.com'
+    const supportEmail = 'print@zuerifix.tech'
 
     return (
         <footer

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import Link from 'next/link'
 import type { LocaleCopy } from '@/lib/i18n'
 
-const SUPPORT_EMAIL = 'help@smartprintai.com'
+const SUPPORT_EMAIL = 'print@zuerifix.tech'
 
 type Props = {
     copy: LocaleCopy['returns']

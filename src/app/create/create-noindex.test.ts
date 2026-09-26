@@ -19,7 +19,7 @@ function robotsFollow(metadata: { robots?: unknown }): boolean | undefined {
 
 describe('/create + /[locale]/create noindex parametric variants (GSC Soft 404 fix)', () => {
     beforeEach(() => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
     })
 
     it('/create with empty searchParams is indexable (canonical /create)', () => {

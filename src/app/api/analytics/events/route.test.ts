@@ -217,7 +217,7 @@ describe('/api/analytics/events POST', () => {
       }),
       {
         cookie: `${HOMEPAGE_VISITOR_ID_COOKIE}=cookie_visitor_456`,
-        referer: 'https://l.instagram.com/?u=https%3A%2F%2Fsmartprintai.com%2F',
+        referer: 'https://l.instagram.com/?u=https%3A%2F%2Fprint.zuerifix.tech%2F',
         'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
       }
     )

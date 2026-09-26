@@ -26,7 +26,7 @@ type QaCase = {
     }
 }
 
-const ORIGIN = 'https://smartprintai.com'
+const ORIGIN = 'https://print.zuerifix.tech'
 
 const QA_CASES: QaCase[] = [
     {

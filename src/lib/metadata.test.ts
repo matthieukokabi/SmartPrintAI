@@ -3,7 +3,7 @@ import { buildLocalizedSocialMetadata } from './metadata'
 
 describe('buildLocalizedSocialMetadata', () => {
     beforeEach(() => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
     })
 
     it('builds locale-specific OpenGraph and Twitter metadata with absolute URLs', () => {
@@ -16,7 +16,7 @@ describe('buildLocalizedSocialMetadata', () => {
 
         expect(metadata.openGraph).toMatchObject({
             locale: 'fr_FR',
-            url: 'https://smartprintai.com/fr/create',
+            url: 'https://print.zuerifix.tech/fr/create',
             title: 'Creer votre design',
             description: 'Generez votre design avec IA.',
         })
@@ -25,7 +25,7 @@ describe('buildLocalizedSocialMetadata', () => {
             card: 'summary_large_image',
             title: 'Creer votre design',
             description: 'Generez votre design avec IA.',
-            images: ['https://smartprintai.com/opengraph-image.png'],
+            images: ['https://print.zuerifix.tech/opengraph-image.png'],
         })
     })
 
@@ -37,9 +37,9 @@ describe('buildLocalizedSocialMetadata', () => {
             description: 'Browse catalog',
         })
 
-        expect(metadata.openGraph?.url).toBe('https://smartprintai.com/products')
-        expect(metadata.openGraph?.images).toEqual(['https://smartprintai.com/opengraph-image.png'])
-        expect(metadata.twitter?.images).toEqual(['https://smartprintai.com/opengraph-image.png'])
+        expect(metadata.openGraph?.url).toBe('https://print.zuerifix.tech/products')
+        expect(metadata.openGraph?.images).toEqual(['https://print.zuerifix.tech/opengraph-image.png'])
+        expect(metadata.twitter?.images).toEqual(['https://print.zuerifix.tech/opengraph-image.png'])
     })
 
     it('uses provided image list for OpenGraph and Twitter', () => {

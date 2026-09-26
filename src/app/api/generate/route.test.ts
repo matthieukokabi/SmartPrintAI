@@ -66,12 +66,12 @@ describe('/api/generate POST', () => {
       didRemoveBackground: true,
       didCrop: true,
     })
-    mocks.uploadBase64Image.mockResolvedValue('https://cdn.smartprintai.com/designs/design-1.png')
+    mocks.uploadBase64Image.mockResolvedValue('https://cdn.print.zuerifix.tech/designs/design-1.png')
     mocks.prisma.design.create.mockResolvedValue({
       id: 'design_1',
       prompt: 'funny french bulldog in sunglasses',
       style: 'pop-art',
-      imageUrl: 'https://cdn.smartprintai.com/designs/design-1.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/designs/design-1.png',
       sessionId: 'sess_1',
       createdAt: new Date('2026-03-11T10:00:00.000Z'),
     })
@@ -148,11 +148,11 @@ describe('/api/generate POST', () => {
       id: 'design_2',
       prompt: 'turn this portrait into watercolor poster art',
       style: 'watercolor',
-      imageUrl: 'https://cdn.smartprintai.com/designs/design-2.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/designs/design-2.png',
       sessionId: null,
       createdAt: new Date('2026-03-11T10:05:00.000Z'),
     })
-    mocks.uploadBase64Image.mockResolvedValueOnce('https://cdn.smartprintai.com/designs/design-2.png')
+    mocks.uploadBase64Image.mockResolvedValueOnce('https://cdn.print.zuerifix.tech/designs/design-2.png')
 
     const sourceImageDataUrl = 'data:image/png;base64,ZmFrZS1pbWFnZS1ieXRlcw=='
 
@@ -165,7 +165,7 @@ describe('/api/generate POST', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       designId: 'design_2',
-      imageUrl: 'https://cdn.smartprintai.com/designs/design-2.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/designs/design-2.png',
     })
 
     expect(mocks.generateImage).toHaveBeenCalledWith({
@@ -188,7 +188,7 @@ describe('/api/generate POST', () => {
     expect(res.headers.get('x-request-id')).toBe('req-generate-ok')
     await expect(res.json()).resolves.toEqual({
       designId: 'design_1',
-      imageUrl: 'https://cdn.smartprintai.com/designs/design-1.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/designs/design-1.png',
     })
 
     expect(mocks.generateImage).toHaveBeenCalledWith({
@@ -203,7 +203,7 @@ describe('/api/generate POST', () => {
       designId: 'design_1',
       prompt: 'funny french bulldog in sunglasses',
       style: 'pop-art',
-      imageUrl: 'https://cdn.smartprintai.com/designs/design-1.png',
+      imageUrl: 'https://cdn.print.zuerifix.tech/designs/design-1.png',
       sessionId: 'sess_1',
       createdAtIso: '2026-03-11T10:00:00.000Z',
     })

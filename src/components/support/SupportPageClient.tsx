@@ -74,15 +74,15 @@ export default function SupportPageClient({ locale, copy }: SupportPageClientPro
                     <p className="text-sm text-muted-foreground">
                         {copy.emailLabel}:
                         {' '}
-                        <a className="text-purple-300 hover:text-purple-200" href="mailto:support@smartprintai.com">
-                            support@smartprintai.com
+                        <a className="text-purple-300 hover:text-purple-200" href="mailto:print@zuerifix.tech">
+                            print@zuerifix.tech
                         </a>
                     </p>
                     <p className="text-sm text-muted-foreground">
                         {copy.backupLabel}:
                         {' '}
-                        <a className="text-purple-300 hover:text-purple-200" href="mailto:contact@smartprintai.com">
-                            contact@smartprintai.com
+                        <a className="text-purple-300 hover:text-purple-200" href="mailto:print@zuerifix.tech">
+                            print@zuerifix.tech
                         </a>
                     </p>
                     <p className="text-sm text-muted-foreground">{copy.includeOrderIdLabel}</p>

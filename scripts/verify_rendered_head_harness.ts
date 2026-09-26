@@ -297,7 +297,7 @@ function discoverProductDetailPath(html: string): string | null {
         if (!match || !match[2]) {
             continue
         }
-        const resolved = new URL(match[2], 'https://smartprintai.com')
+        const resolved = new URL(match[2], 'https://print.zuerifix.tech')
         const routePath = normalizeRoutePath(resolved.pathname)
         if (routePath === '/products') {
             continue
@@ -823,7 +823,7 @@ async function main(): Promise<void> {
     const localPort = Number(process.env.SEO_VERIFY_LOCAL_PORT || '3301')
     const includeLocal = (process.env.SEO_VERIFY_INCLUDE_LOCAL || '0').trim() !== '0'
     const includeProd = (process.env.SEO_VERIFY_INCLUDE_PROD || '1').trim() !== '0'
-    const prodBaseUrl = normalizeBaseUrl(process.env.SEO_VERIFY_PROD_BASE_URL || 'https://smartprintai.com')
+    const prodBaseUrl = normalizeBaseUrl(process.env.SEO_VERIFY_PROD_BASE_URL || 'https://print.zuerifix.tech')
     const commitSha = (process.env.SEO_VERIFY_COMMIT_SHA || '').trim() || readGitCommitSha()
 
     const artifactRoot = path.resolve(

@@ -82,7 +82,7 @@ Per run (timestamp + commit SHA):
   - `CONVERSION_INSIGHTS_INPUT_FILE` (optional fixture-mode input for deterministic/local validation)
   - `CONVERSION_INSIGHTS_DEGRADED_POLICY` (default `warn`, set `fail` to hard-fail when no DB/cache fallback is usable)
 - Mockup-quality smoke toggles:
-  - `QUALITY_CHECKPOINT_MOCKUP_BASE_URL` (default `https://smartprintai.com`)
+  - `QUALITY_CHECKPOINT_MOCKUP_BASE_URL` (default `https://print.zuerifix.tech`)
   - `MOCKUP_SMOKE_PROMPT` (optional override for generated-design prompt seed)
   - `MOCKUP_SMOKE_HOODIE_PRODUCT_ID` / `MOCKUP_SMOKE_CAP_PRODUCT_ID` (optional deterministic product-id pinning)
   - `MOCKUP_SMOKE_MAX_ATTEMPTS` (default `4`, internal `/api/mockup` retry loop for transient provider `429`)

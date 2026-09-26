@@ -2,7 +2,7 @@
 
 Generated at: 2026-03-20T00:56:20.582Z
 
-Source: api:https://smartprintai.com/api/products
+Source: api:https://print.zuerifix.tech/api/products
 
 Stripe fee model used: 2.90% + 0.30 per order (estimate only).
 

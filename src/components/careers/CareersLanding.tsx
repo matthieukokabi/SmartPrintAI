@@ -8,7 +8,7 @@ interface CareersLandingProps {
 }
 
 export default function CareersLanding({ locale, copy }: CareersLandingProps) {
-    const [beforeEmail, afterEmail = ''] = copy.closingLine.split('hello@smartprintai.com')
+    const [beforeEmail, afterEmail = ''] = copy.closingLine.split('print@zuerifix.tech')
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-14 space-y-12">
@@ -27,7 +27,7 @@ export default function CareersLanding({ locale, copy }: CareersLandingProps) {
                     </p>
                     <div className="flex flex-wrap gap-3 pt-2">
                         <a
-                            href="mailto:hello@smartprintai.com?subject=SmartPrintAI%20Career%20Application"
+                            href="mailto:print@zuerifix.tech?subject=SmartPrintAI%20Career%20Application"
                             className="inline-flex items-center px-5 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium hover:opacity-90 transition-opacity"
                         >
                             {copy.applyButton}
@@ -69,8 +69,8 @@ export default function CareersLanding({ locale, copy }: CareersLandingProps) {
                 </ul>
                 <p className="text-sm text-muted-foreground pt-2">
                     {beforeEmail}
-                    <a className="text-purple-300 hover:text-purple-200" href="mailto:hello@smartprintai.com">
-                        hello@smartprintai.com
+                    <a className="text-purple-300 hover:text-purple-200" href="mailto:print@zuerifix.tech">
+                        print@zuerifix.tech
                     </a>
                     {afterEmail}
                 </p>

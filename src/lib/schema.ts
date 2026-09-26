@@ -99,7 +99,7 @@ export function buildProductOfferSchema(input: ProductOfferSchemaInput) {
         },
         hasMerchantReturnPolicy: {
             '@type': 'MerchantReturnPolicy',
-            '@id': 'https://smartprintai.com/returns#policy',
+            '@id': 'https://print.zuerifix.tech/returns#policy',
             returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
             merchantReturnDays: 30,
             returnMethod: 'https://schema.org/ReturnByMail',

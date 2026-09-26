@@ -33,8 +33,8 @@ export default function GlobalError({
                     </h1>
                     <p style={{ color: '#a1a1aa', margin: '0 0 24px', fontSize: 14, lineHeight: 1.6 }}>
                         SmartPrintAI hit an unexpected error. Try again, or reload the page. If the problem
-                        keeps happening, email <a href="mailto:help@smartprintai.com" style={{ color: '#93c5fd' }}>
-                            help@smartprintai.com
+                        keeps happening, email <a href="mailto:print@zuerifix.tech" style={{ color: '#93c5fd' }}>
+                            print@zuerifix.tech
                         </a>.
                     </p>
                     <button

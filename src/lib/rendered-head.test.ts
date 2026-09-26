@@ -15,29 +15,29 @@ describe('rendered head parser', () => {
     it('parses canonical, alternates, and og:url from server-rendered head html', () => {
         const html = `
             <head>
-                <link rel="canonical" href="https://smartprintai.com/fr/create" />
-                <link rel="alternate" hrefLang="en" href="https://smartprintai.com/create" />
-                <link rel="alternate" hreflang="fr" href="https://smartprintai.com/fr/create" />
-                <link rel="alternate" hrefLang="x-default" href="https://smartprintai.com/create" />
-                <meta property="og:url" content="https://smartprintai.com/fr/create" />
+                <link rel="canonical" href="https://print.zuerifix.tech/fr/create" />
+                <link rel="alternate" hrefLang="en" href="https://print.zuerifix.tech/create" />
+                <link rel="alternate" hreflang="fr" href="https://print.zuerifix.tech/fr/create" />
+                <link rel="alternate" hrefLang="x-default" href="https://print.zuerifix.tech/create" />
+                <meta property="og:url" content="https://print.zuerifix.tech/fr/create" />
             </head>
         `
 
         const parsed = parseRenderedHead(html)
 
-        expect(parsed.canonicalHref).toBe('https://smartprintai.com/fr/create')
-        expect(parsed.ogUrl).toBe('https://smartprintai.com/fr/create')
+        expect(parsed.canonicalHref).toBe('https://print.zuerifix.tech/fr/create')
+        expect(parsed.ogUrl).toBe('https://print.zuerifix.tech/fr/create')
         expect(parsed.alternates).toEqual({
-            en: 'https://smartprintai.com/create',
-            fr: 'https://smartprintai.com/fr/create',
-            'x-default': 'https://smartprintai.com/create',
+            en: 'https://print.zuerifix.tech/create',
+            fr: 'https://print.zuerifix.tech/fr/create',
+            'x-default': 'https://print.zuerifix.tech/create',
         })
     })
 
     it('normalizes pathnames from absolute or relative urls', () => {
-        expect(toPathname('https://smartprintai.com/fr/create')).toBe('/fr/create')
+        expect(toPathname('https://print.zuerifix.tech/fr/create')).toBe('/fr/create')
         expect(toPathname('/create')).toBe('/create')
-        expect(toPathname('https://smartprintai.com/')).toBe('/')
+        expect(toPathname('https://print.zuerifix.tech/')).toBe('/')
     })
 
     it('resolves locale from rendered route path', () => {
@@ -86,7 +86,7 @@ describe('rendered head parser', () => {
     it('parses JSON-LD scripts and finds required schema types', () => {
         const html = `
             <script type="application/ld+json">
-                {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://smartprintai.com/"}]}
+                {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://print.zuerifix.tech/"}]}
             </script>
             <script type="application/ld+json">
                 {"@context":"https://schema.org","@graph":[{"@type":"Product","name":"Sample Tee","offers":{"@type":"Offer","priceCurrency":"USD","availability":"https://schema.org/InStock","shippingDetails":{"@type":"OfferShippingDetails"},"hasMerchantReturnPolicy":{"@type":"MerchantReturnPolicy"}}}]}

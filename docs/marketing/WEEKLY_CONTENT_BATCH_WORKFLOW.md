@@ -34,7 +34,7 @@ npm run marketing:weekly-batch -- --write=docs/marketing/batches/2026-W12.md
 5. 15 min: QA links, CTA clarity, and publish calendar.
 
 ## Publishing quality gate
-- Each social asset links to `https://smartprintai.com/create` (or localized equivalent).
+- Each social asset links to `https://print.zuerifix.tech/create` (or localized equivalent).
 - Product visuals match real products and valid colorways.
 - Captions include one clear CTA and one audience keyword.
 - Prompts avoid copyrighted characters and protected trademarks.

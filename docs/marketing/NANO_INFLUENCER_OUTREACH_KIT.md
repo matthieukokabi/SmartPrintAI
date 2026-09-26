@@ -20,7 +20,7 @@ Target profile:
 - Deliverables:
   - 1 short-form video or 1 post + 1 story
   - Tag SmartPrintAI
-  - Mention creation flow (`smartprintai.com/create`)
+  - Mention creation flow (`print.zuerifix.tech/create`)
 
 ## Outreach sequence
 
@@ -94,7 +94,7 @@ If this is relevant, I can send:
 Thanks,
 <your_name>
 SmartPrintAI
-https://smartprintai.com/create
+https://print.zuerifix.tech/create
 ```
 
 ## Creator brief (after acceptance)
@@ -104,7 +104,7 @@ Send this once they agree:
 - Shipping destination:
 - Content format: short video or post + story
 - Posting window: within 7-10 days after receiving product
-- CTA: `Create your own at smartprintai.com/create`
+- CTA: `Create your own at print.zuerifix.tech/create`
 - Tracking link / code:
 
 ## KPI targets (first 30 days)

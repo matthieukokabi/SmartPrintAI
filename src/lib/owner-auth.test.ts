@@ -24,7 +24,7 @@ import {
 describe('owner auth service', () => {
     beforeEach(() => {
         vi.clearAllMocks()
-        process.env.OWNER_PORTAL_EMAILS = 'owner@smartprintai.com'
+        process.env.OWNER_PORTAL_EMAILS = 'print@zuerifix.tech'
         delete process.env.OWNER_PORTAL_INITIAL_PASSWORD
         delete process.env.OWNER_PORTAL_INITIAL_PASSWORD_HASH
         delete process.env.OWNER_PORTAL_MIN_PASSWORD_LENGTH
@@ -37,10 +37,10 @@ describe('owner auth service', () => {
             mustRotatePassword: false,
         })
 
-        const result = await authenticateOwnerLogin('owner@smartprintai.com', 'StoredPassword123!')
+        const result = await authenticateOwnerLogin('print@zuerifix.tech', 'StoredPassword123!')
         expect(result).toEqual({
             ok: true,
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             mustRotatePassword: false,
         })
     })
@@ -52,10 +52,10 @@ describe('owner auth service', () => {
             id: 'owner_1',
         })
 
-        const result = await authenticateOwnerLogin('owner@smartprintai.com', 'BootstrapPass123!')
+        const result = await authenticateOwnerLogin('print@zuerifix.tech', 'BootstrapPass123!')
         expect(result).toEqual({
             ok: true,
-            email: 'owner@smartprintai.com',
+            email: 'print@zuerifix.tech',
             mustRotatePassword: true,
         })
         expect(mocks.prisma.ownerCredential.create).toHaveBeenCalledTimes(1)
@@ -64,7 +64,7 @@ describe('owner auth service', () => {
     it('returns bootstrap_not_configured when no stored credential and no bootstrap secret', async () => {
         mocks.prisma.ownerCredential.findUnique.mockResolvedValue(null)
 
-        const result = await authenticateOwnerLogin('owner@smartprintai.com', 'whatever')
+        const result = await authenticateOwnerLogin('print@zuerifix.tech', 'whatever')
         expect(result).toEqual({
             ok: false,
             code: 'bootstrap_not_configured',
@@ -77,7 +77,7 @@ describe('owner auth service', () => {
         mocks.prisma.ownerCredential.upsert.mockResolvedValue({ id: 'owner_1' })
 
         const result = await changeOwnerPassword(
-            'owner@smartprintai.com',
+            'print@zuerifix.tech',
             'OldPassword123!',
             'NewPassword123!',
         )
@@ -90,7 +90,7 @@ describe('owner auth service', () => {
         const tooShort = 'x'.repeat(OWNER_AUTH_DEFAULT_MIN_PASSWORD_LENGTH - 1)
 
         const result = await changeOwnerPassword(
-            'owner@smartprintai.com',
+            'print@zuerifix.tech',
             'OldPassword123!',
             tooShort,
         )

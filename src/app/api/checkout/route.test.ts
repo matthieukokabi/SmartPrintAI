@@ -45,7 +45,7 @@ function createRequest(body: string, headers: HeadersInit = {}) {
 describe('/api/checkout POST', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+    process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
   })
 
   it('returns 400 on invalid JSON body', async () => {
@@ -125,8 +125,8 @@ describe('/api/checkout POST', () => {
         shipping_address_collection: {
           allowed_countries: ['US', 'CA', 'GB', 'DE', 'FR', 'AU', 'NL', 'BE', 'CH'],
         },
-        success_url: 'https://smartprintai.com/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://smartprintai.com/cart',
+        success_url: 'https://print.zuerifix.tech/success?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: 'https://print.zuerifix.tech/cart',
         metadata: expect.objectContaining({
           sessionId: 'sess-abc',
         }),

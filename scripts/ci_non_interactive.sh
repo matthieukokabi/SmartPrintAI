@@ -17,7 +17,7 @@ TREND_ARTIFACT_DIR="docs/reports/artifacts/wave5-trend-history-ci-${TIMESTAMP}-$
 TREND_REPORT_FILE="docs/reports/WAVE5_TREND_GATE_CI_${TIMESTAMP}_${COMMIT_SHA}.md"
 TREND_HISTORY_DIR="docs/reports/artifacts/wave5-trend-history"
 MOCKUP_QUALITY_ARTIFACT_DIR="docs/reports/artifacts/wave9-mockup-quality-ci-${TIMESTAMP}-${COMMIT_SHA}"
-CI_GUARD_MOCKUP_BASE_URL="${CI_GUARD_MOCKUP_BASE_URL:-https://smartprintai.com}"
+CI_GUARD_MOCKUP_BASE_URL="${CI_GUARD_MOCKUP_BASE_URL:-https://print.zuerifix.tech}"
 CI_GUARD_STRICT_MOCKUP_SMOKE="${CI_GUARD_STRICT_MOCKUP_SMOKE:-0}"
 
 echo "[1/13] Lint"

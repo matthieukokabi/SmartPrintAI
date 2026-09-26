@@ -70,7 +70,7 @@ export function OwnerLoginClient({ nextPath }: OwnerLoginClientProps) {
                             value={email}
                             onChange={(event) => setEmail(event.target.value)}
                             className="app-input w-full rounded-xl px-3.5 py-3 text-sm outline-none"
-                            placeholder="owner@smartprintai.com"
+                            placeholder="print@zuerifix.tech"
                         />
                     </div>
 

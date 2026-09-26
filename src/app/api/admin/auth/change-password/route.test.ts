@@ -42,7 +42,7 @@ describe('/api/admin/auth/change-password POST', () => {
     })
 
     it('returns 400 when new password is too short', async () => {
-        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'owner@smartprintai.com' })
+        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'print@zuerifix.tech' })
         mocks.changeOwnerPassword.mockResolvedValue({
             ok: false,
             code: 'password_too_short',
@@ -58,7 +58,7 @@ describe('/api/admin/auth/change-password POST', () => {
     })
 
     it('updates owner password on valid payload', async () => {
-        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'owner@smartprintai.com' })
+        mocks.getOwnerSessionFromRequest.mockReturnValue({ email: 'print@zuerifix.tech' })
         mocks.changeOwnerPassword.mockResolvedValue({ ok: true })
 
         const res = await POST(createRequest(JSON.stringify({
@@ -69,7 +69,7 @@ describe('/api/admin/auth/change-password POST', () => {
         expect(res.status).toBe(200)
         expect(res.headers.get('x-request-id')).toBe('req-owner-change')
         expect(mocks.changeOwnerPassword).toHaveBeenCalledWith(
-            'owner@smartprintai.com',
+            'print@zuerifix.tech',
             'OwnerPassword123!',
             'OwnerPassword456!',
         )

@@ -3,7 +3,7 @@ import { buildBreadcrumbList, buildLocalizedSchemaUrl, buildProductOfferSchema, 
 
 describe('schema helpers', () => {
     beforeEach(() => {
-        process.env.NEXT_PUBLIC_APP_URL = 'https://smartprintai.com'
+        process.env.NEXT_PUBLIC_APP_URL = 'https://print.zuerifix.tech'
     })
 
     it('builds BreadcrumbList with absolute item URLs and stable positions', () => {
@@ -19,19 +19,19 @@ describe('schema helpers', () => {
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://smartprintai.com/',
+                item: 'https://print.zuerifix.tech/',
             }),
             expect.objectContaining({
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Products',
-                item: 'https://smartprintai.com/products',
+                item: 'https://print.zuerifix.tech/products',
             }),
             expect.objectContaining({
                 '@type': 'ListItem',
                 position: 3,
                 name: 'Premium Tee',
-                item: 'https://smartprintai.com/products/prod_1',
+                item: 'https://print.zuerifix.tech/products/prod_1',
             }),
         ])
     })
@@ -48,13 +48,13 @@ describe('schema helpers', () => {
             priceCurrency: 'USD',
             price: '29.99',
             availability: 'https://schema.org/InStock',
-            url: 'https://smartprintai.com/products/prod_1',
+            url: 'https://print.zuerifix.tech/products/prod_1',
             shippingDetails: {
                 '@type': 'OfferShippingDetails',
             },
             hasMerchantReturnPolicy: {
                 '@type': 'MerchantReturnPolicy',
-                url: 'https://smartprintai.com/returns',
+                url: 'https://print.zuerifix.tech/returns',
             },
         })
     })
@@ -66,9 +66,9 @@ describe('schema helpers', () => {
     })
 
     it('builds schema URLs that stay aligned with locale canonical policy', () => {
-        expect(buildLocalizedSchemaUrl('en', '/products/prod_1')).toBe('https://smartprintai.com/products/prod_1')
-        expect(buildLocalizedSchemaUrl('fr', '/products/prod_1')).toBe('https://smartprintai.com/fr/products/prod_1')
-        expect(buildLocalizedSchemaUrl('en', '/blog/post-1')).toBe('https://smartprintai.com/blog/post-1')
-        expect(buildLocalizedSchemaUrl('de', '/blog/post-1')).toBe('https://smartprintai.com/de/blog/post-1')
+        expect(buildLocalizedSchemaUrl('en', '/products/prod_1')).toBe('https://print.zuerifix.tech/products/prod_1')
+        expect(buildLocalizedSchemaUrl('fr', '/products/prod_1')).toBe('https://print.zuerifix.tech/fr/products/prod_1')
+        expect(buildLocalizedSchemaUrl('en', '/blog/post-1')).toBe('https://print.zuerifix.tech/blog/post-1')
+        expect(buildLocalizedSchemaUrl('de', '/blog/post-1')).toBe('https://print.zuerifix.tech/de/blog/post-1')
     })
 })

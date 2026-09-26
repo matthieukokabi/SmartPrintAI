@@ -56,7 +56,7 @@ function toPathParts(rawPath: string | undefined, fallbackPathname: string): {
 } {
     const raw = rawPath?.trim() || fallbackPathname
     try {
-        const parsed = new URL(raw, 'https://smartprintai.com')
+        const parsed = new URL(raw, 'https://print.zuerifix.tech')
         return {
             pathname: parsed.pathname || fallbackPathname,
             search: parsed.search || '',

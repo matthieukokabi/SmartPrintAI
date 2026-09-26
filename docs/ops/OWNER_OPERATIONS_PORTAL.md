@@ -34,7 +34,7 @@ Owner allowlist:
 Set this in production:
 
 ```env
-OWNER_PORTAL_EMAILS="owner@smartprintai.com,ops@smartprintai.com"
+OWNER_PORTAL_EMAILS="print@zuerifix.tech,print@zuerifix.tech"
 ```
 
 Unauthorized users are denied (`404`), and unauthenticated users are redirected to `/admin/login?next=<admin-path>`.

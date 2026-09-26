@@ -117,7 +117,7 @@ JSON
     fi
     mkdir -p "$(dirname "$MOCKUP_SMOKE_REPORT_FILE")"
     cat > "$MOCKUP_SMOKE_REPORT_FILE" <<JSON
-{"baseUrl":"https://smartprintai.com","passed":true,"results":[{"target":"hoodie","analysis":{"suspiciousMatte":false}},{"target":"cap","analysis":{"suspiciousMatte":false}}]}
+{"baseUrl":"https://print.zuerifix.tech","passed":true,"results":[{"target":"hoodie","analysis":{"suspiciousMatte":false}},{"target":"cap","analysis":{"suspiciousMatte":false}}]}
 JSON
     ;;
   *)

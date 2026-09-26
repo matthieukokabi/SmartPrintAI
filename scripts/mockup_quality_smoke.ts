@@ -23,7 +23,7 @@ type MockupTarget = {
 
 type JsonObject = Record<string, unknown>
 
-const baseUrl = (process.env.MOCKUP_SMOKE_BASE_URL || 'https://smartprintai.com').trim().replace(/\/$/, '')
+const baseUrl = (process.env.MOCKUP_SMOKE_BASE_URL || 'https://print.zuerifix.tech').trim().replace(/\/$/, '')
 const prompt =
     (process.env.MOCKUP_SMOKE_PROMPT || 'Cyber tiger emblem, neon blue/orange, transparent background, no text, centered composition').trim()
 const style = (process.env.MOCKUP_SMOKE_STYLE || 'artistic').trim()
