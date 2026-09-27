@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { splitBlockedGootenReadyToBuyProducts } from '@/lib/gooten-ready-to-buy-safety'
-import { getShippingRatesForProduct, HANDLING_TIME_BUSINESS_DAYS } from '@/lib/shipping-rates'
+import { getShippingRatesForProduct, HANDLING_TIME_BUSINESS_DAYS, SHIPPING_COUNTRIES } from '@/lib/shipping-rates'
+import { getAllowedCountriesForProduct } from '@/lib/product-destination-safety'
 import { toAbsoluteUrl } from '@/lib/site'
 
 export const dynamic = 'force-dynamic'
@@ -130,33 +131,62 @@ function resolveSizes(sizes: string[]): string[] {
     return out
 }
 
+// Adult alpha size run used by every unisex line the providers sell
+// (Printful/Gooten all-over-print: 2XS–6XL, blanks: XS–5XL).
+const ADULT_ALPHA_SIZES = new Set(['2XS', 'XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', 'XXL', '3XL', '4XL', '5XL', '6XL'])
+// Toddler / kids size runs (2T–5T, 6, 6X, 7, youth XS–XL are caught by name).
+const KIDS_SIZES = new Set(['2T', '3T', '4T', '5T', '6', '6X', '7', '8', '10', '12', '14', '16'])
+// Lines cut for women but not labelled "Women's" in the provider name. An
+// adult size run does not make these unisex, so they get age_group only.
+const WOMENS_CUT = /\b(dress|skirt|bikini|bra|crop\s+(top|tee)|one-piece swimsuit)\b/i
+
+function normalizeSize(size: string): string {
+    return size.trim().toUpperCase().replace(/\s+/g, '')
+}
+
+function allSizesIn(sizes: string[], set: Set<string>): boolean {
+    const list = resolveSizes(sizes)
+    return list.length > 0 && list.every((size) => set.has(normalizeSize(size)))
+}
+
+function isKidsProduct(name: string, category: string, sizes: string[]): boolean {
+    const n = `${name} ${category}`.toLowerCase()
+    return /\b(newborn|infant|baby|toddler|kids?|youth|children)\b/.test(n) || allSizesIn(sizes, KIDS_SIZES)
+}
+
 /**
- * Gender is only emitted when the product name states it
- * ("Unisex …", "Men's …", "Women's …"). Nothing is inferred from
- * category (a "Dresses" item without a stated gender gets no tag).
+ * Gender:
+ *  - stated in the name: Women's/Ladies -> female, Men's -> male, Unisex -> unisex
+ *  - otherwise unisex ONLY when the item is sold in the adult alpha size run
+ *    (XS–5XL family) and is not a kids item or a women's-cut line
+ *  - anything else: no tag (nothing is guessed)
  */
-function resolveGender(name: string): Gender | null {
+function resolveGender(name: string, category: string, sizes: string[]): Gender | null {
     const n = name.toLowerCase()
     if (/\bunisex\b/.test(n)) return 'unisex'
     if (/\b(women'?s?|ladies)\b/.test(n)) return 'female'
     if (/\bmen'?s?\b/.test(n)) return 'male'
+    if (isKidsProduct(name, category, sizes)) return null
+    if (WOMENS_CUT.test(name)) return null
+    if (allSizesIn(sizes, ADULT_ALPHA_SIZES)) return 'unisex'
     return null
 }
 
 /**
- * Age group comes from explicit wording in the name or category
- * (Kids / Youth / Toddler / Baby / Infant / Newborn). Products whose
- * name states an adult gender line (Unisex / Men's / Women's) are
- * adult lines by provider naming convention. Anything else is left
- * untagged rather than guessed.
+ * Age group:
+ *  - Kids / Youth / Toddler / Baby wording, or a kids size run -> kids
+ *    (newborn / infant / toddler when the name says so)
+ *  - a stated adult gender line, or an adult alpha size run -> adult
+ *  - anything else: no tag
  */
-function resolveAgeGroup(name: string, category: string, gender: Gender | null): AgeGroup | null {
+function resolveAgeGroup(name: string, category: string, sizes: string[], gender: Gender | null): AgeGroup | null {
     const n = `${name} ${category}`.toLowerCase()
     if (/\bnewborn\b/.test(n)) return 'newborn'
     if (/\b(infant|baby)\b/.test(n)) return 'infant'
     if (/\btoddler\b/.test(n)) return 'toddler'
-    if (/\b(kids?|youth|children)\b/.test(n)) return 'kids'
+    if (isKidsProduct(name, category, sizes)) return 'kids'
     if (gender) return 'adult'
+    if (allSizesIn(sizes, ADULT_ALPHA_SIZES)) return 'adult'
     return null
 }
 
@@ -201,8 +231,13 @@ function itemXml(product: FeedProduct, variant: ItemVariant, apparel: boolean): 
 
     const googleCategory = resolveCategory(product.category)
     const color = resolveColorAttribute(product.colors)
-    const gender = apparel ? resolveGender(product.name) : null
-    const ageGroup = apparel ? resolveAgeGroup(product.name, product.category, gender) : null
+    const gender = apparel ? resolveGender(product.name, product.category, product.sizes) : null
+    const ageGroup = apparel ? resolveAgeGroup(product.name, product.category, product.sizes, gender) : null
+    // Countries checkout accepts in general but not for this product
+    // (e.g. Printful US-only blanks): keep them out of Shopping ads there
+    // instead of showing as "limited" for missing shipping info.
+    const allowed = new Set(getAllowedCountriesForProduct(product, SHIPPING_COUNTRIES))
+    const excludedCountries = SHIPPING_COUNTRIES.filter((country) => !allowed.has(country))
 
     return [
         '<item>',
@@ -211,6 +246,7 @@ function itemXml(product: FeedProduct, variant: ItemVariant, apparel: boolean): 
         `<title>${escapeXml(variant.title)}</title>`,
         `<description>${escapeXml(description)}</description>`,
         `<link>${escapeXml(productUrl)}</link>`,
+        `<g:canonical_link>${escapeXml(productUrl)}</g:canonical_link>`,
         `<g:image_link>${escapeXml(toAbsoluteUrl(product.imageUrl))}</g:image_link>`,
         '<g:availability>in stock</g:availability>',
         `<g:price>${product.sellPrice.toFixed(2)} USD</g:price>`,
@@ -226,6 +262,7 @@ function itemXml(product: FeedProduct, variant: ItemVariant, apparel: boolean): 
         `<g:min_handling_time>${HANDLING_TIME_BUSINESS_DAYS.min}</g:min_handling_time>`,
         `<g:max_handling_time>${HANDLING_TIME_BUSINESS_DAYS.max}</g:max_handling_time>`,
         ...shippingXml(product),
+        ...excludedCountries.map((country) => `<g:shopping_ads_excluded_country>${escapeXml(country)}</g:shopping_ads_excluded_country>`),
         '</item>',
     ].join('')
 }
